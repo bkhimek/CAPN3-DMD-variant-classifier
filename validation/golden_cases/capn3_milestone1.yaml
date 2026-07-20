@@ -1,0 +1,73 @@
+# Golden cases for Milestone 1 CAPN3 fixtures.
+#
+# Deliberately kept in validation/golden_cases/, separate from
+# data/curated/, per the Validation and Verification Design Guide's
+# golden-case philosophy: expected results are curated independently of
+# the evidence bundle they judge, so a future evaluator is tested against
+# an outside opinion, not its own assumptions.
+#
+# No evaluators exist yet in Milestone 1 (see README.md) — these
+# expectations are worked out by hand against the ACMG/AMP combining
+# rules (Richards et al. 2015, Table 5) and are what Milestone 2/3
+# evaluators will eventually be checked against, not something the
+# current codebase computes or verifies today.
+
+golden_cases:
+  - variant_id: CAPN3_c.550del
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MET
+      PM2: MANUAL_REVIEW
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the curated evidence in data/curated/variant_evidence.json"
+    curator_note: >
+      Deliberately NOT auto-classified as Likely Pathogenic despite the real
+      ClinVar Pathogenic call. PVS1 alone (1 Very Strong) is insufficient by
+      itself under Table 5. PM2 is marked MANUAL_REVIEW rather than MET
+      because this is a known founder allele with a much higher
+      ancestry-specific frequency (0.75%) than global frequency (0.023%) —
+      whether that's "extremely low frequency" for PM2 purposes depends on
+      knowing the tested individual's ancestry, which this fixture does not
+      specify. The real-world Pathogenic classification for this variant
+      also draws on segregation/case-count evidence (PM3, PS4-adjacent)
+      that is entirely out of scope for Milestone 1's 6-criterion engine.
+      This golden case exists specifically to prove the prototype does NOT
+      overclaim certainty it has no evidence for.
+
+  - variant_id: CAPN3_SYNTH_PATHOGENIC_01
+    expected_provisional_class: PATHOGENIC
+    expected_criterion_status:
+      PVS1: MET
+      PM2: MET
+      PP3: MET
+      BP4: NOT_MET
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Synthetic fixture constructed to exercise Table 5 combining-rule path (iii): 1 Very Strong + 1 Moderate + ≥1 Supporting"
+    curator_note: >
+      Confirms the combination engine can reach PATHOGENIC through the
+      VS+M+Supporting path, not just VS+S. This path only exists in the
+      Milestone-1 criterion set because PP3 is included.
+
+  - variant_id: CAPN3_SYNTH_LIKELY_BENIGN_01
+    expected_provisional_class: LIKELY_BENIGN
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: NOT_MET
+      PP3: NOT_MET
+      BP4: MET
+      BA1: NOT_MET
+      BS1: MET
+    source: "Synthetic fixture constructed to exercise Table 5 combining-rule path: 1 Strong-Benign + 1 Supporting-Benign"
+    curator_note: >
+      This is the fixture that specifically tests the fix for the
+      LIKELY_BENIGN-unreachable bug identified during Project 1 planning
+      review: the original 5-criterion set (PVS1/PM2/PP3/BA1/BS1) had no
+      Supporting-Benign criterion at all, so BS1 alone could never combine
+      to LIKELY_BENIGN. BP4's addition closes that gap. AF (1.4% overall,
+      2.1% ancestry-max) is deliberately below a plausible BA1 threshold so
+      this case exercises the BS1+BP4 path rather than the stand-alone BA1
+      path.

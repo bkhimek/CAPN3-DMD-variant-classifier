@@ -1,0 +1,158 @@
+{
+  "_comment": "Curated CAPN3 evidence bundles for Milestone 1. Case 1 is grounded in a real ClinVar entry (coordinates not independently verified — see notes). Cases 2 and 3 are synthetic, constructed specifically to exercise the Pathogenic and Likely Benign combining-rule paths with the Milestone-1 criterion set (PVS1, PM2, PP3, BP4, BA1, BS1). Expected results for all three live separately in validation/golden_cases/capn3_milestone1.yaml.",
+  "cases": [
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.550del",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 17621,
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "frameshift_variant",
+          "mane_select": true,
+          "hgvs_c": "c.550del",
+          "hgvs_p": "p.Thr184fs",
+          "nmd_predicted": true
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "OBSERVED",
+          "overall_af": 0.00023,
+          "ancestry_specific_max_af": 0.0075
+        }
+      ],
+      "notes": "Real ClinVar entry (Variation ID 17621), reported Pathogenic. Known founder mutation, reported to account for up to ~75% of abnormal CAPN3 alleles in some European (esp. Northern Spanish / Basque and other Southern/Western European) populations — this is why ancestry_specific_max_af is meaningfully higher than overall_af rather than roughly equal. PM2 (absent/extremely low frequency) is written up here as MET in the golden case using the low overall AF (0.023%), but a curator reviewing this case should not treat that as settled: PM2 is defined around population rarity, and a founder allele that is locally common in the tested individual's ancestry group is a weaker fit for 'extremely low frequency' than the global AF alone suggests. This is exactly the ancestry-stratification nuance the ACMG Engine Detailed Design Guide flags for PM2 (Section 7, 'Population frequency thresholds'); a real evaluator should key its threshold check off ancestry_specific_max_af, not overall_af, once ancestry is known. Flagged for manual review in the golden case rather than silently trusted. Exact GRCh38 coordinates were not independently verified during curation (see variant.coordinate_verified=false); HGVS (c.550del) and the ClinVar accession are used as the authoritative identifiers instead."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_SYNTH_PATHOGENIC_01",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "chromosome": "15",
+        "position": 42392847,
+        "reference": "C",
+        "alternate": "T",
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "stop_gained",
+          "mane_select": true,
+          "hgvs_c": "c.1999C>T",
+          "hgvs_p": "p.Arg667Ter",
+          "exon": "21",
+          "nmd_predicted": true
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true,
+          "allele_count": 0,
+          "allele_number": 1612345
+        }
+      ],
+      "computational_evidence": {
+        "tool": "SpliceAI+REVEL-calibrated-composite",
+        "tool_version": "synthetic-1.0",
+        "calibration_source": "synthetic fixture, calibrated thresholds per Pejaver et al. 2022 style bins",
+        "retrieval_status": "OBSERVED",
+        "score": 0.94,
+        "calibrated_prediction": "PATHOGENIC"
+      },
+      "notes": "Fully synthetic — constructed to exercise the Pathogenic combining-rule path (1 Very Strong + 1 Moderate + 1 Supporting) with the Milestone-1 criterion set: PVS1 (nonsense, NMD-predicted, well upstream of the last exon), PM2 (absent from a well-covered gnomAD locus), PP3 (calibrated computational prediction, pathogenic-supporting). Not a real ClinVar variant; do not treat coordinates, HGVS, or allele counts as biologically real."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_SYNTH_LIKELY_BENIGN_01",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "chromosome": "15",
+        "position": 42388120,
+        "reference": "G",
+        "alternate": "A",
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.601G>A",
+          "hgvs_p": "p.Gly201Ser",
+          "exon": "5"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "OBSERVED",
+          "overall_af": 0.014,
+          "ancestry_specific_max_af": 0.021,
+          "allele_count": 22580,
+          "allele_number": 1612345,
+          "homozygote_count": 163
+        }
+      ],
+      "computational_evidence": {
+        "tool": "SpliceAI+REVEL-calibrated-composite",
+        "tool_version": "synthetic-1.0",
+        "calibration_source": "synthetic fixture, calibrated thresholds per Pejaver et al. 2022 style bins",
+        "retrieval_status": "OBSERVED",
+        "score": 0.06,
+        "calibrated_prediction": "BENIGN"
+      },
+      "notes": "Fully synthetic — constructed to exercise the Likely Benign combining-rule path (1 Strong-Benign + 1 Supporting-Benign) with the Milestone-1 criterion set: BS1 (allele frequency higher than expected for the disorder's prevalence, well above a plausible AR-disease threshold, with observed homozygotes) and BP4 (calibrated computational prediction, benign-supporting). Deliberately not BA1-level frequency, so this case exercises the BS1+BP4 path rather than the stand-alone BA1 path. Not a real ClinVar variant."
+    }
+  ]
+}

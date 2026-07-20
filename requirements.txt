@@ -1,0 +1,12 @@
+# Milestone 1 has exactly one runtime dependency: PyYAML, for reading the
+# curated gene/disease context and golden-case fixture files. Everything
+# else (data models, validation) is Python standard library — see
+# README.md, "Why dataclasses instead of pydantic", for why.
+PyYAML>=6.0
+
+# Dev/test dependency. tests/unit/test_*.py are plain pytest-convention
+# files (test_*.py, test_ functions, bare assert) and will run unmodified
+# under real pytest. They were verified during development with
+# tests/run_tests.py instead, because this environment had no PyPI access
+# to install pytest itself — see README.md.
+pytest>=7.0

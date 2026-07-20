@@ -1,0 +1,20 @@
+# Gene/disease-level configuration, curated by hand for Milestone 1.
+# See ACMG Engine Detailed Design Guide, Section 6, "Applicability and rule
+# precedence" — this is deliberately data, not code, so adding a gene never
+# requires touching the evaluators.
+#
+# CAPN3 is the only gene populated for Milestone 1. A DMD entry is scoped
+# for Milestone 4 (X-linked hemizygous interpretation) and intentionally
+# left out here rather than stubbed with guessed values.
+
+genes:
+  CAPN3:
+    gene: CAPN3
+    disease: "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)"
+    inheritance: AUTOSOMAL_RECESSIVE
+    mechanism: LOSS_OF_FUNCTION
+    lof_established: true
+    specification:
+      type: GENERIC_ACMG
+      version: "Richards et al. 2015"
+    gene_disease_validity: "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
