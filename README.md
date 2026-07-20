@@ -5,11 +5,6 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see below).
 
-This is Krzysztof's first human-genomics project, following several
-bacterial-genomics projects. It's meant to be pushed to
-[github.com/bkhimek](https://github.com/bkhimek) as a new repo — see
-"Moving this into your WSL projects folder" at the bottom.
-
 ## What Milestone 1 actually is
 
 Milestone 1 is schema and fixtures only. There is **no evaluator and no
@@ -164,7 +159,3 @@ git branch -M main
 git remote add origin https://github.com/bkhimek/CAPN3-DMD-variant-classifier.git
 git push -u origin main
 ```
-
-(Create the empty `CAPN3-DMD-variant-classifier` repo on
-[github.com/bkhimek](https://github.com/bkhimek) first if it doesn't
-already exist — GitHub won't auto-create it on push.)
