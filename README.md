@@ -5,10 +5,12 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 1 — schema and fixtures only
+## Status: Milestone 2 in progress — first evaluator (PM2) added
 
-There is currently **no evaluator and no combining engine** — nothing in
-this repo computes a classification from raw evidence. What exists:
+Milestone 1 built the schema and fixtures; there was no evaluator and no
+combining engine. Milestone 2 starts adding evaluators — code that reads a
+VariantEvidenceBundle and decides whether one ACMG/AMP criterion is MET.
+**PM2 is done; PVS1 and a combining engine are not.** What exists:
 
 - Seven typed data models (`src/variant_classifier/models/`) matching the
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
@@ -26,6 +28,12 @@ this repo computes a classification from raw evidence. What exists:
   checks them yet.
 - 37 schema-validation tests (`tests/unit/`) covering both valid and
   invalid records for each model.
+- A **PM2 evaluator** (`src/variant_classifier/evaluators/pm2.py`), driven
+  by a per-gene frequency threshold in `config/population_thresholds.yaml`.
+  Verified against all three curated CAPN3 cases, matching their golden
+  cases exactly, plus edge-case tests for the retrieval-status branches the
+  three curated cases don't happen to cover
+  (`tests/unit/test_pm2_evaluator.py`). 47 tests pass in total.
 
 ## Design notes
 
@@ -45,6 +53,16 @@ treat missing evidence as negative evidence, which the Reporting and
 Dashboard design guide specifically warns against. `ComputationalEvidence`
 (the model backing PP3/BP4) reuses the same enum for the same reason.
 
+**PM2 and founder mutations.** PM2 asks whether a variant is absent or at
+extremely low frequency in the general population. A single global allele
+frequency threshold isn't enough to answer that safely: `CAPN3_c.550del` is
+rare overall (0.023%) but a known founder mutation enriched to 0.75% in
+specific ancestries. The evaluator does not silently pass PM2 using the
+lower, reassuring global number — when an ancestry-specific frequency
+clears the threshold while the overall frequency doesn't, it returns
+MANUAL_REVIEW rather than guessing, because whether "extremely low" holds
+depends on the tested individual's ancestry, which isn't available here.
+
 **Dataclasses instead of pydantic.** All seven models use the Python
 standard library's `dataclasses` module with hand-written `from_dict()`
 validation rather than pydantic. This keeps the dependency footprint to
@@ -54,34 +72,38 @@ scoped to these seven files.
 
 ## Repository layout
 
+```
 src/variant_classifier/
-errors.py SchemaValidationError — the one exception type
-models/
-enums.py controlled vocabularies + ACMG_CRITERION_CODES
-_coerce.py shared from_dict() validation helpers
-variant_identity.py VariantIdentity
-gene_disease_context.py GeneDiseaseContext, Specification
-transcript_consequence.py TranscriptConsequence
-population_evidence.py PopulationEvidence
-computational_evidence.py ComputationalEvidence
-criterion_result.py CriterionResult
-provisional_classification.py ProvisionalClassification
-evidence_bundle.py VariantEvidenceBundle (container, this repo only)
-golden_case.py GoldenCase (container, this repo only)
-loader.py loads/validates the curated fixtures below
+  errors.py                  SchemaValidationError — the one exception type
+  models/
+    enums.py                 controlled vocabularies + ACMG_CRITERION_CODES
+    _coerce.py                shared from_dict() validation helpers
+    variant_identity.py        VariantIdentity
+    gene_disease_context.py    GeneDiseaseContext, Specification
+    transcript_consequence.py  TranscriptConsequence
+    population_evidence.py     PopulationEvidence
+    computational_evidence.py  ComputationalEvidence
+    criterion_result.py        CriterionResult
+    provisional_classification.py  ProvisionalClassification
+    evidence_bundle.py         VariantEvidenceBundle (container, this repo only)
+    golden_case.py             GoldenCase (container, this repo only)
+  loader.py                  loads/validates the curated fixtures below
+  evaluators/
+    pm2.py                    evaluate_pm2() — the first real criterion evaluator
+
+config/
+  population_thresholds.yaml per-gene PM2 frequency thresholds (see Design notes)
 
 data/
-curated/ hand-curated fixtures (the 3 CAPN3 cases live here)
-source/ placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
-synthetic/ placeholder — larger generated datasets (empty)
+  curated/                   hand-curated fixtures (the 3 CAPN3 cases live here)
+  source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
+  synthetic/                 placeholder — larger generated datasets (empty)
 
-validation/golden_cases/ expected results, curated separately from data/curated/
+validation/golden_cases/     expected results, curated separately from data/curated/
 
-config/ placeholder — runtime thresholds etc. (empty)
-
-tests/unit/ pytest tests
-tests/run_tests.py dependency-free runner (see below)
-
+tests/unit/                  pytest tests
+tests/run_tests.py           dependency-free runner (see below)
+```
 
 ## Setup
 
@@ -122,7 +144,9 @@ case with no matching evidence bundle).
 
 ## Roadmap
 
-- **Milestone 2** — first evaluators: PM2, then PVS1.
+- **Milestone 2** — first evaluators. PM2 is done (see above). PVS1 is
+  next — a materially bigger evaluator (null-variant/NMD/last-exon logic
+  per the ACMG Engine Detailed Design Guide, "PVS1 design in depth").
 - **Milestone 3** — combination engine (limited scope: the six
   Milestone-1 criteria only).
 - **Milestone 4** — clinical interpretation layer: CAPN3 recessive

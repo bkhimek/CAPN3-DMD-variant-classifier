@@ -19,6 +19,7 @@ from .models import GeneDiseaseContext, GoldenCase, VariantEvidenceBundle
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CURATED_DIR = REPO_ROOT / "data" / "curated"
 GOLDEN_CASES_DIR = REPO_ROOT / "validation" / "golden_cases"
+CONFIG_DIR = REPO_ROOT / "config"
 
 
 def load_gene_disease_contexts(path: Path = None) -> Dict[str, GeneDiseaseContext]:
@@ -43,6 +44,35 @@ def load_gene_disease_contexts(path: Path = None) -> Dict[str, GeneDiseaseContex
             )
         contexts[gene] = context
     return contexts
+
+
+def load_pm2_thresholds(path: Path = None) -> Dict[str, dict]:
+    """Load config/population_thresholds.yaml into {gene: {"pm2_max_credible_af": float, "threshold_source": str}}.
+
+    Used by evaluators.pm2.evaluate_pm2 — kept in loader.py alongside the
+    other "read a curated file, validate its shape" functions rather than
+    inside the evaluators package, so evaluators stay focused on decision
+    logic rather than file I/O.
+    """
+    path = path or (CONFIG_DIR / "population_thresholds.yaml")
+    if not path.exists():
+        raise FileNotFoundError(f"PM2 threshold config not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        raw = yaml.safe_load(handle) or {}
+    if not isinstance(raw, dict) or "genes" not in raw:
+        raise SchemaValidationError(f"{path}: expected a top-level 'genes' mapping")
+    thresholds: Dict[str, dict] = {}
+    for gene, entry in raw["genes"].items():
+        if not isinstance(entry, dict) or "pm2_max_credible_af" not in entry:
+            raise SchemaValidationError(f"{path}: genes.{gene} must include 'pm2_max_credible_af'")
+        af = entry["pm2_max_credible_af"]
+        if not isinstance(af, (int, float)) or isinstance(af, bool) or not (0.0 <= af <= 1.0):
+            raise SchemaValidationError(f"{path}: genes.{gene}.pm2_max_credible_af must be a number in [0, 1]")
+        thresholds[gene] = {
+            "pm2_max_credible_af": float(af),
+            "threshold_source": entry.get("threshold_source", ""),
+        }
+    return thresholds
 
 
 def load_variant_evidence_bundles(path: Path = None) -> Tuple[List[VariantEvidenceBundle], List[Tuple[dict, str]]]:

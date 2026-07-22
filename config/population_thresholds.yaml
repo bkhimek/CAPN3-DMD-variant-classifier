@@ -1,0 +1,23 @@
+# Per-gene PM2 frequency thresholds.
+#
+# PM2 ("absent from controls, or at extremely low frequency if recessive")
+# has no single universal cutoff — the appropriate threshold depends on the
+# disease's prevalence, penetrance, and allelic/genetic heterogeneity (see
+# Whiffin et al. 2017 for the general "maximum credible population AF"
+# approach ClinGen VCEPs build on). Milestone 2 keeps this simple: one
+# max_credible_af per gene, set by hand, rather than computing it from
+# prevalence. Revisit before trusting this beyond CAPN3/DMD prototyping.
+#
+# threshold_source records where the number came from, so it's never
+# mistaken for an authoritative VCEP-approved value.
+
+genes:
+  CAPN3:
+    pm2_max_credible_af: 0.001   # 0.1%
+    threshold_source: >
+      Illustrative placeholder for Milestone 2, not a ClinGen
+      LGMD-VCEP-approved value. Chosen as a conventional "rare disease"
+      cutoff order of magnitude; replace with a properly derived
+      max-credible-AF (Whiffin et al. 2017 style, using LGMDR1 prevalence
+      and CAPN3 allelic heterogeneity) before this is used for anything
+      beyond prototype testing.
