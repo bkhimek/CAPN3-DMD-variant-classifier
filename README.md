@@ -5,12 +5,13 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 2 in progress — first evaluator (PM2) added
+## Status: Milestone 2 complete — PM2 and PVS1 evaluators
 
 Milestone 1 built the schema and fixtures; there was no evaluator and no
-combining engine. Milestone 2 starts adding evaluators — code that reads a
+combining engine. Milestone 2 adds evaluators — code that reads a
 VariantEvidenceBundle and decides whether one ACMG/AMP criterion is MET.
-**PM2 is done; PVS1 and a combining engine are not.** What exists:
+**PM2 and PVS1 are done; a combining engine that turns MET criteria into a
+classification is not (Milestone 3).** What exists:
 
 - Seven typed data models (`src/variant_classifier/models/`) matching the
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
@@ -30,10 +31,13 @@ VariantEvidenceBundle and decides whether one ACMG/AMP criterion is MET.
   invalid records for each model.
 - A **PM2 evaluator** (`src/variant_classifier/evaluators/pm2.py`), driven
   by a per-gene frequency threshold in `config/population_thresholds.yaml`.
-  Verified against all three curated CAPN3 cases, matching their golden
-  cases exactly, plus edge-case tests for the retrieval-status branches the
-  three curated cases don't happen to cover
-  (`tests/unit/test_pm2_evaluator.py`). 47 tests pass in total.
+- A **PVS1 evaluator** (`src/variant_classifier/evaluators/pvs1.py`),
+  deliberately partial — see "PVS1 scope" below.
+- Both evaluators verified against all three curated CAPN3 cases, matching
+  their golden cases exactly, plus edge-case tests for branches the three
+  curated cases don't happen to cover
+  (`tests/unit/test_pm2_evaluator.py`, `tests/unit/test_pvs1_evaluator.py`).
+  59 tests pass in total.
 
 ## Design notes
 
@@ -52,6 +56,21 @@ Collapsing "not found" and "not assessed" into one state would silently
 treat missing evidence as negative evidence, which the Reporting and
 Dashboard design guide specifically warns against. `ComputationalEvidence`
 (the model backing PP3/BP4) reuses the same enum for the same reason.
+
+**PVS1 scope.** The full PVS1 decision tree (Abou Tayoun et al. 2018)
+branches on protein-domain criticality and constitutive-exon-splicing
+information this project doesn't model. This evaluator only ever returns
+MET for the one case it can defend end-to-end: an early frameshift or
+nonsense variant predicted to trigger nonsense-mediated decay, in a gene
+with an established loss-of-function mechanism. Everything harder —
+truncations that escape NMD (typically last-exon), splice donor/acceptor
+variants, and start-loss variants — returns MANUAL_REVIEW with a rationale
+explaining why, rather than a guessed MET or NOT_MET. Non-null-variant
+consequence types (missense, synonymous, etc.) return NOT_APPLICABLE.
+`TranscriptConsequence` requires an explicit `nmd_predicted` value for
+both frameshift and stop-gained variants for exactly this reason — this
+requirement was originally frameshift-only in Milestone 1 and widened here
+once the evaluator needed it for stop-gained variants too.
 
 **PM2 and founder mutations.** PM2 asks whether a variant is absent or at
 extremely low frequency in the general population. A single global allele
@@ -89,7 +108,8 @@ src/variant_classifier/
     golden_case.py             GoldenCase (container, this repo only)
   loader.py                  loads/validates the curated fixtures below
   evaluators/
-    pm2.py                    evaluate_pm2() — the first real criterion evaluator
+    pm2.py                    evaluate_pm2()
+    pvs1.py                   evaluate_pvs1() — see "PVS1 scope" above
 
 config/
   population_thresholds.yaml per-gene PM2 frequency thresholds (see Design notes)
@@ -144,11 +164,12 @@ case with no matching evidence bundle).
 
 ## Roadmap
 
-- **Milestone 2** — first evaluators. PM2 is done (see above). PVS1 is
-  next — a materially bigger evaluator (null-variant/NMD/last-exon logic
-  per the ACMG Engine Detailed Design Guide, "PVS1 design in depth").
+- **Milestone 2** — done. PM2 and PVS1 evaluators (see above; PVS1 is
+  intentionally partial).
 - **Milestone 3** — combination engine (limited scope: the six
-  Milestone-1 criteria only).
+  Milestone-1 criteria only). Also the natural point to revisit whether
+  PP3/BP4 evaluators are needed, since the LIKELY_BENIGN and full
+  PATHOGENIC combining-rule paths depend on them.
 - **Milestone 4** — clinical interpretation layer: CAPN3 recessive
   allele-count handling, DMD X-linked hemizygous handling.
 - Later: expand curated fixtures to the full 20–30 ClinVar variant set;

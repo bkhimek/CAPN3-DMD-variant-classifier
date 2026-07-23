@@ -24,12 +24,17 @@ class TranscriptConsequence:
     exon: Optional[str] = None
     nmd_predicted: Optional[bool] = None
 
+    NMD_RELEVANT_CONSEQUENCES = (Consequence.FRAMESHIFT_VARIANT, Consequence.STOP_GAINED)
+
     def __post_init__(self) -> None:
         context = f"TranscriptConsequence[{self.transcript_id}]"
-        if self.consequence == Consequence.FRAMESHIFT_VARIANT and self.nmd_predicted is None:
+        if self.consequence in TranscriptConsequence.NMD_RELEVANT_CONSEQUENCES and self.nmd_predicted is None:
             raise SchemaValidationError(
-                f"{context}: nmd_predicted must be explicitly true or false for a frameshift_variant — "
-                "PVS1 cannot be evaluated safely from an unstated NMD prediction"
+                f"{context}: nmd_predicted must be explicitly true or false for a "
+                f"{self.consequence.value} — PVS1 cannot be evaluated safely from an unstated "
+                "NMD prediction. (Originally only enforced for frameshift_variant; widened to "
+                "stop_gained too during the PVS1 evaluator build, since nonsense variants are "
+                "subject to the same NMD-vs-last-exon logic.)"
             )
 
     @classmethod
