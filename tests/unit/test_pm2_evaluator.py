@@ -44,7 +44,7 @@ def test_pm2_matches_golden_case_for_all_curated_bundles():
     bundles, rejected = loader.load_variant_evidence_bundles()
     assert rejected == []
     golden_cases = loader.load_golden_cases()
-    thresholds = loader.load_pm2_thresholds()
+    thresholds = loader.load_frequency_thresholds()
 
     checked = 0
     for bundle in bundles:
@@ -64,7 +64,7 @@ def test_pm2_matches_golden_case_for_all_curated_bundles():
 def test_pm2_founder_case_is_flagged_manual_review_not_silently_met():
     # The specific case that motivated the evaluator's ancestry-AF branch.
     bundles, _ = loader.load_variant_evidence_bundles()
-    thresholds = loader.load_pm2_thresholds()
+    thresholds = loader.load_frequency_thresholds()
     bundle = next(b for b in bundles if b.variant.variant_id == "CAPN3_c.550del")
     result = evaluate_pm2(bundle, thresholds)
     assert result.status == CriterionStatus.MANUAL_REVIEW
@@ -91,7 +91,10 @@ def _bundle_with_population_evidence(pe: PopulationEvidence) -> VariantEvidenceB
 
 
 def _thresholds():
-    return {"CAPN3": {"pm2_max_credible_af": 0.001, "threshold_source": "test"}}
+    return {
+        "ba1_stand_alone_af": 0.05,
+        "genes": {"CAPN3": {"pm2_max_credible_af": 0.001, "bs1_min_af": 0.001, "threshold_source": "test"}},
+    }
 
 
 def test_pm2_not_assessed_yields_not_evaluated():

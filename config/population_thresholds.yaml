@@ -1,21 +1,38 @@
-# Per-gene PM2 frequency thresholds.
+# Per-gene PM2/BS1 frequency thresholds, plus one universal BA1 threshold.
 #
 # PM2 ("absent from controls, or at extremely low frequency if recessive")
-# has no single universal cutoff — the appropriate threshold depends on the
-# disease's prevalence, penetrance, and allelic/genetic heterogeneity (see
-# Whiffin et al. 2017 for the general "maximum credible population AF"
-# approach ClinGen VCEPs build on). Milestone 2 keeps this simple: one
-# max_credible_af per gene, set by hand, rather than computing it from
-# prevalence. Revisit before trusting this beyond CAPN3/DMD prototyping.
+# and BS1 ("more common than expected for the disorder") have no single
+# universal cutoff — the appropriate threshold depends on the disease's
+# prevalence, penetrance, and allelic/genetic heterogeneity (see Whiffin
+# et al. 2017 for the general "maximum credible population AF" approach
+# ClinGen VCEPs build on). Milestone 2/3 keep this simple: one threshold
+# per gene, set by hand, rather than computing it from prevalence.
 #
-# threshold_source records where the number came from, so it's never
-# mistaken for an authoritative VCEP-approved value.
+# pm2_max_credible_af and bs1_min_af are deliberately the same value for
+# CAPN3 right now — PM2 asks "rare enough to be plausible," BS1 asks
+# "common enough to rule out," and treating those as mirror-image
+# questions with one shared cutoff is a simplification, not a rule. They
+# are kept as separate config keys (not one shared key) so a gene where
+# the two thresholds should genuinely differ doesn't require a code change,
+# only a config change.
+#
+# BA1 ("too common for ANY plausible rare Mendelian disease") uses the
+# conventional 5% ACMG/AMP default rather than a per-gene value — ClinGen
+# VCEPs do sometimes override this per gene/disease, which is why it's
+# still in config and not a hardcoded constant, but Milestone 3 doesn't
+# implement per-gene BA1 overrides.
+#
+# threshold_source records where each number came from, so none of this
+# is mistaken for an authoritative VCEP-approved value.
+
+ba1_stand_alone_af: 0.05   # 5%, the standard ACMG/AMP default
 
 genes:
   CAPN3:
     pm2_max_credible_af: 0.001   # 0.1%
+    bs1_min_af: 0.001            # 0.1%, same value as pm2_max_credible_af — see note above
     threshold_source: >
-      Illustrative placeholder for Milestone 2, not a ClinGen
+      Illustrative placeholder for Milestone 2/3, not a ClinGen
       LGMD-VCEP-approved value. Chosen as a conventional "rare disease"
       cutoff order of magnitude; replace with a properly derived
       max-credible-AF (Whiffin et al. 2017 style, using LGMDR1 prevalence

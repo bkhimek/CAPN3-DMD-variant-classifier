@@ -6,11 +6,12 @@
 # the evidence bundle they judge, so a future evaluator is tested against
 # an outside opinion, not its own assumptions.
 #
-# No evaluators exist yet in Milestone 1 (see README.md) — these
-# expectations are worked out by hand against the ACMG/AMP combining
-# rules (Richards et al. 2015, Table 5) and are what Milestone 2/3
-# evaluators will eventually be checked against, not something the
-# current codebase computes or verifies today.
+# Written in Milestone 1, before any evaluator or combining engine
+# existed — worked out by hand against the ACMG/AMP combining rules
+# (Richards et al. 2015, Table 5). Milestone 2 (PM2, PVS1 evaluators) and
+# Milestone 3 (BA1/BS1/PP3/BP4 evaluators + engine.combine()) are now
+# checked against these, matching exactly, including the CAPN3_c.550del
+# BS1 correction noted below.
 
 golden_cases:
   - variant_id: CAPN3_c.550del
@@ -21,7 +22,7 @@ golden_cases:
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
-      BS1: NOT_MET
+      BS1: MANUAL_REVIEW
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the curated evidence in data/curated/variant_evidence.json"
     curator_note: >
       Deliberately NOT auto-classified as Likely Pathogenic despite the real
@@ -31,11 +32,18 @@ golden_cases:
       ancestry-specific frequency (0.75%) than global frequency (0.023%) —
       whether that's "extremely low frequency" for PM2 purposes depends on
       knowing the tested individual's ancestry, which this fixture does not
-      specify. The real-world Pathogenic classification for this variant
-      also draws on segregation/case-count evidence (PM3, PS4-adjacent)
-      that is entirely out of scope for Milestone 1's 6-criterion engine.
-      This golden case exists specifically to prove the prototype does NOT
-      overclaim certainty it has no evidence for.
+      specify. BS1 is MANUAL_REVIEW for the identical reason, updated from
+      an earlier (Milestone 1) NOT_MET once the Milestone 3 evaluators made
+      the inconsistency visible: the same ancestry-specific frequency that
+      makes PM2 ambiguous makes BS1 equally ambiguous — a founder pathogenic
+      allele can be locally common without being benign, so BS1 shouldn't
+      be silently resolved to NOT_MET any more than PM2 should be silently
+      resolved to MET. The real-world Pathogenic classification for this
+      variant also draws on segregation/case-count evidence (PM3,
+      PS4-adjacent) that is entirely out of scope for Milestone 1's
+      6-criterion engine. This golden case exists specifically to prove the
+      prototype does NOT overclaim certainty it has no evidence for — with
+      two criteria now correctly flagged for human review instead of one.
 
   - variant_id: CAPN3_SYNTH_PATHOGENIC_01
     expected_provisional_class: PATHOGENIC

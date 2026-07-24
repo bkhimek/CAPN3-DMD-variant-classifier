@@ -46,33 +46,52 @@ def load_gene_disease_contexts(path: Path = None) -> Dict[str, GeneDiseaseContex
     return contexts
 
 
-def load_pm2_thresholds(path: Path = None) -> Dict[str, dict]:
-    """Load config/population_thresholds.yaml into {gene: {"pm2_max_credible_af": float, "threshold_source": str}}.
+def load_frequency_thresholds(path: Path = None) -> dict:
+    """Load config/population_thresholds.yaml into:
 
-    Used by evaluators.pm2.evaluate_pm2 — kept in loader.py alongside the
-    other "read a curated file, validate its shape" functions rather than
-    inside the evaluators package, so evaluators stay focused on decision
-    logic rather than file I/O.
+        {
+            "ba1_stand_alone_af": float,
+            "genes": {gene: {"pm2_max_credible_af": float, "bs1_min_af": float, "threshold_source": str}},
+        }
+
+    Used by evaluators.pm2, evaluators.ba1, and evaluators.bs1 — kept in
+    loader.py alongside the other "read a curated file, validate its
+    shape" functions rather than inside the evaluators package, so
+    evaluators stay focused on decision logic rather than file I/O.
+
+    Named load_frequency_thresholds (not load_pm2_thresholds, its original
+    Milestone-2 name) since it now serves three evaluators, not one.
     """
     path = path or (CONFIG_DIR / "population_thresholds.yaml")
     if not path.exists():
-        raise FileNotFoundError(f"PM2 threshold config not found: {path}")
+        raise FileNotFoundError(f"Frequency threshold config not found: {path}")
     with path.open("r", encoding="utf-8") as handle:
         raw = yaml.safe_load(handle) or {}
-    if not isinstance(raw, dict) or "genes" not in raw:
-        raise SchemaValidationError(f"{path}: expected a top-level 'genes' mapping")
-    thresholds: Dict[str, dict] = {}
+    if not isinstance(raw, dict) or "genes" not in raw or "ba1_stand_alone_af" not in raw:
+        raise SchemaValidationError(f"{path}: expected top-level 'ba1_stand_alone_af' and 'genes' keys")
+
+    ba1_af = raw["ba1_stand_alone_af"]
+    if not isinstance(ba1_af, (int, float)) or isinstance(ba1_af, bool) or not (0.0 <= ba1_af <= 1.0):
+        raise SchemaValidationError(f"{path}: ba1_stand_alone_af must be a number in [0, 1]")
+
+    genes: Dict[str, dict] = {}
     for gene, entry in raw["genes"].items():
-        if not isinstance(entry, dict) or "pm2_max_credible_af" not in entry:
-            raise SchemaValidationError(f"{path}: genes.{gene} must include 'pm2_max_credible_af'")
-        af = entry["pm2_max_credible_af"]
-        if not isinstance(af, (int, float)) or isinstance(af, bool) or not (0.0 <= af <= 1.0):
-            raise SchemaValidationError(f"{path}: genes.{gene}.pm2_max_credible_af must be a number in [0, 1]")
-        thresholds[gene] = {
-            "pm2_max_credible_af": float(af),
+        if not isinstance(entry, dict) or "pm2_max_credible_af" not in entry or "bs1_min_af" not in entry:
+            raise SchemaValidationError(
+                f"{path}: genes.{gene} must include both 'pm2_max_credible_af' and 'bs1_min_af'"
+            )
+        pm2_af = entry["pm2_max_credible_af"]
+        bs1_af = entry["bs1_min_af"]
+        for key, af in (("pm2_max_credible_af", pm2_af), ("bs1_min_af", bs1_af)):
+            if not isinstance(af, (int, float)) or isinstance(af, bool) or not (0.0 <= af <= 1.0):
+                raise SchemaValidationError(f"{path}: genes.{gene}.{key} must be a number in [0, 1]")
+        genes[gene] = {
+            "pm2_max_credible_af": float(pm2_af),
+            "bs1_min_af": float(bs1_af),
             "threshold_source": entry.get("threshold_source", ""),
         }
-    return thresholds
+
+    return {"ba1_stand_alone_af": float(ba1_af), "genes": genes}
 
 
 def load_variant_evidence_bundles(path: Path = None) -> Tuple[List[VariantEvidenceBundle], List[Tuple[dict, str]]]:

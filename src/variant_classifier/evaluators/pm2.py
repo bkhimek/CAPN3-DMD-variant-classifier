@@ -40,7 +40,10 @@ RULE_SOURCE = "ACMG/AMP (Richards et al. 2015)"
 RULE_VERSION = "2015"
 
 
-def evaluate_pm2(bundle: VariantEvidenceBundle, thresholds: Dict[str, dict]) -> CriterionResult:
+def evaluate_pm2(bundle: VariantEvidenceBundle, thresholds: dict) -> CriterionResult:
+    """thresholds is the dict returned by loader.load_frequency_thresholds():
+    {"ba1_stand_alone_af": float, "genes": {gene: {"pm2_max_credible_af": ..., "bs1_min_af": ..., ...}}}.
+    """
     variant_id = bundle.variant.variant_id
     gene = bundle.variant.gene
     context = f"evaluate_pm2[{variant_id}]"
@@ -98,12 +101,13 @@ def evaluate_pm2(bundle: VariantEvidenceBundle, thresholds: Dict[str, dict]) -> 
         )
 
     # retrieval_status == OBSERVED from here on (the only remaining enum value).
-    if gene not in thresholds:
+    gene_thresholds = thresholds.get("genes", {})
+    if gene not in gene_thresholds:
         raise SchemaValidationError(
             f"{context}: no PM2 frequency threshold configured for gene {gene!r} "
             "in config/population_thresholds.yaml"
         )
-    max_credible_af = thresholds[gene]["pm2_max_credible_af"]
+    max_credible_af = gene_thresholds[gene]["pm2_max_credible_af"]
     overall_af = evidence.overall_af
     ancestry_af = evidence.ancestry_specific_max_af
 
