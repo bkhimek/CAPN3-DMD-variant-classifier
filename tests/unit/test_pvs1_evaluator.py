@@ -49,7 +49,7 @@ def test_pvs1_matches_golden_case_for_all_curated_bundles():
             f"golden case expects {expected}. Rationale: {result.rationale}"
         )
         checked += 1
-    assert checked == 3  # all three curated cases have a PVS1 expectation
+    assert checked == 5  # all five curated cases have a PVS1 expectation
 
 
 def test_pvs1_frameshift_case_is_very_strong():

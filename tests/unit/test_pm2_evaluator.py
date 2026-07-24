@@ -58,7 +58,7 @@ def test_pm2_matches_golden_case_for_all_curated_bundles():
             f"golden case expects {expected}. Rationale: {result.rationale}"
         )
         checked += 1
-    assert checked == 3  # all three curated cases have a PM2 expectation
+    assert checked == 5  # all five curated cases have a PM2 expectation
 
 
 def test_pm2_founder_case_is_flagged_manual_review_not_silently_met():

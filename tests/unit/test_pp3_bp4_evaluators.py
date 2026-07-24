@@ -46,7 +46,7 @@ def test_pp3_and_bp4_match_golden_case_for_all_curated_bundles():
                 f"golden case expects {expected}. Rationale: {result.rationale}"
             )
             checked += 1
-    assert checked == 6  # PP3 + BP4, across all three curated cases
+    assert checked == 10  # PP3 + BP4, across all five curated cases
 
 
 # ------------------------------------------------------- hand-built edge cases

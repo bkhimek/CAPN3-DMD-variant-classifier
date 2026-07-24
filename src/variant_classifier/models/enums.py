@@ -139,6 +139,42 @@ class ClassificationStatus(str, Enum):
     FINAL = "FINAL"
 
 
+class KaryotypicSex(str, Enum):
+    """Chromosomal sex as relevant to X-linked inheritance reasoning
+    (hemizygous vs heterozygous X), not a stand-in for gender. OTHER
+    covers real karyotypic variation (e.g. XXY, X0, mosaicism) that the
+    Milestone 4 X-linked interpretation logic does not attempt to reason
+    about — it is deferred to manual review, the same as XX."""
+
+    XY = "XY"
+    XX = "XX"
+    OTHER = "OTHER"
+    UNKNOWN = "UNKNOWN"
+
+
+class PhaseRelationship(str, Enum):
+    """Whether two variants in the same gene, found in the same patient,
+    are confirmed on different copies of the chromosome (TRANS — each
+    parent contributed one broken copy) or the same copy (CIS — one copy
+    is doubly hit, the other is untouched). Established via parental
+    testing or phasing sequencing; UNKNOWN when neither is available."""
+
+    TRANS = "TRANS"
+    CIS = "CIS"
+    UNKNOWN = "UNKNOWN"
+
+
+class CaseInterpretationStatus(str, Enum):
+    """The outcome of Milestone 4's case-level (not variant-level)
+    reasoning: does what was found in this patient explain their disease,
+    given how the gene's disease is inherited?"""
+
+    EXPLAINED = "EXPLAINED"
+    INSUFFICIENT = "INSUFFICIENT"
+    MANUAL_REVIEW = "MANUAL_REVIEW"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
+
+
 # The full 28-code ACMG/AMP controlled vocabulary (Richards et al. 2015).
 # Milestone 1 only *evaluates* a subset (see SUPPORTED_CRITERIA_MILESTONE_1)
 # but fixtures and models accept any code from this set, so adding an

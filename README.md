@@ -5,49 +5,64 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 3 complete — the engine now produces classifications
+## Status: Milestone 4 complete — case-level clinical interpretation
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
-evaluators (PM2, PVS1) — code that reads a VariantEvidenceBundle and
-decides whether one ACMG/AMP criterion is MET. Milestone 3 adds the
-remaining four evaluators (BA1, BS1, PP3, BP4) and, for the first time,
-a combining engine that turns a full set of evaluated criteria into an
-actual classification. **`classify(bundle, thresholds)` now goes from raw
-curated evidence to Pathogenic / Likely Pathogenic / VUS / Likely Benign /
-Benign.** What exists:
+evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
+PP3, BP4) and a combining engine (`classify()`) that turns a full set of
+evaluated criteria into a classification — Pathogenic / Likely Pathogenic
+/ VUS / Likely Benign / Benign, for one variant at a time.
+
+Milestone 4 adds something qualitatively different: **case-level**
+reasoning. Every prior milestone answers "how strong is the evidence for
+this one variant." Milestone 4 answers "does what was found in this
+patient explain their disease" — which depends on how many variants they
+have and how the gene's disease is inherited, not on any single variant in
+isolation. `clinical.interpret_case(case, classifications, gene_disease_context)`
+now goes from a `ClinicalCase` (what was found in a specific patient) plus
+each variant's own classification to EXPLAINED / INSUFFICIENT /
+MANUAL_REVIEW / NOT_APPLICABLE. What exists:
 
 - Seven typed data models (`src/variant_classifier/models/`) matching the
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- Three curated CAPN3 evidence bundles (`data/curated/variant_evidence.json`):
-  one real ClinVar-grounded case and two synthetic cases constructed to
-  exercise combining-rule paths the real case doesn't reach. A CAPN3
-  gene/disease context (`data/curated/gene_disease_context.yaml`).
-- Three golden cases (`validation/golden_cases/capn3_milestone1.yaml`) —
-  expected results, hand-derived from the ACMG/AMP combining rules and
-  curated *separately* from the evidence bundles, per the golden-case
-  philosophy in the Validation and Verification design guide. These are
-  what a future evaluator will be checked against; nothing in this repo
-  checks them yet.
-- 37 schema-validation tests (`tests/unit/`) covering both valid and
-  invalid records for each model.
+- Five curated evidence bundles (`data/curated/variant_evidence.json`):
+  one real ClinVar-grounded CAPN3 case and four synthetic cases (three
+  CAPN3, one DMD) constructed to exercise specific combining-rule and
+  case-level paths. Gene/disease context for both CAPN3 and DMD
+  (`data/curated/gene_disease_context.yaml`).
+- Golden cases for every curated fixture, curated *separately* from the
+  evidence they judge, per the golden-case philosophy in the Validation
+  and Verification design guide —
+  `validation/golden_cases/variant_golden_cases.yaml` for per-variant
+  results and `case_interpretation_golden_cases.yaml` for case-level
+  results (see below).
+- Schema-validation tests (`tests/unit/`) covering both valid and
+  invalid records for every model.
 - Six evaluators, one per Milestone-1-scope criterion
   (`src/variant_classifier/evaluators/`): `pvs1.py`, `pm2.py`, `pp3.py`,
   `bp4.py`, `ba1.py`, `bs1.py`. PVS1 is deliberately partial — see "PVS1
   scope" below.
 - A **combining engine** (`src/variant_classifier/engine.py`) implementing
-  the ACMG/AMP combining rules (Richards et al. 2015, Table 5).
-  `evaluate_all(bundle, thresholds)` runs all six evaluators;
-  `combine(criteria)` applies Table 5, including a genuine conflict path
-  (`conflicting_evidence_flag`) for evidence that satisfies both a
-  pathogenic and a benign combining rule at once, rather than silently
-  picking a side; `classify(bundle, thresholds)` chains the two.
-- Every evaluator, and the engine itself, is verified against all three
-  curated CAPN3 cases, matching their golden cases exactly — including
-  the final classification, not just individual criterion statuses — plus
-  edge-case tests for branches the three curated cases don't happen to
-  cover (`tests/unit/test_*.py`). 86 tests pass in total.
+  the ACMG/AMP combining rules (Richards et al. 2015, Table 5), including
+  a genuine conflict path (`conflicting_evidence_flag`) rather than
+  silently picking a side when evidence satisfies both a pathogenic and a
+  benign combining rule at once.
+- Two new Milestone 4 models — `ClinicalCase` (what was found in one
+  patient: gene, karyotypic sex, one or two variant_ids, phase between
+  them if two) and `CaseInterpretation` (the case-level verdict) — plus
+  **`src/variant_classifier/clinical.py`**, which reasons about autosomal
+  recessive cases (trans/cis/unknown phase, single-variant insufficiency)
+  and X-linked cases (hemizygous male vs everything else) separately. See
+  "Case-level scope" below for exactly what is and isn't covered.
+- Now five curated variants (CAPN3 and, for the first time, DMD) and six
+  curated `ClinicalCase` fixtures covering every branch above. Every
+  evaluator, the combining engine, and the case interpretation layer are
+  each verified against golden cases written independently of the code —
+  including, for the case-level tests, that trans vs cis and male vs
+  female change the outcome despite everything else being identical
+  (`tests/unit/test_*.py`). 103 tests pass in total.
 
 ## Design notes
 
@@ -82,6 +97,21 @@ change (still VUS), but two criteria are now honestly flagged for human
 judgment instead of one. BA1 got the same three-way branch for
 consistency, even though its 5% threshold makes the branch unlikely to
 matter in practice.
+
+**Case-level scope.** clinical.py deliberately does not extend the
+per-variant evaluator pattern from Milestone 2/3 — PM3 ("detected in trans
+with a pathogenic variant") has a structural circularity a per-variant
+evaluator can't cleanly express (variant A's PM3 depends on variant B's
+classification, which lives entirely outside variant A's own
+VariantEvidenceBundle). Reasoning about it at the case level, after both
+variants already have their own classification, sidesteps that rather than
+working around it. Scope, stated plainly: autosomal recessive handles
+exactly one or two variants, with phase required whenever there are two;
+X-linked only handles a single variant, and only resolves the hemizygous
+male case (karyotypic_sex=XY) confidently — any other karyotypic sex is
+deferred to MANUAL_REVIEW rather than reasoned about, since female X-linked
+carrier interpretation involves X-inactivation biology this project does
+not model.
 
 **PVS1 scope.** The full PVS1 decision tree (Abou Tayoun et al. 2018)
 branches on protein-domain criticality and constitutive-exon-splicing
@@ -134,6 +164,7 @@ src/variant_classifier/
     golden_case.py             GoldenCase (container, this repo only)
   loader.py                  loads/validates the curated fixtures below
   engine.py                  evaluate_all() + combine() + classify() — the combining engine
+  clinical.py                 interpret_case() — case-level reasoning, see "Case-level scope" above
   evaluators/
     pvs1.py                   evaluate_pvs1() — see "PVS1 scope" above
     pm2.py                    evaluate_pm2()
@@ -146,11 +177,17 @@ config/
   population_thresholds.yaml per-gene PM2 frequency thresholds (see Design notes)
 
 data/
-  curated/                   hand-curated fixtures (the 3 CAPN3 cases live here)
+  curated/
+    gene_disease_context.yaml   CAPN3 and DMD
+    variant_evidence.json       5 curated variants (CAPN3 + DMD)
+    clinical_cases.json         6 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
 
-validation/golden_cases/     expected results, curated separately from data/curated/
+validation/golden_cases/
+  variant_golden_cases.yaml            expected per-variant results (renamed from
+                                        capn3_milestone1.yaml once DMD variants existed)
+  case_interpretation_golden_cases.yaml expected case-level results (Milestone 4)
 
 tests/unit/                  pytest tests
 tests/run_tests.py           dependency-free runner (see below)
@@ -171,7 +208,7 @@ pytest
 ```
 
 `pytest.ini` sets `pythonpath = src`, so this works out of the box with no
-extra environment variables. All 37 tests currently pass.
+extra environment variables. All 103 tests currently pass.
 
 A dependency-free alternative is also included, useful in environments
 without PyPI access:
@@ -198,13 +235,14 @@ case with no matching evidence bundle).
 - **Milestone 2** — done. PM2 and PVS1 evaluators (PVS1 intentionally
   partial).
 - **Milestone 3** — done. BA1/BS1/PP3/BP4 evaluators and the combining
-  engine (see above).
-- **Milestone 4** — clinical interpretation layer: CAPN3 recessive
-  allele-count handling, DMD X-linked hemizygous handling. This needs
-  case-level information (a second variant, parental testing) the current
-  variant-level VariantEvidenceBundle doesn't carry — likely a new model,
-  not just a new evaluator.
+  engine.
+- **Milestone 4** — done. `ClinicalCase`/`CaseInterpretation` models and
+  `clinical.py`'s case-level reasoning (see "Case-level scope" above).
 - Later: expand curated fixtures to the full 20–30 ClinVar variant set;
-  add PM3/PS1/PM5/PS3/BS3; revisit PVS1's partial scope (protein-domain
-  criticality, constitutive-exon data) if it starts mattering for real
-  cases.
+  add PM3/PS1/PM5/PS3/BS3 as real per-variant criteria (distinct from how
+  clinical.py currently handles trans/cis reasoning at the case level);
+  revisit PVS1's partial scope (protein-domain criticality,
+  constitutive-exon data); revisit DMD's CNV representation gap (see
+  gene_disease_context.yaml) if real DMD variants are ever added; extend
+  X-linked case interpretation beyond the hemizygous-male case once
+  X-inactivation is worth modeling properly.

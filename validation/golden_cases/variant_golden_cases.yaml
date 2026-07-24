@@ -1,4 +1,13 @@
-# Golden cases for Milestone 1 CAPN3 fixtures.
+# Variant-level golden cases (expected per-criterion status and final
+# ProvisionalClassification for individual variants). Originally named
+# capn3_milestone1.yaml when only CAPN3 fixtures existed; renamed here in
+# Milestone 4 once a DMD variant was added, since the old name was no
+# longer accurate. Case-level golden expectations (Milestone 4's
+# ClinicalCase/CaseInterpretation reasoning) are a separate file,
+# case_interpretation_golden_cases.yaml — deliberately not merged into
+# this one, since they test a different layer (clinical.py, not
+# engine.py) against a different kind of fixture (ClinicalCase, not
+# VariantEvidenceBundle).
 #
 # Deliberately kept in validation/golden_cases/, separate from
 # data/curated/, per the Validation and Verification Design Guide's
@@ -6,12 +15,15 @@
 # the evidence bundle they judge, so a future evaluator is tested against
 # an outside opinion, not its own assumptions.
 #
-# Written in Milestone 1, before any evaluator or combining engine
-# existed — worked out by hand against the ACMG/AMP combining rules
-# (Richards et al. 2015, Table 5). Milestone 2 (PM2, PVS1 evaluators) and
-# Milestone 3 (BA1/BS1/PP3/BP4 evaluators + engine.combine()) are now
-# checked against these, matching exactly, including the CAPN3_c.550del
-# BS1 correction noted below.
+# The three original entries were written in Milestone 1, before any
+# evaluator or combining engine existed — worked out by hand against the
+# ACMG/AMP combining rules (Richards et al. 2015, Table 5). Milestone 2
+# (PM2, PVS1 evaluators) and Milestone 3 (BA1/BS1/PP3/BP4 evaluators +
+# engine.combine()) are checked against these, matching exactly, including
+# the CAPN3_c.550del BS1 correction noted below. The two Milestone 4
+# entries (CAPN3_SYNTH_PATHOGENIC_02, DMD_SYNTH_PATHOGENIC_01) were added
+# specifically to support the new case-level tests and are worked out the
+# same way.
 
 golden_cases:
   - variant_id: CAPN3_c.550del
@@ -79,3 +91,39 @@ golden_cases:
       2.1% ancestry-max) is deliberately below a plausible BA1 threshold so
       this case exercises the BS1+BP4 path rather than the stand-alone BA1
       path.
+
+  - variant_id: CAPN3_SYNTH_PATHOGENIC_02
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_criterion_status:
+      PVS1: MET
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5)"
+    curator_note: >
+      Synthetic, built in Milestone 4 as CAPN3_SYNTH_PATHOGENIC_01's trans
+      partner for case-level interpretation tests (see
+      case_interpretation_golden_cases.yaml). Reaches LIKELY_PATHOGENIC via
+      the VS+1 Moderate combining path (PVS1+PM2, no computational
+      evidence gathered) — deliberately not the same path as
+      CAPN3_SYNTH_PATHOGENIC_01 (which also has PP3), to keep the two
+      fixtures genuinely distinct rather than copies of each other.
+
+  - variant_id: DMD_SYNTH_PATHOGENIC_01
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_criterion_status:
+      PVS1: MET
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5)"
+    curator_note: >
+      Synthetic, the project's first DMD fixture, built in Milestone 4 for
+      hemizygous X-linked case-level interpretation tests. Same
+      VS+1 Moderate combining path as CAPN3_SYNTH_PATHOGENIC_02. A
+      point/small-variant, not the multi-exon deletion pattern common in
+      real DMD pathogenic variants — see gene_disease_context.yaml.

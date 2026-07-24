@@ -3,9 +3,14 @@
 # precedence" — this is deliberately data, not code, so adding a gene never
 # requires touching the evaluators.
 #
-# CAPN3 is the only gene populated for Milestone 1. A DMD entry is scoped
-# for Milestone 4 (X-linked hemizygous interpretation) and intentionally
-# left out here rather than stubbed with guessed values.
+# CAPN3 was the only gene populated through Milestone 3. DMD was added in
+# Milestone 4 specifically for X-linked hemizygous interpretation (see
+# clinical.py). Note: DMD pathogenic variants are very often multi-exon
+# deletions/duplications (structural, copy-number variants), which this
+# project's TranscriptConsequence model does not represent — the DMD
+# fixture added here is a synthetic point/small-indel variant instead, to
+# stay within the project's current representational scope rather than
+# reopen CNV modeling.
 
 genes:
   CAPN3:
@@ -18,3 +23,14 @@ genes:
       type: GENERIC_ACMG
       version: "Richards et al. 2015"
     gene_disease_validity: "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+
+  DMD:
+    gene: DMD
+    disease: "Duchenne/Becker muscular dystrophy (dystrophinopathy)"
+    inheritance: X_LINKED_RECESSIVE
+    mechanism: LOSS_OF_FUNCTION
+    lof_established: true
+    specification:
+      type: GENERIC_ACMG
+      version: "Richards et al. 2015"
+    gene_disease_validity: "ClinGen: Definitive (DMD-dystrophinopathy, X-linked)"

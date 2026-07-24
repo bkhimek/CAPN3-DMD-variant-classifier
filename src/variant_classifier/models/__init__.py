@@ -20,8 +20,15 @@ loading, not part of the architecture guides themselves:
 
 - VariantEvidenceBundle       (evidence_bundle.py)
 - GoldenCase                  (golden_case.py)
+
+Plus two Milestone 4 models for case-level (not variant-level) reasoning:
+
+- ClinicalCase                (clinical_case.py)
+- CaseInterpretation           (case_interpretation.py)
 """
 
+from .clinical_case import ClinicalCase
+from .case_interpretation import CaseInterpretation
 from .computational_evidence import ComputationalEvidence
 from .criterion_result import CriterionResult
 from .evidence_bundle import VariantEvidenceBundle
@@ -33,6 +40,8 @@ from .transcript_consequence import TranscriptConsequence
 from .variant_identity import VariantIdentity
 
 __all__ = [
+    "CaseInterpretation",
+    "ClinicalCase",
     "ComputationalEvidence",
     "CriterionResult",
     "GeneDiseaseContext",

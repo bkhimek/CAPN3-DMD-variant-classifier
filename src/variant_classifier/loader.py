@@ -14,7 +14,8 @@ from typing import Dict, List, Tuple
 import yaml
 
 from .errors import SchemaValidationError
-from .models import GeneDiseaseContext, GoldenCase, VariantEvidenceBundle
+from .models import ClinicalCase, GeneDiseaseContext, GoldenCase, VariantEvidenceBundle
+from .models.enums import CaseInterpretationStatus
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CURATED_DIR = REPO_ROOT / "data" / "curated"
@@ -123,11 +124,11 @@ def load_variant_evidence_bundles(path: Path = None) -> Tuple[List[VariantEviden
 
 
 def load_golden_cases(path: Path = None) -> Dict[str, GoldenCase]:
-    """Load validation/golden_cases/capn3_milestone1.yaml into
+    """Load validation/golden_cases/variant_golden_cases.yaml into
     {variant_id: GoldenCase}. Golden cases are curated separately from
     data/curated/ on purpose — see golden_case.py docstring.
     """
-    path = path or (GOLDEN_CASES_DIR / "capn3_milestone1.yaml")
+    path = path or (GOLDEN_CASES_DIR / "variant_golden_cases.yaml")
     if not path.exists():
         raise FileNotFoundError(f"golden case file not found: {path}")
     with path.open("r", encoding="utf-8") as handle:
@@ -146,6 +147,66 @@ def load_golden_cases(path: Path = None) -> Dict[str, GoldenCase]:
     return golden_cases
 
 
+def load_clinical_cases(path: Path = None) -> List[ClinicalCase]:
+    """Load data/curated/clinical_cases.json into a list of validated
+    ClinicalCase instances. Unlike load_variant_evidence_bundles, this
+    raises on the first malformed entry rather than collecting rejects —
+    this file is small and hand-curated (Milestone 4 scope: at most a
+    handful of cases), so failing loudly is more useful than partial
+    tolerance here.
+    """
+    path = path or (CURATED_DIR / "clinical_cases.json")
+    if not path.exists():
+        raise FileNotFoundError(f"clinical cases file not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        raw = json.load(handle)
+    if not isinstance(raw, dict) or "cases" not in raw or not isinstance(raw["cases"], list):
+        raise SchemaValidationError(f"{path}: expected a top-level 'cases' list")
+    cases = [ClinicalCase.from_dict(entry, f"cases[{i}]") for i, entry in enumerate(raw["cases"])]
+    seen_ids = set()
+    for case in cases:
+        if case.case_id in seen_ids:
+            raise SchemaValidationError(f"{path}: duplicate case_id {case.case_id!r}")
+        seen_ids.add(case.case_id)
+    return cases
+
+
+def load_case_interpretation_goldens(path: Path = None) -> Dict[str, dict]:
+    """Load validation/golden_cases/case_interpretation_golden_cases.yaml
+    into {case_id: {"expected_status": CaseInterpretationStatus, "source": str, "curator_note": str}}.
+    """
+    path = path or (GOLDEN_CASES_DIR / "case_interpretation_golden_cases.yaml")
+    if not path.exists():
+        raise FileNotFoundError(f"case interpretation golden case file not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        raw = yaml.safe_load(handle) or {}
+    if not isinstance(raw, dict) or "case_interpretations" not in raw:
+        raise SchemaValidationError(f"{path}: expected a top-level 'case_interpretations' list")
+    entries = raw["case_interpretations"]
+    if not isinstance(entries, list):
+        raise SchemaValidationError(f"{path}: 'case_interpretations' must be a list")
+    goldens: Dict[str, dict] = {}
+    for i, entry in enumerate(entries):
+        if not isinstance(entry, dict) or "case_id" not in entry or "expected_status" not in entry:
+            raise SchemaValidationError(f"{path}: case_interpretations[{i}] must include 'case_id' and 'expected_status'")
+        case_id = entry["case_id"]
+        try:
+            expected_status = CaseInterpretationStatus(entry["expected_status"])
+        except ValueError as exc:
+            valid = ", ".join(sorted(v.value for v in CaseInterpretationStatus))
+            raise SchemaValidationError(
+                f"{path}: case_interpretations[{i}].expected_status={entry['expected_status']!r} invalid; expected one of {valid}"
+            ) from exc
+        if case_id in goldens:
+            raise SchemaValidationError(f"{path}: duplicate case_id {case_id!r}")
+        goldens[case_id] = {
+            "expected_status": expected_status,
+            "source": entry.get("source", ""),
+            "curator_note": entry.get("curator_note", ""),
+        }
+    return goldens
+
+
 def load_all(base: Path = None) -> dict:
     """Convenience entry point: load contexts, evidence bundles, and golden
     cases together, and cross-check that every bundle has a gene/disease
@@ -156,7 +217,7 @@ def load_all(base: Path = None) -> dict:
     base = base or REPO_ROOT
     contexts = load_gene_disease_contexts((base / "data" / "curated" / "gene_disease_context.yaml") if base else None)
     bundles, rejected = load_variant_evidence_bundles((base / "data" / "curated" / "variant_evidence.json") if base else None)
-    golden_cases = load_golden_cases((base / "validation" / "golden_cases" / "capn3_milestone1.yaml") if base else None)
+    golden_cases = load_golden_cases((base / "validation" / "golden_cases" / "variant_golden_cases.yaml") if base else None)
 
     warnings: List[str] = []
     bundle_ids = {b.variant.variant_id for b in bundles}

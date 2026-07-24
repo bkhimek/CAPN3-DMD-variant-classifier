@@ -55,12 +55,12 @@ def test_ba1_and_bs1_match_golden_case_for_all_curated_bundles():
                 f"golden case expects {expected}. Rationale: {result.rationale}"
             )
             checked += 1
-    assert checked == 6  # BA1 + BS1, across all three curated cases
+    assert checked == 10  # BA1 + BS1, across all five curated cases
 
 
 def test_bs1_founder_case_is_flagged_manual_review_not_silently_not_met():
     # This is the case that motivated correcting the golden case from
-    # NOT_MET to MANUAL_REVIEW — see validation/golden_cases/capn3_milestone1.yaml.
+    # NOT_MET to MANUAL_REVIEW — see validation/golden_cases/variant_golden_cases.yaml.
     bundles, _ = loader.load_variant_evidence_bundles()
     thresholds = loader.load_frequency_thresholds()
     bundle = next(b for b in bundles if b.variant.variant_id == "CAPN3_c.550del")

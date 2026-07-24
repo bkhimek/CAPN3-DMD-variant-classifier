@@ -1,0 +1,72 @@
+# Case-level golden expectations for Milestone 4 (clinical.py), kept
+# deliberately separate from variant_golden_cases.yaml: these test a
+# different layer (case-level interpretation, consuming already-computed
+# ProvisionalClassifications) against a different kind of fixture
+# (ClinicalCase, not VariantEvidenceBundle) — see clinical.py's docstring
+# for why case-level reasoning isn't folded into the per-variant
+# evaluator/engine pattern.
+#
+# Written by hand against clinical.py's documented scope before the
+# corresponding tests were run against it, same golden-case philosophy as
+# variant_golden_cases.yaml: expectations curated independently of the
+# code being tested.
+
+case_interpretations:
+  - case_id: CASE_CAPN3_BIALLELIC_TRANS
+    expected_status: EXPLAINED
+    source: "Hand-derived: both variants confirmed in trans, both individually Pathogenic/Likely Pathogenic"
+    curator_note: >
+      The clean positive case: two independently-classified pathogenic
+      alleles, phase confirmed by (synthetic) parental testing. This is
+      the only combination of inputs that should produce EXPLAINED for an
+      autosomal recessive gene.
+
+  - case_id: CASE_CAPN3_BIALLELIC_CIS
+    expected_status: INSUFFICIENT
+    source: "Hand-derived: same two variants as the trans case, but confirmed on the same allele"
+    curator_note: >
+      The clean negative case — just as important to get right as the
+      positive one. Both variants are individually just as pathogenic as
+      in the trans case; only the phase relationship differs, and that
+      alone is enough to change the answer from EXPLAINED to
+      INSUFFICIENT. If an implementation ever bases this decision on the
+      variants' own classifications instead of phase, this case will
+      catch it.
+
+  - case_id: CASE_CAPN3_PHASE_UNKNOWN
+    expected_status: MANUAL_REVIEW
+    source: "Hand-derived: same two variants again, phase not established"
+    curator_note: >
+      Neither EXPLAINED nor INSUFFICIENT is honest here — the case could
+      genuinely be either, depending on information this fixture doesn't
+      have. MANUAL_REVIEW is the only defensible automated answer.
+
+  - case_id: CASE_CAPN3_SINGLE_VARIANT
+    expected_status: INSUFFICIENT
+    source: "Hand-derived: one variant only, autosomal recessive gene"
+    curator_note: >
+      Uses the real ClinVar-grounded CAPN3_c.550del case on purpose: even
+      a variant with strong individual evidence (PVS1 MET) is
+      INSUFFICIENT on its own for a recessive disease case explanation.
+      Deliberately does not depend on CAPN3_c.550del's own PM2/BS1
+      manual-review nuance (see variant_golden_cases.yaml) — the "only one
+      variant found" rule applies regardless of how strong that one
+      variant's evidence is.
+
+  - case_id: CASE_DMD_HEMIZYGOUS_MALE
+    expected_status: EXPLAINED
+    source: "Hand-derived: XY, single Likely Pathogenic variant, X-linked recessive gene"
+    curator_note: >
+      The clean X-linked case: a hemizygous male needs only one
+      convincing variant, unlike the autosomal recessive cases above.
+
+  - case_id: CASE_DMD_FEMALE_CARRIER
+    expected_status: MANUAL_REVIEW
+    source: "Hand-derived: same variant as the hemizygous male case, but karyotypic_sex=XX"
+    curator_note: >
+      Same variant, same individual classification — only the patient's
+      karyotypic sex differs, and that alone changes the answer.
+      Deliberately NOT resolved to EXPLAINED or INSUFFICIENT: female
+      X-linked carrier interpretation depends on X-inactivation biology
+      this project does not model, so guessing would be worse than
+      admitting the gap (see clinical.py's module docstring).

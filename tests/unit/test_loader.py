@@ -15,27 +15,35 @@ def test_load_gene_disease_contexts_from_real_fixture():
     contexts = loader.load_gene_disease_contexts()
     assert "CAPN3" in contexts
     assert contexts["CAPN3"].inheritance.value == "AUTOSOMAL_RECESSIVE"
+    assert "DMD" in contexts
+    assert contexts["DMD"].inheritance.value == "X_LINKED_RECESSIVE"
 
 
 def test_load_variant_evidence_bundles_from_real_fixture():
     bundles, rejected = loader.load_variant_evidence_bundles()
-    assert len(bundles) == 3
+    assert len(bundles) == 5
     assert rejected == []
     ids = sorted(b.variant.variant_id for b in bundles)
-    assert ids == ["CAPN3_SYNTH_LIKELY_BENIGN_01", "CAPN3_SYNTH_PATHOGENIC_01", "CAPN3_c.550del"]
+    assert ids == [
+        "CAPN3_SYNTH_LIKELY_BENIGN_01",
+        "CAPN3_SYNTH_PATHOGENIC_01",
+        "CAPN3_SYNTH_PATHOGENIC_02",
+        "CAPN3_c.550del",
+        "DMD_SYNTH_PATHOGENIC_01",
+    ]
 
 
 def test_load_golden_cases_from_real_fixture():
     golden_cases = loader.load_golden_cases()
-    assert len(golden_cases) == 3
+    assert len(golden_cases) == 5
     assert golden_cases["CAPN3_SYNTH_PATHOGENIC_01"].expected_provisional_class.value == "PATHOGENIC"
 
 
 def test_load_all_real_fixtures_have_no_cross_check_warnings():
     result = loader.load_all()
     assert result["cross_check_warnings"] == [], result["cross_check_warnings"]
-    assert len(result["evidence_bundles"]) == 3
-    assert len(result["golden_cases"]) == 3
+    assert len(result["evidence_bundles"]) == 5
+    assert len(result["golden_cases"]) == 5
     assert result["rejected_evidence"] == []
 
 
@@ -64,7 +72,7 @@ def test_load_all_flags_golden_case_with_no_matching_bundle(tmp_path=None):
             }
         ]
     }
-    (tmp_path / "validation" / "golden_cases" / "capn3_milestone1.yaml").write_text(
+    (tmp_path / "validation" / "golden_cases" / "variant_golden_cases.yaml").write_text(
         json.dumps(golden_data)  # valid YAML is a superset concern here: JSON is valid YAML
     )
 
