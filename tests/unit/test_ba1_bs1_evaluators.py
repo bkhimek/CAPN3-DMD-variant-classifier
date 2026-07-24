@@ -55,7 +55,9 @@ def test_ba1_and_bs1_match_golden_case_for_all_curated_bundles():
                 f"golden case expects {expected}. Rationale: {result.rationale}"
             )
             checked += 1
-    assert checked == 10  # BA1 + BS1, across all five curated cases
+    # Two codes (BA1, BS1) checked per bundle -- see test_pm2_evaluator.py
+    # for why this is derived from len(bundles) rather than a literal.
+    assert checked == 2 * len(bundles) > 0
 
 
 def test_bs1_founder_case_is_flagged_manual_review_not_silently_not_met():

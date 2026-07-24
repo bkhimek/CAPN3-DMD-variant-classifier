@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete — case-level clinical interpretation
+## Status: Milestone 4 complete, curated variant set expanding toward 20-30
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -27,10 +27,13 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- Five curated evidence bundles (`data/curated/variant_evidence.json`):
-  one real ClinVar-grounded CAPN3 case and four synthetic cases (three
-  CAPN3, one DMD) constructed to exercise specific combining-rule and
-  case-level paths. Gene/disease context for both CAPN3 and DMD
+- **Eight curated evidence bundles** (`data/curated/variant_evidence.json`):
+  four real ClinVar-grounded CAPN3 variants and four synthetic cases
+  (three CAPN3, one DMD) constructed to exercise specific combining-rule
+  and case-level paths. This is the first increment toward the ~20-30
+  ClinVar variant set from the original project plan — see "Expanding the
+  curated set" below for what the three newest real variants add and
+  where this is headed. Gene/disease context for both CAPN3 and DMD
   (`data/curated/gene_disease_context.yaml`).
 - Golden cases for every curated fixture, curated *separately* from the
   evidence they judge, per the golden-case philosophy in the Validation
@@ -56,13 +59,16 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Now five curated variants (CAPN3 and, for the first time, DMD) and six
-  curated `ClinicalCase` fixtures covering every branch above. Every
-  evaluator, the combining engine, and the case interpretation layer are
-  each verified against golden cases written independently of the code —
-  including, for the case-level tests, that trans vs cis and male vs
-  female change the outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 103 tests pass in total.
+- Eight curated variants (CAPN3 and DMD) and six curated `ClinicalCase`
+  fixtures covering every branch above. Every evaluator, the combining
+  engine, and the case interpretation layer are each verified against
+  golden cases written independently of the code — including, for the
+  case-level tests, that trans vs cis and male vs female change the
+  outcome despite everything else being identical
+  (`tests/unit/test_*.py`). 103 tests pass in total (the "matches golden
+  case" tests iterate over however many fixtures exist rather than a
+  hardcoded count, so this number grows automatically as the curated set
+  does).
 
 ## Design notes
 
@@ -97,6 +103,33 @@ change (still VUS), but two criteria are now honestly flagged for human
 judgment instead of one. BA1 got the same three-way branch for
 consistency, even though its 5% threshold makes the branch unlikely to
 matter in practice.
+
+**Expanding the curated set.** Three real, ClinVar-documented CAPN3
+variants were added alongside the original `CAPN3_c.550del`, chosen
+deliberately for diversity rather than for easy wins:
+
+- `CAPN3_c.1939G>T` (p.Glu647Ter) — a clean nonsense variant, no
+  ancestry-enrichment complication. Reaches LIKELY_PATHOGENIC, not
+  PATHOGENIC, because no computational evidence was gathered for it — an
+  honest limit of the current criterion set, not a bug.
+- `CAPN3_c.2257G>A` (p.Asp753Asn) — a real, still-debated variant.
+  Population frequency clears this project's BS1 threshold, but BS1 alone
+  isn't sufficient for LIKELY_BENIGN per Table 5, so the engine lands on
+  VUS. Recent literature suggests this variant might reflect a
+  low-penetrance *dominant* mechanism distinct from CAPN3's usual
+  recessive model — something this project's one-inheritance-pattern-per-
+  gene design can't represent, noted explicitly rather than silently
+  mismodeled.
+- `CAPN3_c.946-1G>A` — a real, experimentally-confirmed pathogenic splice
+  acceptor variant. Because PVS1 doesn't auto-resolve splice variants (see
+  "PVS1 scope" below), this variant lands on VUS despite being confidently
+  Pathogenic in ClinVar with wet-lab support — the clearest real-world
+  case yet of the PVS1 scope gap actually costing something.
+
+Reaching the full ~20-30 variant set is expected to take several more
+rounds of this same process (research a real variant, ground its
+evidence, hand-derive the expected result, verify against the engine) —
+this is a deliberate first increment, not the finish line.
 
 **Case-level scope.** clinical.py deliberately does not extend the
 per-variant evaluator pattern from Milestone 2/3 — PM3 ("detected in trans
@@ -179,7 +212,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       5 curated variants (CAPN3 + DMD)
+    variant_evidence.json       8 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         6 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -238,9 +271,11 @@ case with no matching evidence bundle).
   engine.
 - **Milestone 4** — done. `ClinicalCase`/`CaseInterpretation` models and
   `clinical.py`'s case-level reasoning (see "Case-level scope" above).
-- Later: expand curated fixtures to the full 20–30 ClinVar variant set;
-  add PM3/PS1/PM5/PS3/BS3 as real per-variant criteria (distinct from how
-  clinical.py currently handles trans/cis reasoning at the case level);
+- Later: continue expanding curated fixtures toward the full 20-30
+  ClinVar variant set (8 of ~20-30 done, see "Expanding the curated set"
+  above); add PM3/PS1/PM5/PS3/BS3 as real per-variant criteria (distinct
+  from how clinical.py currently handles trans/cis reasoning at the case
+  level);
   revisit PVS1's partial scope (protein-domain criticality,
   constitutive-exon data); revisit DMD's CNV representation gap (see
   gene_disease_context.yaml) if real DMD variants are ever added; extend

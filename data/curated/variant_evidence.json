@@ -247,6 +247,127 @@
         }
       ],
       "notes": "Fully synthetic \u2014 built in Milestone 4 as the project's first DMD fixture, specifically to test hemizygous X-linked case interpretation (see clinical.py). Deliberately a point/small-variant (nonsense), not a multi-exon deletion \u2014 real DMD pathogenic variants are very often structural copy-number changes, which this project's TranscriptConsequence model does not represent; see the note in data/curated/gene_disease_context.yaml. Not a real ClinVar variant; do not treat coordinates, HGVS, or transcript details as biologically verified."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.1939G>T",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 217153,
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "stop_gained",
+          "mane_select": true,
+          "hgvs_c": "c.1939G>T",
+          "hgvs_p": "p.Glu647Ter",
+          "exon": "17",
+          "nmd_predicted": true
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "OBSERVED",
+          "overall_af": 3e-05
+        }
+      ],
+      "notes": "Real ClinVar entry (Variation ID 217153, RCV000201136), reported Pathogenic, nonsense variant in exon 17. gnomAD v4.1.0 overall AF ~0.00003 (0.003%). nmd_predicted=true is a modeling judgment, not a direct NMD-prediction tool output: exon 17 is mid-transcript (CAPN3/NM_000070 has 24 exons), well upstream of the last exon-exon junction, so NMD is the biologically expected outcome for a nonsense variant at this position. Exact GRCh38 coordinates were not independently verified during curation (see variant.coordinate_verified=false); HGVS and the ClinVar accession are used as the authoritative identifiers instead, same convention as CAPN3_c.550del."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.2257G>A",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.2257G>A",
+          "hgvs_p": "p.Asp753Asn"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "OBSERVED",
+          "overall_af": 0.002457
+        }
+      ],
+      "notes": "Real, recurrent CAPN3 missense variant (p.Asp753Asn), reported in multiple LGMD cohorts (e.g. an 8-patient Italian multicenter series) but with real, unresolved controversy in the literature: gnomAD v4.1.0 AF (0.002457, driven by a Middle Eastern subpopulation) exceeds the ClinGen LGMD-VCEP-style BS1 threshold this project uses (0.001), and several reported carriers had a second CAPN3 variant that could independently explain their phenotype. Recent literature (2025) has proposed this variant may instead represent a low-penetrance AUTOSOMAL DOMINANT calpainopathy mechanism distinct from classic recessive LGMDR1 -- a possibility this fixture's gene_disease_context (fixed as AUTOSOMAL_RECESSIVE for all CAPN3 variants in this project) cannot represent. No computational evidence gathered (left absent rather than fabricated). This is a deliberately unresolved, real-world-grounded case: our engine lands on VUS via BS1 MET alone (insufficient alone per Table 5), which is defensible but is not the same as confidently calling this variant benign -- exactly the kind of case a human reviewer, not just automation, should look at closely."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.946-1G>A",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 21036,
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "splice_acceptor_variant",
+          "mane_select": true,
+          "hgvs_c": "c.946-1G>A",
+          "exon": "intron 6 (acceptor)"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true
+        }
+      ],
+      "notes": "Real ClinVar entry (Variation ID 21036, RCV000020097), reported Pathogenic, canonical splice acceptor variant in intron 6. Reported absent from ExAC/gnomAD. Experimental splicing studies (per ClinVar submitter evidence) confirm this variant disrupts mRNA splicing -- real, strong evidence for pathogenicity that this project's PVS1 evaluator cannot use, since it only auto-resolves frameshift/nonsense NMD cases; splice variants are deliberately routed to MANUAL_REVIEW (see pvs1.py). This fixture exists specifically to show that limitation on a real, well-documented pathogenic variant, not just a hypothetical one: our 6-criterion engine lands on VUS here (PM2 MET alone is insufficient per Table 5) despite this being a confidently Pathogenic variant in ClinVar with experimental support."
     }
   ]
 }

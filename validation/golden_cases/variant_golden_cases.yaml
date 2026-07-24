@@ -127,3 +127,77 @@ golden_cases:
       VS+1 Moderate combining path as CAPN3_SYNTH_PATHOGENIC_02. A
       point/small-variant, not the multi-exon deletion pattern common in
       real DMD pathogenic variants — see gene_disease_context.yaml.
+
+  - variant_id: CAPN3_c.1939G>T
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_criterion_status:
+      PVS1: MET
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 217153)"
+    curator_note: >
+      Real, ClinVar-reported Pathogenic nonsense variant, gnomAD AF
+      0.003% (no ancestry-enrichment complication, unlike CAPN3_c.550del).
+      PVS1 MET + PM2 MET reaches LIKELY_PATHOGENIC via the VS+1 Moderate
+      path -- not full PATHOGENIC, because no computational evidence was
+      gathered for this variant (PP3 NOT_EVALUATED), and this project's
+      6-criterion engine has no other path to the Pathogenic tier from a
+      single Very Strong + Moderate pair. This is expected and correct
+      given the criterion scope, not a bug: it demonstrates the engine
+      declining to overclaim a full Pathogenic call it doesn't have
+      complete evidence for, even for a variant ClinVar itself calls
+      Pathogenic.
+
+  - variant_id: CAPN3_c.2257G>A
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: NOT_MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real, recurrent CAPN3 variant (p.Asp753Asn)"
+    curator_note: >
+      Real and genuinely contested in the literature -- not a clean
+      textbook case, included deliberately for that reason. gnomAD AF
+      (0.002457, Middle-Eastern-subpopulation-driven) clears this
+      project's BS1 threshold, giving BS1 MET alone. Per Table 5, BS1
+      alone is insufficient for LIKELY_BENIGN (needs a Supporting-benign
+      criterion too, the same gap BP4 was added to close for the
+      synthetic fixtures) -- so the engine lands on VUS. That VUS is
+      defensible given only 6 criteria are implemented, but it should not
+      be read as "probably benign, case closed": recent (2025) literature
+      proposes this variant may represent a low-penetrance AUTOSOMAL
+      DOMINANT calpainopathy mechanism entirely distinct from the
+      recessive LGMDR1 model this project's CAPN3 gene_disease_context
+      assumes for every variant. This project cannot represent that
+      possibility (one fixed inheritance pattern per gene) -- flagged here
+      explicitly rather than silently mismodeled.
+
+  - variant_id: CAPN3_c.946-1G>A
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MANUAL_REVIEW
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 21036)"
+    curator_note: >
+      Real, ClinVar-reported Pathogenic canonical splice acceptor variant
+      with experimental (not just predicted) evidence of disrupted
+      splicing, absent from gnomAD/ExAC. This project's PVS1 evaluator
+      does not auto-resolve splice-site variants (see pvs1.py, "PVS1
+      scope") -- it correctly returns MANUAL_REVIEW rather than guessing.
+      With PVS1 unresolved, only PM2 (Moderate) is MET, which alone never
+      reaches any Table 5 tier -- VUS. This is the clearest demonstration
+      in the fixture set of the PVS1 scope gap costing something real: a
+      confidently Pathogenic ClinVar variant, with wet-lab splicing
+      evidence behind it, that this engine cannot currently call anything
+      stronger than Uncertain Significance. A good candidate to revisit
+      if/when PVS1's splice-outcome modeling is extended.

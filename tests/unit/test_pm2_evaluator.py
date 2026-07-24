@@ -58,7 +58,11 @@ def test_pm2_matches_golden_case_for_all_curated_bundles():
             f"golden case expects {expected}. Rationale: {result.rationale}"
         )
         checked += 1
-    assert checked == 5  # all five curated cases have a PM2 expectation
+    # Tied to len(bundles) rather than a hardcoded number: every curated
+    # bundle is expected to have a PM2 expectation, and this way adding
+    # fixtures later doesn't require remembering to update a count too (a
+    # maintenance gap that bit this test suite during Milestone 4).
+    assert checked == len(bundles) > 0
 
 
 def test_pm2_founder_case_is_flagged_manual_review_not_silently_met():
