@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set expanding toward 20-30
+## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (10 done)
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -27,12 +27,12 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- **Eight curated evidence bundles** (`data/curated/variant_evidence.json`):
-  four real ClinVar-grounded CAPN3 variants and four synthetic cases
-  (three CAPN3, one DMD) constructed to exercise specific combining-rule
-  and case-level paths. This is the first increment toward the ~20-30
-  ClinVar variant set from the original project plan — see "Expanding the
-  curated set" below for what the three newest real variants add and
+- **Ten curated evidence bundles** (`data/curated/variant_evidence.json`):
+  six real ClinVar-grounded variants (five CAPN3, one DMD) and four
+  synthetic cases (three CAPN3, one DMD) constructed to exercise specific
+  combining-rule and case-level paths. This is two increments toward the
+  ~20-30 ClinVar variant set from the original project plan — see
+  "Expanding the curated set" below for what each real variant adds and
   where this is headed. Gene/disease context for both CAPN3 and DMD
   (`data/curated/gene_disease_context.yaml`).
 - Golden cases for every curated fixture, curated *separately* from the
@@ -59,7 +59,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Eight curated variants (CAPN3 and DMD) and six curated `ClinicalCase`
+- Ten curated variants (CAPN3 and DMD) and six curated `ClinicalCase`
   fixtures covering every branch above. Every evaluator, the combining
   engine, and the case interpretation layer are each verified against
   golden cases written independently of the code — including, for the
@@ -126,10 +126,34 @@ deliberately for diversity rather than for easy wins:
   Pathogenic in ClinVar with wet-lab support — the clearest real-world
   case yet of the PVS1 scope gap actually costing something.
 
+A second round added two more, chosen to round out the picture rather
+than repeat the same story:
+
+- `DMD_c.2302C>T` (p.Arg768Ter) — the project's first real (non-synthetic)
+  DMD variant, replacing the placeholder role `DMD_SYNTH_PATHOGENIC_01`
+  had been playing alone. Same LIKELY_PATHOGENIC-not-PATHOGENIC story as
+  `CAPN3_c.1939G>T`, for the same reason (no computational evidence
+  gathered). Not yet wired into a `ClinicalCase` fixture — the Milestone 4
+  case-level tests still use the synthetic DMD variant.
+- `CAPN3_c.1343G>A` (p.Arg448His) — a real, extremely rare missense
+  variant that ClinVar itself calls Uncertain Significance, and so does
+  this engine (PM2 MET alone, no other criterion applies). Added
+  deliberately because the three prior real variants were all "engine
+  under-calls a real Pathogenic/Benign-leaning variant due to scope
+  gaps" stories — worth having at least one case in the set where the
+  limited criterion set's answer simply agrees with the real-world
+  consensus, so the pattern of gaps doesn't look like the whole picture.
+
+A true common (>5% gnomAD) CAPN3 variant to exercise BA1 MET against real
+data was searched for but not found in this round — CAPN3's recessive
+disease model means genuinely common variants in this gene are scarce in
+the literature searched so far. Still a gap; a hand-built synthetic edge
+case covers the BA1 MET logic branch in the meantime
+(`tests/unit/test_ba1_bs1_evaluators.py`).
+
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
-evidence, hand-derive the expected result, verify against the engine) —
-this is a deliberate first increment, not the finish line.
+evidence, hand-derive the expected result, verify against the engine).
 
 **Case-level scope.** clinical.py deliberately does not extend the
 per-variant evaluator pattern from Milestone 2/3 — PM3 ("detected in trans
@@ -212,7 +236,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       8 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       10 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         6 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -272,10 +296,10 @@ case with no matching evidence bundle).
 - **Milestone 4** — done. `ClinicalCase`/`CaseInterpretation` models and
   `clinical.py`'s case-level reasoning (see "Case-level scope" above).
 - Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (8 of ~20-30 done, see "Expanding the curated set"
-  above); add PM3/PS1/PM5/PS3/BS3 as real per-variant criteria (distinct
-  from how clinical.py currently handles trans/cis reasoning at the case
-  level);
+  ClinVar variant set (10 of ~20-30 done, see "Expanding the curated set"
+  above; a true common/BA1-level CAPN3 variant is a known remaining gap);
+  add PM3/PS1/PM5/PS3/BS3 as real per-variant criteria (distinct from how
+  clinical.py currently handles trans/cis reasoning at the case level);
   revisit PVS1's partial scope (protein-domain criticality,
   constitutive-exon data); revisit DMD's CNV representation gap (see
   gene_disease_context.yaml) if real DMD variants are ever added; extend

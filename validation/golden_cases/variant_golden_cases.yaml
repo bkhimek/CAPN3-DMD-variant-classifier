@@ -201,3 +201,44 @@ golden_cases:
       evidence behind it, that this engine cannot currently call anything
       stronger than Uncertain Significance. A good candidate to revisit
       if/when PVS1's splice-outcome modeling is extended.
+
+  - variant_id: DMD_c.2302C>T
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_criterion_status:
+      PVS1: MET
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 11222)"
+    curator_note: >
+      The project's first real (non-synthetic) DMD variant, replacing
+      DMD_SYNTH_PATHOGENIC_01 as the "real data" reference point for DMD
+      the way CAPN3_c.550del is for CAPN3. Same VS+1 Moderate combining
+      path and same "LIKELY_PATHOGENIC not PATHOGENIC because no
+      computational evidence was gathered" story as CAPN3_c.1939G>T. Not
+      yet referenced by any ClinicalCase fixture (those still use
+      DMD_SYNTH_PATHOGENIC_01) -- a reasonable next step if the Milestone
+      4 case-level tests are ever revisited with real DMD data.
+
+  - variant_id: CAPN3_c.1343G>A
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry"
+    curator_note: >
+      Real missense variant, extremely rare in gnomAD (AF ~0.0000026),
+      reported by ClinVar itself as Uncertain Significance. PM2 MET alone
+      never reaches a Table 5 tier, so the engine also lands on VUS --
+      included deliberately as a case where this project's limited
+      criterion set agrees with the real-world consensus, rather than
+      under- or over-calling it. Worth keeping in the set as a reminder
+      that CAPN3_c.1939G>T and CAPN3_c.946-1G>A (both real Pathogenic
+      variants this engine under-calls) are the interesting exceptions,
+      not the typical case.

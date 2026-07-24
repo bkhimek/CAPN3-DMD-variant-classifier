@@ -21,32 +21,34 @@ def test_load_gene_disease_contexts_from_real_fixture():
 
 def test_load_variant_evidence_bundles_from_real_fixture():
     bundles, rejected = loader.load_variant_evidence_bundles()
-    assert len(bundles) == 8
+    assert len(bundles) == 10
     assert rejected == []
     ids = sorted(b.variant.variant_id for b in bundles)
     assert ids == [
         "CAPN3_SYNTH_LIKELY_BENIGN_01",
         "CAPN3_SYNTH_PATHOGENIC_01",
         "CAPN3_SYNTH_PATHOGENIC_02",
+        "CAPN3_c.1343G>A",
         "CAPN3_c.1939G>T",
         "CAPN3_c.2257G>A",
         "CAPN3_c.550del",
         "CAPN3_c.946-1G>A",
         "DMD_SYNTH_PATHOGENIC_01",
+        "DMD_c.2302C>T",
     ]
 
 
 def test_load_golden_cases_from_real_fixture():
     golden_cases = loader.load_golden_cases()
-    assert len(golden_cases) == 8
+    assert len(golden_cases) == 10
     assert golden_cases["CAPN3_SYNTH_PATHOGENIC_01"].expected_provisional_class.value == "PATHOGENIC"
 
 
 def test_load_all_real_fixtures_have_no_cross_check_warnings():
     result = loader.load_all()
     assert result["cross_check_warnings"] == [], result["cross_check_warnings"]
-    assert len(result["evidence_bundles"]) == 8
-    assert len(result["golden_cases"]) == 8
+    assert len(result["evidence_bundles"]) == 10
+    assert len(result["golden_cases"]) == 10
     assert result["rejected_evidence"] == []
 
 

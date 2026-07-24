@@ -368,6 +368,86 @@
         }
       ],
       "notes": "Real ClinVar entry (Variation ID 21036, RCV000020097), reported Pathogenic, canonical splice acceptor variant in intron 6. Reported absent from ExAC/gnomAD. Experimental splicing studies (per ClinVar submitter evidence) confirm this variant disrupts mRNA splicing -- real, strong evidence for pathogenicity that this project's PVS1 evaluator cannot use, since it only auto-resolves frameshift/nonsense NMD cases; splice variants are deliberately routed to MANUAL_REVIEW (see pvs1.py). This fixture exists specifically to show that limitation on a real, well-documented pathogenic variant, not just a hypothetical one: our 6-criterion engine lands on VUS here (PM2 MET alone is insufficient per Table 5) despite this being a confidently Pathogenic variant in ClinVar with experimental support."
+    },
+    {
+      "variant": {
+        "variant_id": "DMD_c.2302C>T",
+        "gene": "DMD",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 11222,
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "DMD",
+        "disease": "Duchenne/Becker muscular dystrophy (dystrophinopathy)",
+        "inheritance": "X_LINKED_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (DMD-dystrophinopathy, X-linked)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_004006.3",
+          "clinically_relevant": true,
+          "consequence": "stop_gained",
+          "mane_select": true,
+          "hgvs_c": "c.2302C>T",
+          "hgvs_p": "p.Arg768Ter",
+          "nmd_predicted": true
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true
+        }
+      ],
+      "notes": "Real ClinVar entry (Variation ID 11222, RCV000011973), reported Pathogenic, nonsense variant, absent from gnomAD. The project's first real (non-synthetic) DMD fixture -- DMD_SYNTH_PATHOGENIC_01 remains synthetic and is still what the Milestone 4 ClinicalCase fixtures reference; this variant is not yet wired into a clinical case. nmd_predicted=true is a modeling judgment (dystrophin is ~3685 aa; position 768 is early-mid transcript, well upstream of the last exon-exon junction), same convention as CAPN3_c.1939G>T. Exon number not independently verified during curation, so omitted rather than guessed; HGVS and the ClinVar accession are the authoritative identifiers."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.1343G>A",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.1343G>A",
+          "hgvs_p": "p.Arg448His"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "OBSERVED",
+          "overall_af": 2.6e-06
+        }
+      ],
+      "notes": "Real CAPN3 missense variant, gnomAD v4.1.0 AF ~0.00000263 -- well below this project's PM2 threshold and reported by ClinVar itself as Uncertain Significance. No computational evidence gathered here (left absent rather than fabricated). Included deliberately as a case where this project's limited 6-criterion engine's VUS call actually agrees with the real-world ClinVar consensus, unlike CAPN3_c.1939G>T and CAPN3_c.946-1G>A (both real Pathogenic variants our engine under-calls due to scope gaps) -- useful to have at least one case in the set that isn't a story about the engine's limitations."
     }
   ]
 }
