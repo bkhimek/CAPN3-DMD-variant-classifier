@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (10 done)
+## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (12 done)
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -27,11 +27,11 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- **Ten curated evidence bundles** (`data/curated/variant_evidence.json`):
-  six real ClinVar-grounded variants (five CAPN3, one DMD) and four
+- **Twelve curated evidence bundles** (`data/curated/variant_evidence.json`):
+  eight real ClinVar-grounded variants (seven CAPN3, one DMD) and four
   synthetic cases (three CAPN3, one DMD) constructed to exercise specific
-  combining-rule and case-level paths. This is two increments toward the
-  ~20-30 ClinVar variant set from the original project plan — see
+  combining-rule and case-level paths. This is three increments toward
+  the ~20-30 ClinVar variant set from the original project plan — see
   "Expanding the curated set" below for what each real variant adds and
   where this is headed. Gene/disease context for both CAPN3 and DMD
   (`data/curated/gene_disease_context.yaml`).
@@ -59,7 +59,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Ten curated variants (CAPN3 and DMD) and six curated `ClinicalCase`
+- Twelve curated variants (CAPN3 and DMD) and six curated `ClinicalCase`
   fixtures covering every branch above. Every evaluator, the combining
   engine, and the case interpretation layer are each verified against
   golden cases written independently of the code — including, for the
@@ -144,12 +144,27 @@ than repeat the same story:
   limited criterion set's answer simply agrees with the real-world
   consensus, so the pattern of gaps doesn't look like the whole picture.
 
-A true common (>5% gnomAD) CAPN3 variant to exercise BA1 MET against real
-data was searched for but not found in this round — CAPN3's recessive
-disease model means genuinely common variants in this gene are scarce in
-the literature searched so far. Still a gap; a hand-built synthetic edge
-case covers the BA1 MET logic branch in the meantime
-(`tests/unit/test_ba1_bs1_evaluators.py`).
+A third round added two more:
+
+- `CAPN3_c.2050+1G>A` — a real, Pathogenic splice DONOR variant,
+  complementing `CAPN3_c.946-1G>A` (a splice ACCEPTOR variant). Same
+  PVS1-scope-gap story, and having two independent real splice variants
+  land the same way shows it's a systematic limitation, not a one-off.
+- `CAPN3_c.1132T>C` — a real missense VUS where several individual
+  in-silico tools (SIFT, PolyPhen-2, Align-GVGD) lean benign. Deliberately
+  *not* wired into a `ComputationalEvidence` record: this project's
+  PP3/BP4 model expects one calibrated ensemble score, not several raw
+  per-tool votes stacked together, and retrofitting one from these would
+  contradict that design principle. Lands on VUS, agreeing with ClinVar.
+
+Two gaps remain, both searched for and not found rather than silently
+skipped: a true common (>5% gnomAD) CAPN3 variant to exercise BA1 MET
+against real data (CAPN3's recessive biology means genuinely common
+variants are scarce in what's been searched so far), and a real variant
+with a precisely-sourced calibrated computational score (REVEL or
+similar) to ground PP3/BP4 on real rather than synthetic data. Both
+remain covered only by hand-built synthetic tests in the meantime
+(`tests/unit/test_ba1_bs1_evaluators.py`, `test_pp3_bp4_evaluators.py`).
 
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
@@ -236,7 +251,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       10 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       12 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         6 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -296,10 +311,11 @@ case with no matching evidence bundle).
 - **Milestone 4** — done. `ClinicalCase`/`CaseInterpretation` models and
   `clinical.py`'s case-level reasoning (see "Case-level scope" above).
 - Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (10 of ~20-30 done, see "Expanding the curated set"
-  above; a true common/BA1-level CAPN3 variant is a known remaining gap);
-  add PM3/PS1/PM5/PS3/BS3 as real per-variant criteria (distinct from how
-  clinical.py currently handles trans/cis reasoning at the case level);
+  ClinVar variant set (12 of ~20-30 done, see "Expanding the curated set"
+  above; a true common/BA1-level CAPN3 variant and a real calibrated
+  computational score are known remaining gaps); add PM3/PS1/PM5/PS3/BS3
+  as real per-variant criteria (distinct from how clinical.py currently
+  handles trans/cis reasoning at the case level);
   revisit PVS1's partial scope (protein-domain criticality,
   constitutive-exon data); revisit DMD's CNV representation gap (see
   gene_disease_context.yaml) if real DMD variants are ever added; extend

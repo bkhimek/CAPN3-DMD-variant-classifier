@@ -448,6 +448,85 @@
         }
       ],
       "notes": "Real CAPN3 missense variant, gnomAD v4.1.0 AF ~0.00000263 -- well below this project's PM2 threshold and reported by ClinVar itself as Uncertain Significance. No computational evidence gathered here (left absent rather than fabricated). Included deliberately as a case where this project's limited 6-criterion engine's VUS call actually agrees with the real-world ClinVar consensus, unlike CAPN3_c.1939G>T and CAPN3_c.946-1G>A (both real Pathogenic variants our engine under-calls due to scope gaps) -- useful to have at least one case in the set that isn't a story about the engine's limitations."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.2050+1G>A",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 553754,
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "splice_donor_variant",
+          "mane_select": true,
+          "hgvs_c": "c.2050+1G>A",
+          "exon": "intron 18 (donor)"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "OBSERVED",
+          "overall_af": 0.0001
+        }
+      ],
+      "notes": "Real ClinVar entry (Variation ID 553754), reported Pathogenic, canonical splice donor variant in intron 18, observed in homozygous and compound heterozygous LGMD patients. gnomAD AF ~0.01%. Complements CAPN3_c.946-1G>A (a splice ACCEPTOR variant) -- together they show the PVS1-splice-scope gap (see pvs1.py, 'PVS1 scope') isn't a one-off on a single variant: two independent real, confidently-Pathogenic splice variants both land on VUS here because PVS1 correctly declines to auto-resolve splice-site consequences."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.1132T>C",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.1132T>C",
+          "hgvs_p": "p.Phe378Leu"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true
+        }
+      ],
+      "notes": "Real CAPN3 missense variant, absent from gnomAD/ExAC, reported by ClinVar as Uncertain Significance and never reported in the CAPN3-related-disease literature. Individual in-silico tools (SIFT: Tolerated, PolyPhen-2: Benign, Align-GVGD: Class C0) all lean benign, and the substituted residue is conserved as leucine in other mammals -- but deliberately NOT converted into a ComputationalEvidence record here: this project's PP3/BP4 model expects a single calibrated ensemble score (e.g. REVEL), not raw individual-tool outputs stacked together, which is exactly the kind of multi-tool-vote pattern the design guide warns against (see computational_evidence.py docstring). Left as PP3/BP4 NOT_EVALUATED rather than retrofitting a categorical PolyPhen-2 call into a model built for something else. PM2 MET alone (absent from a well-covered locus) is the only criterion that applies, so this lands on VUS -- agreeing with ClinVar's own call, like CAPN3_c.1343G>A."
     }
   ]
 }

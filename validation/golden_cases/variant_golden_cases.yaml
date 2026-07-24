@@ -242,3 +242,42 @@ golden_cases:
       that CAPN3_c.1939G>T and CAPN3_c.946-1G>A (both real Pathogenic
       variants this engine under-calls) are the interesting exceptions,
       not the typical case.
+
+  - variant_id: CAPN3_c.2050+1G>A
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MANUAL_REVIEW
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 553754)"
+    curator_note: >
+      Real, ClinVar-reported Pathogenic canonical splice DONOR variant
+      (complementing CAPN3_c.946-1G>A, a splice ACCEPTOR variant). Same
+      story, same reason: PVS1 declines to auto-resolve splice-site
+      consequences, so only PM2 (Moderate) is MET, which alone never
+      reaches a Table 5 tier. Having two independent real splice variants
+      both land here shows the PVS1 scope gap is a systematic limitation,
+      not a one-off quirk of a single fixture.
+
+  - variant_id: CAPN3_c.1132T>C
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry"
+    curator_note: >
+      Real missense variant, absent from gnomAD, reported by ClinVar as
+      Uncertain Significance. Multiple individual in-silico tools (SIFT,
+      PolyPhen-2, Align-GVGD) lean benign, but were deliberately NOT
+      converted into a ComputationalEvidence record -- this project's
+      PP3/BP4 model expects one calibrated ensemble score, not several
+      raw per-tool votes stacked together (see computational_evidence.py).
+      PM2 MET alone lands on VUS, agreeing with ClinVar's own call, same
+      pattern as CAPN3_c.1343G>A.
