@@ -253,6 +253,31 @@ golden_cases:
       stronger than Uncertain Significance. A good candidate to revisit
       if/when PVS1's splice-outcome modeling is extended.
 
+  - variant_id: DMD_c.93+1G>A
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MANUAL_REVIEW
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (RCV000379611.3)"
+    curator_note: >
+      Real, ClinVar-reported Pathogenic canonical splice donor variant in
+      DMD intron 2 (Invitae, Sherloc method, 1-star review). The project's
+      second real DMD variant, and the first real DMD fixture to exercise
+      PVS1's splice-site scope gap -- previously only demonstrated on
+      CAPN3 (CAPN3_c.946-1G>A, CAPN3_c.2050+1G>A). Same story, same
+      reason: pvs1.py declines to auto-resolve splice donor/acceptor
+      consequences for any gene, not just CAPN3, so this returns
+      MANUAL_REVIEW rather than a guessed MET. With PVS1 unresolved, only
+      PM2 (Moderate -- DMD has no VCEP-sourced strength override, so it
+      keeps the generic ACMG default; absent from ExAC per the submitter's
+      own description) is MET, which alone never reaches a Table 5 tier --
+      VUS. Confirms the PVS1 scope gap is a property of the shared
+      evaluator, not something specific to CAPN3's data.
+
   - variant_id: DMD_c.2302C>T
     expected_provisional_class: LIKELY_PATHOGENIC
     expected_criterion_status:

@@ -635,6 +635,50 @@
         "calibrated_prediction": "PATHOGENIC"
       },
       "notes": "Real ClinVar entry (VCV000468648 / ClinGen Allele Registry CA7511744), classified Pathogenic by the ClinGen LGMD VCEP itself (Evidence Repository record 7f534c0d-0dbe-4d2e-88e2-88c804cde635, approved 2025-04-22): erepo.clinicalgenome.org/evrepo/ui/interpretation/7f534c0d-0dbe-4d2e-88e2-88c804cde635. This is the project's first fixture sourced directly from an official VCEP expert curation record, not just a ClinVar aggregate classification -- and the first REAL calibrated computational (REVEL) score used anywhere in this project (closing a gap open since Milestone 1): REVEL=0.966, well above the real VCEP's own PP3 threshold (>=0.70). Population data: gnomAD v2.1.1 total AF 0.000148 (42/282854, all populations); gnomAD v4.1.0 exomes East Asian filtering allele frequency 0.001250-0.001929 (95% CI bounds, 62/39700 East Asian chromosomes) -- used here as ancestry_specific_max_af (upper bound, consistent with the FAF convention already used for PM2/BA1/BS1 in this project). NOTABLE: the real VCEP's own curation explicitly found this variant's East Asian FAF (0.001929) technically crosses their BS1 threshold (>0.001), but chose NOT to apply BS1 -- an explicit 'BS1 exception' -- because this is one of the most commonly reported CAPN3 variants in East Asian LGMD patients (i.e. a real, expert-judged founder-pathogenic-variant scenario, not a benign-common-variant one). This project's BS1 evaluator cannot make that judgment call (it has no access to case-count/segregation context), but it does correctly decline to auto-resolve: with overall_af below the BS1 threshold but ancestry_specific_max_af crossing it, the evaluator's existing founder-enrichment branch returns MANUAL_REVIEW rather than silently applying BS1 -- landing on exactly the same 'a human needs to look at this' conclusion the real VCEP reached, for the same underlying reason, without knowing why. The real variant's actual Pathogenic classification rests almost entirely on criteria this project's 6-criterion engine does not implement at all (PM3_Strong: observed in trans with a pathogenic variant across multiple case reports; PP1_Strong: segregation in 6 affected relatives across 4 families; PP4: phenotype + reduced calpain-3 protein expression) -- PM2 is explicitly NOT_MET in the real curation too (too common in East Asian populations for PM2_Supporting's <0.0001 threshold), and PP3 (REVEL) is the ONLY real criterion this project's engine and the real VCEP curation share. This fixture is included specifically to show, honestly, how much of a real clinical classification depends on case-level and segregation evidence entirely outside a variant-only automated engine's reach."
+    },
+    {
+      "variant": {
+        "variant_id": "DMD_c.93+1G>A",
+        "gene": "DMD",
+        "genome_build": "GRCh38",
+        "chromosome": "X",
+        "position": 33020138,
+        "reference": "C",
+        "alternate": "T",
+        "clinvar_variation_id": 299395779,
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "DMD",
+        "disease": "Duchenne/Becker muscular dystrophy (dystrophinopathy)",
+        "inheritance": "X_LINKED_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (DMD-dystrophinopathy, X-linked)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_004006.3",
+          "clinically_relevant": true,
+          "consequence": "splice_donor_variant",
+          "mane_select": true,
+          "hgvs_c": "c.93+1G>A",
+          "exon": "intron 2 (donor)"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "ExAC",
+          "source_version": "unspecified (per ClinVar submitter note: 'not present in population databases, ExAC no frequency')",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true
+        }
+      ],
+      "notes": "Real ClinVar entry (RCV000379611.3, current record 299395779), reported Pathogenic by Invitae (Sherloc method, 1-star 'criteria provided, single submitter' review status, last evaluated 2017-07-31), canonical splice donor variant disrupting intron 2 of DMD. Coordinates independently confirmed directly from the ClinVar RCV page (GRCh38 chrX:33020138 C>T; DMD is on the minus strand, so this genomic C>T is the transcript-level c.93+1G>A). Reported absent from population databases (ExAC) in the submitter's own description; no gnomAD-specific frequency was stated in the available record, so ExAC is recorded as the source here rather than assumed to be gnomAD. This is the project's second real (non-synthetic) DMD variant, and the first real DMD fixture exercising PVS1's splice-site scope gap (previously only demonstrated on CAPN3, via CAPN3_c.946-1G>A and CAPN3_c.2050+1G>A) -- showing the same evaluator limitation applies identically regardless of gene, since pvs1.py's splice-donor/acceptor handling has no gene-specific logic. With PVS1 returning MANUAL_REVIEW and only PM2 (Moderate, absent from ExAC) MET, the engine lands on VUS, the same story as the CAPN3 splice fixtures, now confirmed on the X-linked gene too."
     }
   ]
 }
