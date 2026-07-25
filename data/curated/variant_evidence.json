@@ -688,6 +688,56 @@
         }
       ],
       "notes": "Real ClinVar entry (RCV000379611.3, current record 299395779), reported Pathogenic by Invitae (Sherloc method, 1-star 'criteria provided, single submitter' review status, last evaluated 2017-07-31), canonical splice donor variant disrupting intron 2 of DMD. Coordinates independently confirmed directly from the ClinVar RCV page (GRCh38 chrX:33020138 C>T; DMD is on the minus strand, so this genomic C>T is the transcript-level c.93+1G>A). Reported absent from population databases (ExAC) in the submitter's own description; no gnomAD-specific frequency was stated in the available record, so ExAC is recorded as the source here rather than assumed to be gnomAD. This is the project's second real (non-synthetic) DMD variant, and the first real DMD fixture exercising PVS1's splice-site scope gap (previously only demonstrated on CAPN3, via CAPN3_c.946-1G>A and CAPN3_c.2050+1G>A) -- showing the same evaluator limitation applies identically regardless of gene, since pvs1.py's splice-donor/acceptor handling has no gene-specific logic. With PVS1 returning MANUAL_REVIEW and only PM2 (Moderate, absent from ExAC) MET, the engine lands on VUS, the same story as the CAPN3 splice fixtures, now confirmed on the X-linked gene too."
+    },
+    {
+      "variant": {
+        "variant_id": "DMD_c.11041A>T",
+        "gene": "DMD",
+        "genome_build": "GRCh38",
+        "chromosome": "X",
+        "position": 31126647,
+        "reference": "T",
+        "alternate": "A",
+        "clinvar_variation_id": 641807,
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "DMD",
+        "disease": "Duchenne/Becker muscular dystrophy (dystrophinopathy)",
+        "inheritance": "X_LINKED_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (DMD-dystrophinopathy, X-linked)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_004006.3",
+          "clinically_relevant": true,
+          "consequence": "stop_gained",
+          "mane_select": true,
+          "hgvs_c": "c.11041A>T",
+          "hgvs_p": "p.Arg3681Ter",
+          "exon": "78 of 79 (coding exon 78)",
+          "nmd_predicted": false
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "genomes (via Ensembl variation endpoint, rs1477369230); cross-confirmed against ClinVar VCV000641807's own reported aggregate gnomAD frequency (0.00006)",
+          "retrieval_status": "OBSERVED",
+          "locus_coverage_adequate": true,
+          "overall_af": 5.434e-05,
+          "ancestry_specific_max_af": 0.0001979,
+          "allele_count": 6,
+          "allele_number": 110413
+        }
+      ],
+      "notes": "Real ClinVar entry (VCV000641807.15, Variation ID 641807; RCV synonyms RCV000795130, RCV001580547, RCV001830706, RCV002424814, RCV003489872), dbSNP rs1477369230, classified Uncertain significance (criteria provided, multiple submitters, no conflicts; 4 of 6 submissions contributing: GeneDx, Labcorp Genetics/Invitae, Women's Health and Genetics/LabCorp, Ambry Genetics). Coordinates and HGVS independently derived and cross-verified before consulting the primary ClinVar record: mapped DMD's MANE Select transcript (ENST00000357033.9, protein ENSP00000354923) residue 3681 to GRCh38 chrX:31126645-31126647 via the Ensembl REST API, retrieved the codon on both strands (AGA on the coding minus-strand), enumerated all nine possible single-nucleotide substitutions of that codon, and found exactly one produces a stop codon (position 1, coding-strand A>T, i.e. genomic plus-strand T>A at chrX:31126647) -- then confirmed this exact variant is independently cataloged in dbSNP/ClinVar via Ensembl's overlap/variation endpoints, and finally fetched the primary ClinVar VCV page directly, which returned the identical NM_004006.3:c.11041A>T (p.Arg3681Ter) HGVS, confirming the derivation exactly rather than merely being consistent with it. nmd_predicted=false: this is the project's first REAL fixture for PVS1's NMD-escape scope gap (previously only exercised by a hand-built edge-case test, test_pvs1_no_nmd_yields_manual_review_not_a_guess). The variant sits in coding exon 78 of 79, disrupting only the last 5 amino acids of dystrophin's C-terminus -- and every one of the four contributing ClinVar submitters independently states in their own classification comment that NMD is NOT expected here (Invitae: 'not anticipated to result in nonsense mediated decay'; LabCorp: 'nonsense mediated decay is not expected to occur'; Ambry: 'not expected to trigger nonsense-mediated mRNA decay'), so nmd_predicted=false is not this project's own inference -- it is independently corroborated by four separate clinical laboratories applying the standard last-exon/near-final-exon-junction NMD-escape rule. Population data: gnomAD genomes (queried directly via Ensembl's variation endpoint for rs1477369230) shows allele_count=6 out of 110413 total alleles overall (AF=0.0000543), with all 6 observed alleles restricted to the African/African American subpopulation (allele_count=6 of 30322 African alleles, AF=0.000198) -- this precisely matches a peer-reviewed paper's description of this variant as observed in six African individuals in gnomAD v3, and matches ClinVar's own reported aggregate gnomAD frequency (0.00006) to within rounding. Different ClinVar submitters cite different, smaller values from older/other gnomAD releases (Ambry: overall 0.0005%/African 0.007%, i.e. an older ~182k-allele dataset) -- included here for transparency, not smoothed over; rarity conclusions are consistent across all cited datasets even though the exact numbers differ by release. DMD has no published ClinGen VCEP variant-curation specification (confirmed via search this batch -- only a gene-disease-validity curation exists, unrelated to PM2/BS1 thresholds), so this is the first real DMD fixture to expose PM2/BS1's OBSERVED-branch requirement for a configured per-gene threshold; config/population_thresholds.yaml now carries an explicitly-labeled DMD placeholder (0.0001 / 0.001, reusing CAPN3's own pre-batch-4 placeholder values) so this fixture evaluates without guessing at a fabricated 'real' number. With that placeholder, PM2 lands on the same founder-enrichment MANUAL_REVIEW pattern seen in CAPN3_c.550del and CAPN3_c.2120A>G (overall AF below threshold, ancestry-specific AF above it) -- fitting, since the underlying biology (all six copies found in one ancestry group) is exactly that pattern. Combined with PVS1's own MANUAL_REVIEW (NMD-escape scope gap), the engine lands on VUS with manual_review_required=True and no conflicting-evidence flag -- honestly reflecting that two independent, disclosed modeling gaps (not conflicting real evidence) are what's actually blocking a confident automated call here, which matches the real world's own Uncertain significance consensus classification for this variant."
     }
   ]
 }

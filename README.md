@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (15 done)
+## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (16 done)
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -258,6 +258,44 @@ engine. (This particular finding came from a web search summary rather
 than the primary erepo record, unlike `CAPN3_c.2120A>G` — flagged in the
 fixture's notes as secondhand rather than primary-source-confirmed.)
 
+A ninth round (batch 9) added one more, closing the last of PVS1's three
+documented scope gaps with real data:
+
+- `DMD_c.11041A>T` (p.Arg3681Ter) — a real ClinVar entry (VCV000641807.15,
+  Uncertain significance, 4 concordant submitters), a nonsense variant in
+  DMD's coding exon 78 of 79, the project's first REAL fixture exercising
+  PVS1's NMD-escape branch (`nmd_predicted=false`) — previously only
+  covered by a hand-built edge-case test. Coordinates weren't found by
+  direct search; they were derived independently first (mapping DMD's
+  MANE Select transcript's protein residue 3681 to genomic coordinates via
+  the Ensembl REST API, retrieving the codon on both strands, and
+  enumerating all nine possible single-nucleotide substitutions to find
+  the one that produces a stop codon), then confirmed against the primary
+  ClinVar record afterward, which returned the identical HGVS —
+  independent derivation matching the authoritative source exactly, not
+  built from it. `nmd_predicted=false` is itself independently
+  corroborated: three of the four contributing ClinVar submitters state in
+  their own comments that NMD is not expected for this variant, applying
+  the same last-exon/near-final-junction rule this evaluator implements.
+  This fixture also surfaced a second, latent gap: DMD has no published
+  ClinGen VCEP variant-curation specification (checked this batch), so
+  PM2/BS1's OBSERVED-branch requirement for a configured per-gene
+  threshold — previously invisible, since every prior real DMD fixture
+  happened to be genuinely absent from population databases — finally got
+  exercised. Rather than inventing a fabricated "real" number or
+  misrepresenting the variant's real, low-but-nonzero gnomAD frequency as
+  ABSENT, `config/population_thresholds.yaml` now carries an
+  explicitly-labeled DMD placeholder reusing CAPN3's own pre-batch-4
+  placeholder values (0.0001/0.001) — the same disclosed-placeholder role,
+  ready to be replaced the same way batch 4 replaced CAPN3's once a real
+  DMD VCEP spec exists. With that placeholder, PM2 lands on the same
+  founder-enrichment MANUAL_REVIEW pattern as `CAPN3_c.550del` and
+  `CAPN3_c.2120A>G`: all 6 observed gnomAD alleles are African-ancestry,
+  a real founder-enrichment signal. Final result: VUS, manual review
+  required — two independent, disclosed modeling gaps (not conflicting
+  evidence) converging on the same "needs a human" conclusion the real
+  multi-lab ClinVar consensus also reached.
+
 A sixth round (batch 7) added one more:
 
 - `DMD_c.93+1G>A` — a real, ClinVar-Pathogenic splice donor variant in DMD
@@ -330,7 +368,10 @@ consequence types (missense, synonymous, etc.) return NOT_APPLICABLE.
 `TranscriptConsequence` requires an explicit `nmd_predicted` value for
 both frameshift and stop-gained variants for exactly this reason — this
 requirement was originally frameshift-only in Milestone 1 and widened here
-once the evaluator needed it for stop-gained variants too.
+once the evaluator needed it for stop-gained variants too. All three
+documented scope gaps (splice donor/acceptor, start-loss, NMD-escaping
+truncations) now have at least one real fixture exercising them, as of
+batch 9's `DMD_c.11041A>T` — see "Expanding the curated set" below.
 
 **PM2 and founder mutations.** PM2 asks whether a variant is absent or at
 extremely low frequency in the general population. A single global allele
@@ -385,7 +426,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       15 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       16 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         6 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -465,8 +506,17 @@ case with no matching evidence bundle).
   its real LGMD VCEP classification (Likely Benign via BS1+BP2 — a
   case-level gap mirroring `CAPN3_c.1939G>T`'s pathogenic-side one). Sixth
   unsuccessful BA1-gap search round.
+- **Batch 9** — done. Added `DMD_c.11041A>T`, a real DMD nonsense variant
+  in the final exon-exon junction region — the project's first real
+  fixture for PVS1's NMD-escape scope gap (all three documented PVS1
+  scope gaps now have real fixtures). Coordinates independently derived
+  via the Ensembl REST API, then confirmed against the primary ClinVar
+  record. Also added an explicitly-labeled DMD PM2/BS1 placeholder
+  threshold to `config/population_thresholds.yaml` (no real DMD VCEP spec
+  exists yet), surfaced by this being the first real, non-absent DMD
+  population-frequency observation in the set.
 - Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (15 of ~20-30 done, see "Expanding the curated set"
+  ClinVar variant set (16 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated
   computational score are known remaining gaps); add PM3/PS1/PM5/PS3/BS3
   as real per-variant criteria (distinct from how clinical.py currently

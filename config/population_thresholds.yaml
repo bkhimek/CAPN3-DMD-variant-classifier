@@ -18,6 +18,42 @@
 ba1_stand_alone_af: 0.05   # 5%, the generic ACMG/AMP default — used for any gene without a per-gene ba1_af override below
 
 genes:
+  DMD:
+    pm2_max_credible_af: 0.0001   # 0.01% — placeholder, NOT a published VCEP number (see threshold_source)
+    bs1_min_af: 0.001             # 0.1% — placeholder, NOT a published VCEP number (see threshold_source)
+    threshold_source: >
+      No ClinGen Variant Curation Expert Panel (VCEP) currently publishes
+      gene/disease-specific ACMG/AMP criteria specifications for DMD or
+      dystrophinopathy (checked against the ClinGen Criteria Specification
+      Registry, cspec.genome.network, and the ClinGen Muscular Dystrophies
+      and Myopathies GCEP's published scope, during batch 9 of this
+      project's curated-set expansion; only a DMD gene-disease-validity
+      curation exists, already reflected in gene_disease_validity above --
+      that is a different, earlier stage of ClinGen curation than a VCEP's
+      variant-level criteria specification). Until one exists, PM2/BS1
+      OBSERVED-branch evaluation for DMD has no real spec-sourced number to
+      compare against. Rather than inventing a fresh guess or silently
+      misrepresenting a real observed frequency as ABSENT, this project
+      reuses its own established generic-placeholder convention: the exact
+      values (0.0001 / 0.001) that CAPN3 itself used as an explicitly
+      disclosed placeholder before batch 4 replaced them with the real LGMD
+      VCEP spec (see CAPN3's threshold_source above and the batch 4 README
+      note -- CAPN3's own placeholder BS1 value of 0.001 turned out to
+      match the real VCEP number once found). This is not a claim that
+      0.0001/0.001 are correct for DMD specifically; it is the same
+      disclosed placeholder role CAPN3 played through batch 3, kept
+      separate per gene (not hardcoded) so a future real DMD VCEP spec can
+      replace it the same way batch 4 did for CAPN3, without touching
+      evaluator code. Added in batch 9 because DMD_c.11041A>T
+      (p.Arg3681Ter) is this project's first real DMD fixture with a
+      population_evidence.retrieval_status of OBSERVED rather than
+      ABSENT -- every prior real DMD fixture happened to be genuinely
+      absent from population databases, which meant this gap (PM2/BS1's
+      OBSERVED branch raising SchemaValidationError for any gene without a
+      configured threshold) had never been exercised by real data before.
+      No ba1_af override is set for DMD: BA1's evaluator already has a safe
+      global fallback (ba1_stand_alone_af, 5%) for any unconfigured gene,
+      so no placeholder is needed there.
   CAPN3:
     pm2_max_credible_af: 0.0001   # 0.01%
     pm2_strength: SUPPORTING

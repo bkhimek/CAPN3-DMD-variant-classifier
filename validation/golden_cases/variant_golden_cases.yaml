@@ -458,3 +458,57 @@ golden_cases:
       raw per-tool votes stacked together (see computational_evidence.py).
       PM2 MET alone lands on VUS, agreeing with ClinVar's own call, same
       pattern as CAPN3_c.1343G>A.
+
+  - variant_id: DMD_c.11041A>T
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MANUAL_REVIEW
+      PM2: MANUAL_REVIEW
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the real ClinVar entry VCV000641807.15 (rs1477369230), coordinates independently derived via the Ensembl REST API before being confirmed against the primary ClinVar record"
+    curator_note: >
+      Real ClinVar entry (VCV000641807.15, Variation ID 641807; Uncertain
+      significance, criteria provided/multiple submitters/no conflicts),
+      NM_004006.3:c.11041A>T (p.Arg3681Ter), a nonsense variant in DMD's
+      coding exon 78 of 79 disrupting only the protein's last 5 amino
+      acids. This is the project's first REAL fixture exercising PVS1's
+      NMD-escape branch (nmd_predicted=false) -- previously only covered
+      by a hand-built edge-case test. Coordinates were derived
+      independently first (protein-to-genomic mapping, codon retrieval on
+      both strands, single-nucleotide-substitution enumeration identifying
+      the one possible stop-gain path) and only afterward confirmed
+      against the primary ClinVar page, which returned the identical HGVS
+      -- an independent derivation matching the authoritative record
+      exactly, not merely built from it. nmd_predicted=false is itself
+      independently corroborated by three of the four contributing ClinVar
+      submitters explicitly stating in their own classification comments
+      that NMD is not expected for this variant, applying the standard
+      last-exon/near-final-junction rule this project's PVS1 evaluator
+      also implements -- real-world confirmation that the evaluator's NMD
+      branch logic matches how clinical laboratories actually reason about
+      this exact variant class.
+      This fixture also surfaced a second, previously-latent gap: DMD has
+      no published ClinGen VCEP variant-curation specification (confirmed
+      by searching the Criteria Specification Registry this batch), so
+      PM2/BS1's OBSERVED-branch requirement for a configured per-gene
+      threshold had never been exercised on real DMD data before -- every
+      prior real DMD fixture happened to be genuinely absent from
+      population databases. config/population_thresholds.yaml now carries
+      an explicitly-labeled DMD placeholder (reusing CAPN3's own
+      pre-batch-4 placeholder values, 0.0001/0.001) so this fixture
+      evaluates honestly rather than crashing or being misrepresented as
+      ABSENT. With that placeholder, PM2 lands on the same
+      founder-enrichment MANUAL_REVIEW pattern as CAPN3_c.550del and
+      CAPN3_c.2120A>G: overall AF (0.0000543, 6/110413 gnomAD genome
+      alleles) is below threshold, but every one of those 6 alleles is
+      African-ancestry (AF 0.000198 within that subpopulation, above
+      threshold) -- a real founder-enrichment signal, not a modeling
+      artifact. Final result: VUS, manual_review_required=True,
+      conflicting_evidence_flag=False -- two independent disclosed
+      modeling gaps (PVS1's NMD-escape scope, DMD's missing VCEP spec)
+      converge on the same honest "needs a human" conclusion the real
+      multi-lab ClinVar consensus also reached, for different but
+      compatible reasons.
