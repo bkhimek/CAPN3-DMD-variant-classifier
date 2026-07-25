@@ -239,6 +239,25 @@ VCEP expert curation rather than an aggregate ClinVar record:
   variant's real classification lives outside a 6-criterion engine's
   reach.
 
+Batch 8 didn't add a new fixture — instead it enriched an existing one
+once new real evidence turned up, and made a sixth unsuccessful attempt
+at the BA1 gap (ClinVar search for benign-classified CAPN3 variants, an
+erepo.clinicalgenome.org affiliation-level browse, still nothing above
+0.3%). While searching for a real BP4-benign example, `CAPN3_c.2257G>A`
+(already in the set since batch 2) turned up two new pieces of real
+information: its actual REVEL score (0.649 — added as computational
+evidence, correctly landing as INDETERMINATE since it's below the real
+VCEP's PP3 threshold but above its BP4 one, so both criteria now
+correctly return NOT_MET instead of one of them being left NOT_EVALUATED)
+and the real ClinGen LGMD VCEP's own current classification for this
+exact variant: **Likely Benign, via BS1 + BP2** — a case-level criterion
+this project doesn't implement at all. That's the benign-side mirror of
+the `CAPN3_c.1939G>T` gap: a real VCEP reaching a confident classification
+through evidence entirely outside this project's variant-only, Table-5
+engine. (This particular finding came from a web search summary rather
+than the primary erepo record, unlike `CAPN3_c.2120A>G` — flagged in the
+fixture's notes as secondhand rather than primary-source-confirmed.)
+
 A sixth round (batch 7) added one more:
 
 - `DMD_c.93+1G>A` — a real, ClinVar-Pathogenic splice donor variant in DMD
@@ -262,9 +281,11 @@ in every prior round is now closed (`CAPN3_c.2120A>G`'s REVEL=0.966). One
 gap remains open, searched for across five rounds and still not found
 rather than silently skipped:
 skipped: a true common CAPN3 variant to exercise BA1 MET against real data.
-Searched for repeatedly (batches 3, 4, 6, 7) via ClinVar molecular-
-consequence queries, general population-frequency web searches, and an
-Ensembl REST API pull of the full CAPN3 genomic-region variant list — the
+Searched for repeatedly (batches 3, 4, 6, 7, 8) via ClinVar molecular-
+consequence queries, general population-frequency web searches, an
+Ensembl REST API pull of the full CAPN3 genomic-region variant list, and
+a ClinVar/erepo search specifically for benign-classified CAPN3 variants
+— the
 closest real candidate found so far is still `CAPN3_c.2257G>A` at 0.2457%
 overall AF (batch 2), under the 0.3% threshold but not by much. At this
 point the likeliest explanation isn't that the search strategy is missing
@@ -439,6 +460,11 @@ case with no matching evidence bundle).
   variant (first real DMD splice-site fixture). Also made a further
   unsuccessful attempt at the BA1-common-variant gap (see "Expanding the
   curated set" above) — still open, now searched five separate times.
+- **Batch 8** — done. No new fixture, but enriched `CAPN3_c.2257G>A` with
+  a real REVEL score (first real INDETERMINATE-prediction fixture) and
+  its real LGMD VCEP classification (Likely Benign via BS1+BP2 — a
+  case-level gap mirroring `CAPN3_c.1939G>T`'s pathogenic-side one). Sixth
+  unsuccessful BA1-gap search round.
 - Later: continue expanding curated fixtures toward the full 20-30
   ClinVar variant set (15 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated

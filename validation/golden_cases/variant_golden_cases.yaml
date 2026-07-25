@@ -207,27 +207,39 @@ golden_cases:
     expected_criterion_status:
       PVS1: NOT_APPLICABLE
       PM2: NOT_MET
-      PP3: NOT_EVALUATED
-      BP4: NOT_EVALUATED
+      PP3: NOT_MET
+      BP4: NOT_MET
       BA1: NOT_MET
       BS1: MET
-    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real, recurrent CAPN3 variant (p.Asp753Asn)"
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real, recurrent CAPN3 variant (p.Asp753Asn, ClinVar VCV000281081), using the real ClinGen LGMD VCEP CAPN3 thresholds (batch 4) and a real REVEL score (batch 8)"
     curator_note: >
       Real and genuinely contested in the literature -- not a clean
       textbook case, included deliberately for that reason. gnomAD AF
       (0.002457, Middle-Eastern-subpopulation-driven) clears this
       project's BS1 threshold, giving BS1 MET alone. Per Table 5, BS1
       alone is insufficient for LIKELY_BENIGN (needs a Supporting-benign
-      criterion too, the same gap BP4 was added to close for the
-      synthetic fixtures) -- so the engine lands on VUS. That VUS is
-      defensible given only 6 criteria are implemented, but it should not
-      be read as "probably benign, case closed": recent (2025) literature
-      proposes this variant may represent a low-penetrance AUTOSOMAL
-      DOMINANT calpainopathy mechanism entirely distinct from the
-      recessive LGMDR1 model this project's CAPN3 gene_disease_context
-      assumes for every variant. This project cannot represent that
-      possibility (one fixed inheritance pattern per gene) -- flagged here
-      explicitly rather than silently mismodeled.
+      criterion too) -- so the engine lands on VUS. UPDATED in batch 8:
+      added this variant's real REVEL score (0.649) as computational
+      evidence -- below the real VCEP's PP3 threshold (>=0.70) but above
+      its BP4 threshold (<=0.10), so genuinely INDETERMINATE, and both
+      PP3 and BP4 correctly return NOT_MET rather than either one
+      guessing. Also found (via web search, not independently verified
+      against the primary erepo.clinicalgenome.org record) that the real
+      LGMD VCEP's own current classification for this exact variant is
+      LIKELY BENIGN, reached via BS1 + BP2 -- a case-level criterion
+      ('in trans with a pathogenic variant... or in cis') this project
+      does not implement at all. So this fixture now demonstrates a real,
+      confirmed instance of the benign-side mirror to
+      CAPN3_c.1939G>T/CAPN3_SYNTH_PATHOGENIC_02's pathogenic-side gap: a
+      real VCEP reaches a confident classification (this time benign) via
+      evidence entirely outside this project's variant-only, 6-criterion,
+      Table-5 engine. Separately, recent (2025) literature proposes this
+      variant may represent a low-penetrance AUTOSOMAL DOMINANT
+      calpainopathy mechanism entirely distinct from the recessive LGMDR1
+      model this project's CAPN3 gene_disease_context assumes for every
+      variant -- this project cannot represent that possibility (one
+      fixed inheritance pattern per gene), flagged here explicitly rather
+      than silently mismodeled.
 
   - variant_id: CAPN3_c.946-1G>A
     expected_provisional_class: VUS

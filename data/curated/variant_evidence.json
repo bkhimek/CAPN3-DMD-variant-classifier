@@ -303,7 +303,8 @@
         "variant_id": "CAPN3_c.2257G>A",
         "gene": "CAPN3",
         "genome_build": "GRCh38",
-        "coordinate_verified": false
+        "coordinate_verified": false,
+        "clinvar_variation_id": 281081
       },
       "gene_disease_context": {
         "gene": "CAPN3",
@@ -335,7 +336,15 @@
           "overall_af": 0.002457
         }
       ],
-      "notes": "Real, recurrent CAPN3 missense variant (p.Asp753Asn), reported in multiple LGMD cohorts (e.g. an 8-patient Italian multicenter series) but with real, unresolved controversy in the literature: gnomAD v4.1.0 AF (0.002457, driven by a Middle Eastern subpopulation) exceeds the ClinGen LGMD-VCEP-style BS1 threshold this project uses (0.001), and several reported carriers had a second CAPN3 variant that could independently explain their phenotype. Recent literature (2025) has proposed this variant may instead represent a low-penetrance AUTOSOMAL DOMINANT calpainopathy mechanism distinct from classic recessive LGMDR1 -- a possibility this fixture's gene_disease_context (fixed as AUTOSOMAL_RECESSIVE for all CAPN3 variants in this project) cannot represent. No computational evidence gathered (left absent rather than fabricated). This is a deliberately unresolved, real-world-grounded case: our engine lands on VUS via BS1 MET alone (insufficient alone per Table 5), which is defensible but is not the same as confidently calling this variant benign -- exactly the kind of case a human reviewer, not just automation, should look at closely."
+      "notes": "Real, recurrent CAPN3 missense variant (p.Asp753Asn, ClinVar VCV000281081), reported in multiple LGMD cohorts (e.g. an 8-patient Italian multicenter series) but with real, documented controversy: gnomAD v4.1.0 AF (0.002457, driven by a Middle Eastern subpopulation) clears the real ClinGen LGMD VCEP BS1 threshold (>0.001), and several reported carriers had a second CAPN3 variant that could independently explain their phenotype (PM3, PP4 not met per the VCEP's own curation). UPDATED in batch 8: found the real LGMD VCEP's own current classification for this exact variant via web search -- LIKELY BENIGN, via BS1 + BP2 (LGMD VCEP specification version 2.0.0, variant curation approved 2025-10-28, per search summary; not independently verified against the primary erepo.clinicalgenome.org record the way CAPN3_c.2120A>G was, so treat the exact BP2 rationale and precise approval date as secondhand rather than primary-source-confirmed). This project cannot reproduce that call: BP2 ('in trans with a pathogenic variant for a recessive disorder... or in cis') is not implemented here at all, and even BS1 alone is Table-5-insufficient for LIKELY_BENIGN without a Supporting-benign criterion alongside it. Also added this batch: a real REVEL score (0.649) as computational_evidence -- below the real VCEP's PP3 threshold (>=0.70) but above its BP4 threshold (<=0.10), so genuinely INDETERMINATE by the calibrated-score model this project uses (not PATHOGENIC, not BENIGN) -- the project's first real fixture to exercise that middle ground, where PP3 and BP4 both correctly return NOT_MET rather than one of them guessing. This is a case where the real VCEP's own point-based system reaches a confident benign-side call (via case-level BP2 evidence this project doesn't implement) that a purely variant-level, 6-criterion engine using Table 5 genuinely cannot reach -- the mirror image of CAPN3_c.1939G>T and CAPN3_SYNTH_PATHOGENIC_02's pathogenic-side gap. gene_disease_context here is fixed as AUTOSOMAL_RECESSIVE for all CAPN3 variants in this project; recent (2025) literature separately proposing this variant may reflect a low-penetrance AUTOSOMAL DOMINANT mechanism is a possibility this project's one-inheritance-pattern-per-gene design still cannot represent, noted here as before rather than silently dropped now that other findings have been added.",
+      "computational_evidence": {
+        "tool": "REVEL",
+        "tool_version": "as cited in ClinGen LGMD VCEP curation search summary (variant approved 2025-10-28)",
+        "calibration_source": "ClinGen LGMD VCEP specification for CAPN3: REVEL >=0.70 for PP3 (Supporting), <=0.10 for BP4 (Supporting)",
+        "retrieval_status": "OBSERVED",
+        "score": 0.649,
+        "calibrated_prediction": "INDETERMINATE"
+      }
     },
     {
       "variant": {
