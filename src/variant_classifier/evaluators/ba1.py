@@ -7,10 +7,16 @@ the founder-enrichment ambiguity check: if the overall frequency is below
 the BA1 threshold but an ancestry-specific frequency clears it, that's the
 same kind of ambiguity PM2 flags — a variant genuinely common only in one
 tested population isn't obviously "too common for any disease" the way a
-uniformly common variant is. Given the 5% BA1 threshold is so high, this
-branch is expected to trigger rarely in practice, but it exists for
-consistency with PM2/BS1 rather than treating this evaluator as a special
-case with weaker standards.
+uniformly common variant is. This branch was originally expected to
+trigger rarely given the generic 5% BA1 default, but CAPN3's real
+ClinGen LGMD VCEP threshold (0.3%) is much stricter, so it is exercised
+more often for CAPN3 in practice than the generic default would suggest.
+
+Threshold: BA1 uses thresholds["ba1_stand_alone_af"] as a global default,
+but a gene can override it via genes.<GENE>.ba1_af in
+config/population_thresholds.yaml — CAPN3 does, per its real VCEP spec
+(0.003, not the generic 0.05). Genes without an override (e.g. DMD here)
+keep using the global default.
 """
 
 from ..errors import SchemaValidationError
@@ -24,6 +30,7 @@ RULE_VERSION = "2015"
 def evaluate_ba1(bundle: VariantEvidenceBundle, thresholds: dict) -> CriterionResult:
     """thresholds is the dict returned by loader.load_frequency_thresholds()."""
     variant_id = bundle.variant.variant_id
+    gene = bundle.variant.gene
     context = f"evaluate_ba1[{variant_id}]"
 
     if len(bundle.population_evidence) != 1:
@@ -62,7 +69,8 @@ def evaluate_ba1(bundle: VariantEvidenceBundle, thresholds: dict) -> CriterionRe
         )
 
     # OBSERVED
-    ba1_threshold = thresholds["ba1_stand_alone_af"]
+    gene_thresholds = thresholds.get("genes", {})
+    ba1_threshold = gene_thresholds.get(gene, {}).get("ba1_af", thresholds["ba1_stand_alone_af"])
     overall_af = evidence.overall_af
     ancestry_af = evidence.ancestry_specific_max_af
 

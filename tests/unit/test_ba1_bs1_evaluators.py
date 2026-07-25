@@ -131,6 +131,49 @@ def test_ba1_not_assessed_yields_not_evaluated():
     assert result.status == CriterionStatus.NOT_EVALUATED
 
 
+def test_ba1_gene_specific_override_is_honored():
+    # Covers the batch-4 addition: BA1's threshold can be overridden per
+    # gene via genes.<GENE>.ba1_af (CAPN3's real ClinGen LGMD VCEP value is
+    # 0.003, far stricter than the generic 0.05 default). An AF that would
+    # be NOT_MET under the generic default should be MET under the
+    # gene-specific override.
+    thresholds = {
+        "ba1_stand_alone_af": 0.05,
+        "genes": {"CAPN3": {"pm2_max_credible_af": 0.0001, "bs1_min_af": 0.001, "ba1_af": 0.003, "threshold_source": "test"}},
+    }
+    bundle = _bundle_with_population_evidence(
+        PopulationEvidence(source="gnomAD", source_version="v4.1.0", retrieval_status=PopulationRetrievalStatus.OBSERVED, overall_af=0.008)
+    )
+    result = evaluate_ba1(bundle, thresholds)
+    assert result.status == CriterionStatus.MET
+    assert result.strength == CriterionStrength.STAND_ALONE
+
+
+def test_ba1_falls_back_to_global_default_when_gene_unconfigured():
+    # A gene with no ba1_af override (e.g. DMD, no VCEP spec adopted here)
+    # should keep using the global generic-ACMG default (0.05), not error
+    # or silently use some other value.
+    thresholds = {"ba1_stand_alone_af": 0.05, "genes": {}}
+    bundle_pe = PopulationEvidence(source="gnomAD", source_version="v4.1.0", retrieval_status=PopulationRetrievalStatus.OBSERVED, overall_af=0.008)
+    bundle = VariantEvidenceBundle(
+        variant=VariantIdentity(variant_id="EDGE_CASE_DMD", gene="DMD", genome_build=GenomeBuild.GRCH38),
+        gene_disease_context=GeneDiseaseContext(
+            gene="DMD", disease="dystrophinopathy", inheritance=Inheritance.X_LINKED_RECESSIVE,
+            mechanism=DiseaseMechanism.LOSS_OF_FUNCTION, lof_established=True,
+            specification=Specification(type=SpecificationType.GENERIC_ACMG, version="2015"),
+        ),
+        transcript_consequences=[
+            TranscriptConsequence(transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.MISSENSE_VARIANT)
+        ],
+        population_evidence=[bundle_pe],
+    )
+    result = evaluate_ba1(bundle, thresholds)
+    # 0.008 is below the 5% global default, so NOT_MET -- if the code
+    # incorrectly fell back to CAPN3's 0.3% override or errored, this would
+    # catch it.
+    assert result.status == CriterionStatus.NOT_MET
+
+
 def test_bs1_absent_yields_not_met():
     bundle = _bundle_with_population_evidence(
         PopulationEvidence(

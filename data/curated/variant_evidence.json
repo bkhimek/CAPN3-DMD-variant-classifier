@@ -16,8 +16,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -61,8 +61,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -116,8 +116,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -172,8 +172,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -199,7 +199,15 @@
           "allele_number": 1598234
         }
       ],
-      "notes": "Fully synthetic \u2014 built in Milestone 4 specifically to pair with CAPN3_SYNTH_PATHOGENIC_01 in a case-level trans/cis/unknown-phase test (see data/curated/clinical_cases.json and clinical.py). Same evidence pattern as CAPN3_SYNTH_PATHOGENIC_01 (frameshift + NMD predicted + absent from gnomAD) but a distinct position/HGVS, so the two are independently classified rather than literal duplicates. Not a real ClinVar variant."
+      "notes": "Fully synthetic \u2014 built in Milestone 4 specifically to pair with CAPN3_SYNTH_PATHOGENIC_01 in a case-level trans/cis/unknown-phase test (see data/curated/clinical_cases.json and clinical.py). Same evidence pattern as CAPN3_SYNTH_PATHOGENIC_01 (frameshift + NMD predicted + absent from gnomAD) but a distinct position/HGVS, so the two are independently classified rather than literal duplicates. Not a real ClinVar variant. UPDATED in batch 4 (real ClinGen LGMD VCEP CAPN3 threshold adoption): computational_evidence (PP3, calibrated pathogenic) was added here specifically because PVS1 (Very Strong) + PM2 alone is no longer enough to reach a qualifying tier once PM2's real VCEP strength for CAPN3 is Supporting rather than Moderate \u2014 Table 5 has no rule for '1 Very Strong + 1 Supporting' alone. Adding PP3 (Supporting) gives '1 Very Strong + >=2 Supporting', which IS a Table 5 Pathogenic path, preserving this fixture's role as a clean, individually-qualifying trans partner for CASE_CAPN3_BIALLELIC_TRANS. This is a deliberate design choice disclosed here, not a silent fix \u2014 see config/population_thresholds.yaml's threshold_source note for why the unmodified combination would no longer qualify, and CAPN3_c.1939G>T in variant_golden_cases.yaml for a REAL variant where this same gap was left unmodified and shown honestly instead.",
+      "computational_evidence": {
+        "tool": "SpliceAI+REVEL-calibrated-composite",
+        "tool_version": "synthetic-1.0",
+        "calibration_source": "synthetic fixture, calibrated thresholds per Pejaver et al. 2022 style bins",
+        "retrieval_status": "OBSERVED",
+        "score": 0.91,
+        "calibrated_prediction": "PATHOGENIC"
+      }
     },
     {
       "variant": {
@@ -263,8 +271,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -304,8 +312,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -344,8 +352,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -424,8 +432,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -464,8 +472,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -503,8 +511,8 @@
         "mechanism": "LOSS_OF_FUNCTION",
         "lof_established": true,
         "specification": {
-          "type": "GENERIC_ACMG",
-          "version": "Richards et al. 2015"
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
         },
         "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
       },
@@ -527,6 +535,106 @@
         }
       ],
       "notes": "Real CAPN3 missense variant, absent from gnomAD/ExAC, reported by ClinVar as Uncertain Significance and never reported in the CAPN3-related-disease literature. Individual in-silico tools (SIFT: Tolerated, PolyPhen-2: Benign, Align-GVGD: Class C0) all lean benign, and the substituted residue is conserved as leucine in other mammals -- but deliberately NOT converted into a ComputationalEvidence record here: this project's PP3/BP4 model expects a single calibrated ensemble score (e.g. REVEL), not raw individual-tool outputs stacked together, which is exactly the kind of multi-tool-vote pattern the design guide warns against (see computational_evidence.py docstring). Left as PP3/BP4 NOT_EVALUATED rather than retrofitting a categorical PolyPhen-2 call into a model built for something else. PM2 MET alone (absent from a well-covered locus) is the only criterion that applies, so this lands on VUS -- agreeing with ClinVar's own call, like CAPN3_c.1343G>A."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.1A>G",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "chromosome": "15",
+        "position": 42359806,
+        "reference": "A",
+        "alternate": "G",
+        "clinvar_variation_id": 1453744,
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "start_lost",
+          "mane_select": true,
+          "hgvs_c": "c.1A>G",
+          "hgvs_p": "p.Met1Val",
+          "exon": "1"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "OBSERVED",
+          "locus_coverage_adequate": true,
+          "overall_af": 1e-05
+        }
+      ],
+      "notes": "Real ClinVar entry (VCV001453744 / RCV002002571), reported Pathogenic (last evaluated 2023-10-06, criteria provided/single submitter). GRCh38 chr15:42359806 A>G, NM_000070.3:c.1A>G, disrupting CAPN3's initiator Met codon directly (ClinVar molecular consequence: missense_variant + initiator_codon_variant). Coordinates independently confirmed via NCBI eutils esummary (canonical_spdi NC_000015.10:42359805:A:G), not just taken from a search snippet. gnomAD reported two slightly different exome AF figures in the ClinVar record (0.00001 and 0.00000, likely different gnomAD releases/subsets aggregated by ClinVar); the higher, more conservative value is used here. No ancestry-specific breakdown was available from this summary, so ancestry_specific_max_af is left unset (not the same as 'checked and found absent'). This is the project's first real start-loss (initiator codon) fixture -- PVS1's third documented scope gap, alongside the two splice-site fixtures (CAPN3_c.946-1G>A, CAPN3_c.2050+1G>A): the evaluator declines to auto-resolve start-loss variants because doing so correctly requires checking for a plausible downstream alternative in-frame start codon, which this project does not model (see pvs1.py, 'PVS1 scope'). Real ClinGen LGMD VCEP CAPN3 PVS1 flowchart likely does resolve this branch; this project's PVS1 evaluator does not implement that flowchart."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.2120A>G",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "chromosome": "15",
+        "position": 42410432,
+        "reference": "A",
+        "alternate": "G",
+        "clinvar_variation_id": 468648,
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.2120A>G",
+          "hgvs_p": "p.Asp707Gly"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v2.1.1 (overall) / v4.1.0 exomes (ancestry-specific)",
+          "retrieval_status": "OBSERVED",
+          "locus_coverage_adequate": true,
+          "overall_af": 0.000148,
+          "ancestry_specific_max_af": 0.001929
+        }
+      ],
+      "computational_evidence": {
+        "tool": "REVEL",
+        "tool_version": "as cited in ClinGen LGMD VCEP curation, approved 2025-04-22",
+        "calibration_source": "ClinGen LGMD VCEP specification for CAPN3: REVEL >=0.70 for PP3 (Supporting)",
+        "retrieval_status": "OBSERVED",
+        "score": 0.966,
+        "calibrated_prediction": "PATHOGENIC"
+      },
+      "notes": "Real ClinVar entry (VCV000468648 / ClinGen Allele Registry CA7511744), classified Pathogenic by the ClinGen LGMD VCEP itself (Evidence Repository record 7f534c0d-0dbe-4d2e-88e2-88c804cde635, approved 2025-04-22): erepo.clinicalgenome.org/evrepo/ui/interpretation/7f534c0d-0dbe-4d2e-88e2-88c804cde635. This is the project's first fixture sourced directly from an official VCEP expert curation record, not just a ClinVar aggregate classification -- and the first REAL calibrated computational (REVEL) score used anywhere in this project (closing a gap open since Milestone 1): REVEL=0.966, well above the real VCEP's own PP3 threshold (>=0.70). Population data: gnomAD v2.1.1 total AF 0.000148 (42/282854, all populations); gnomAD v4.1.0 exomes East Asian filtering allele frequency 0.001250-0.001929 (95% CI bounds, 62/39700 East Asian chromosomes) -- used here as ancestry_specific_max_af (upper bound, consistent with the FAF convention already used for PM2/BA1/BS1 in this project). NOTABLE: the real VCEP's own curation explicitly found this variant's East Asian FAF (0.001929) technically crosses their BS1 threshold (>0.001), but chose NOT to apply BS1 -- an explicit 'BS1 exception' -- because this is one of the most commonly reported CAPN3 variants in East Asian LGMD patients (i.e. a real, expert-judged founder-pathogenic-variant scenario, not a benign-common-variant one). This project's BS1 evaluator cannot make that judgment call (it has no access to case-count/segregation context), but it does correctly decline to auto-resolve: with overall_af below the BS1 threshold but ancestry_specific_max_af crossing it, the evaluator's existing founder-enrichment branch returns MANUAL_REVIEW rather than silently applying BS1 -- landing on exactly the same 'a human needs to look at this' conclusion the real VCEP reached, for the same underlying reason, without knowing why. The real variant's actual Pathogenic classification rests almost entirely on criteria this project's 6-criterion engine does not implement at all (PM3_Strong: observed in trans with a pathogenic variant across multiple case reports; PP1_Strong: segregation in 6 affected relatives across 4 families; PP4: phenotype + reduced calpain-3 protein expression) -- PM2 is explicitly NOT_MET in the real curation too (too common in East Asian populations for PM2_Supporting's <0.0001 threshold), and PP3 (REVEL) is the ONLY real criterion this project's engine and the real VCEP curation share. This fixture is included specifically to show, honestly, how much of a real clinical classification depends on case-level and segregation evidence entirely outside a variant-only automated engine's reach."
     }
   ]
 }

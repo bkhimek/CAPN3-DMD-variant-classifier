@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (12 done)
+## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (14 done)
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -27,10 +27,10 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- **Twelve curated evidence bundles** (`data/curated/variant_evidence.json`):
-  eight real ClinVar-grounded variants (seven CAPN3, one DMD) and four
+- **Fourteen curated evidence bundles** (`data/curated/variant_evidence.json`):
+  ten real ClinVar-grounded variants (nine CAPN3, one DMD) and four
   synthetic cases (three CAPN3, one DMD) constructed to exercise specific
-  combining-rule and case-level paths. This is three increments toward
+  combining-rule and case-level paths. This is five increments toward
   the ~20-30 ClinVar variant set from the original project plan — see
   "Expanding the curated set" below for what each real variant adds and
   where this is headed. Gene/disease context for both CAPN3 and DMD
@@ -59,13 +59,13 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Twelve curated variants (CAPN3 and DMD) and six curated `ClinicalCase`
+- Fourteen curated variants (CAPN3 and DMD) and six curated `ClinicalCase`
   fixtures covering every branch above. Every evaluator, the combining
   engine, and the case interpretation layer are each verified against
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 103 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 108 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does).
@@ -103,6 +103,51 @@ change (still VUS), but two criteria are now honestly flagged for human
 judgment instead of one. BA1 got the same three-way branch for
 consistency, even though its 5% threshold makes the branch unlikely to
 matter in practice.
+
+**Real ClinGen LGMD VCEP thresholds for CAPN3 (batch 4), and what adopting
+them without a matching combining-system upgrade costs.** Through batch 3,
+CAPN3's PM2/BA1/BS1 thresholds were hand-picked placeholders, explicitly
+labeled as such. Batch 4 found the real, published ClinGen Limb-Girdle
+Muscular Dystrophy (LGMD) Variant Curation Expert Panel specification for
+CAPN3 (v2.0, released 2025-07-09, DOI 10.5281/zenodo.21434844) and adopted
+its PM2/BA1/BS1 thresholds and PM2's strength into
+`config/population_thresholds.yaml` and `gene_disease_context.yaml`
+(CAPN3's specification is now `VCEP`, not `GENERIC_ACMG`; DMD, with no
+adopted VCEP spec, is unaffected and stays `GENERIC_ACMG`). Three changes
+worth naming explicitly:
+
+- **PM2's threshold got much stricter** (0.01% instead of the placeholder
+  0.1%), and its **strength changed from Moderate to Supporting** — the
+  real VCEP only defines a Supporting-strength PM2 for CAPN3 at all.
+- **BA1's threshold got much stricter for CAPN3** (0.3% instead of the
+  generic ACMG/AMP 5% default) — a real, gene-specific override, now
+  configurable per gene (`ba1_af` in `population_thresholds.yaml`) rather
+  than hardcoded as one universal value.
+- **BS1's threshold (0.1%) was unchanged** — it turned out the earlier
+  placeholder had already guessed the right number, confirmed rather than
+  corrected once the real spec was found.
+
+This is not free: this project's combining engine (`engine.py`) still uses
+the classic Richards et al. 2015 Table 5 categorical rules, but the real
+VCEP spec pairs its thresholds with a **Bayesian point-based combining
+system** instead (Tavtigian et al. 2020 adaptation — Very Strong=8,
+Strong=4, Moderate=2, Supporting=1 point; Pathogenic >=10, Likely
+Pathogenic 6-9, VUS 0-5, Likely Benign -6 to -1, Benign <=-7). Table 5 has
+no rule at all for "1 Very Strong + 1 Supporting" — so a CAPN3 variant
+whose only pathogenic evidence is PVS1 (Very Strong) plus PM2 (now
+Supporting, not Moderate) no longer reaches any tier here, even though the
+VCEP's own point system would score that exact evidence 8+1=9 points,
+squarely in their Likely Pathogenic range. `CAPN3_c.1939G>T` — a real,
+ClinVar-Pathogenic nonsense variant — shows this honestly: it dropped from
+LIKELY_PATHOGENIC to VUS in this batch, left unmodified deliberately (see
+its golden-case curator_note). A synthetic case-level fixture,
+`CAPN3_SYNTH_PATHOGENIC_02`, hit the same gap and was deliberately
+strengthened (a PP3 computational-evidence entry was added) to keep
+demonstrating a clean case-level EXPLAINED result — a disclosed fixture
+design choice, not a silent one, and a different treatment than the real
+variant got on purpose. This is the strongest concrete argument this
+project has produced so far for eventually adopting Bayesian point-based
+combining rather than Table 5 (see Roadmap).
 
 **Expanding the curated set.** Three real, ClinVar-documented CAPN3
 variants were added alongside the original `CAPN3_c.550del`, chosen
@@ -157,14 +202,54 @@ A third round added two more:
   per-tool votes stacked together, and retrofitting one from these would
   contradict that design principle. Lands on VUS, agreeing with ClinVar.
 
-Two gaps remain, both searched for and not found rather than silently
-skipped: a true common (>5% gnomAD) CAPN3 variant to exercise BA1 MET
-against real data (CAPN3's recessive biology means genuinely common
-variants are scarce in what's been searched so far), and a real variant
-with a precisely-sourced calibrated computational score (REVEL or
-similar) to ground PP3/BP4 on real rather than synthetic data. Both
-remain covered only by hand-built synthetic tests in the meantime
-(`tests/unit/test_ba1_bs1_evaluators.py`, `test_pp3_bp4_evaluators.py`).
+A fourth round (batch 5) added one more:
+
+- `CAPN3_c.1A>G` (p.Met1Val) — a real, ClinVar-Pathogenic start-loss
+  (initiator codon) variant, the project's first fixture exercising PVS1's
+  third documented scope gap. PVS1 treats start-loss as within scope in
+  principle but doesn't auto-resolve it (correctly doing so requires
+  checking for a plausible downstream alternative start codon, which this
+  project doesn't model), so it returns MANUAL_REVIEW here just as it does
+  for the two splice-site fixtures. With PVS1 unresolved, PM2 alone (MET,
+  Supporting under the real VCEP threshold) never reaches a Table 5 tier —
+  VUS, the same systematic-limitation story as the splice-site fixtures,
+  now shown a third independent way.
+
+A fifth round (batch 6) added one more, sourced directly from an official
+VCEP expert curation rather than an aggregate ClinVar record:
+
+- `CAPN3_c.2120A>G` (p.Asp707Gly) — a real variant with an unusually rich
+  paper trail: the ClinGen LGMD VCEP's own Evidence Repository curation
+  (approved 2025-04-22) classifies it PATHOGENIC using PM3_Strong,
+  PP1_Strong, and PP4 — all case-level/segregation criteria this project's
+  variant-only engine doesn't implement. The one criterion the two share,
+  PP3, uses this fixture's REVEL score of 0.966 — **the project's first
+  real, precisely-sourced calibrated computational score**, closing a gap
+  open since Milestone 1 (see below). More interestingly: the real VCEP
+  found this variant's East Asian-specific frequency technically crosses
+  their BS1 threshold, but explicitly declined to apply BS1 anyway (an
+  documented "BS1 exception") because it's a well-established recurrent
+  founder-pathogenic variant in that population, not a benign one. This
+  project's BS1 evaluator can't know that context, but its
+  founder-enrichment MANUAL_REVIEW branch (built in Milestone 3, see
+  "BA1/BS1 mirror PM2's founder-frequency handling" above) flags the exact
+  same case for human judgment anyway — a real-world confirmation that
+  design decision catches what it was built to catch. Final result: VUS
+  with manual review required, an honest reflection of how much of this
+  variant's real classification lives outside a 6-criterion engine's
+  reach.
+
+The real, precisely-sourced calibrated computational score gap mentioned
+in every prior round is now closed (`CAPN3_c.2120A>G`'s REVEL=0.966). One
+gap remains open, searched for across five rounds and still not found
+rather than silently skipped:
+skipped: a true common CAPN3 variant to exercise BA1 MET against real data. This
+got easier to search for once batch 4 replaced the generic 5% BA1
+default with CAPN3's real, much stricter VCEP threshold (0.3%), but
+still hasn't turned one up: the closest real candidate found so far is
+`CAPN3_c.2257G>A` at 0.2457% overall AF (batch 2) — under the 0.3%
+threshold, but not by much. This remains covered only by hand-built
+synthetic tests in the meantime (`tests/unit/test_ba1_bs1_evaluators.py`).
 
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
@@ -246,12 +331,14 @@ src/variant_classifier/
     bs1.py                    evaluate_bs1()
 
 config/
-  population_thresholds.yaml per-gene PM2 frequency thresholds (see Design notes)
+  population_thresholds.yaml per-gene PM2/BA1/BS1 frequency thresholds -- CAPN3's
+                              are the real ClinGen LGMD VCEP values as of batch 4
+                              (see Design notes); DMD's remain generic ACMG defaults
 
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       12 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       14 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         6 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -280,7 +367,7 @@ pytest
 ```
 
 `pytest.ini` sets `pythonpath = src`, so this works out of the box with no
-extra environment variables. All 103 tests currently pass.
+extra environment variables. All 108 tests currently pass.
 
 A dependency-free alternative is also included, useful in environments
 without PyPI access:
@@ -310,14 +397,32 @@ case with no matching evidence bundle).
   engine.
 - **Milestone 4** — done. `ClinicalCase`/`CaseInterpretation` models and
   `clinical.py`'s case-level reasoning (see "Case-level scope" above).
+- **Batch 4** — done. Adopted the real ClinGen LGMD VCEP CAPN3
+  specification's PM2/BA1/BS1 thresholds and PM2 strength (see "Real
+  ClinGen LGMD VCEP thresholds for CAPN3" above); re-derived every golden
+  case this touched.
+- **Batch 5** — done. Added `CAPN3_c.1A>G`, a real start-loss variant —
+  PVS1's third documented scope gap now has a real fixture, alongside the
+  two splice-site variants.
+- **Batch 6** — done. Added `CAPN3_c.2120A>G`, sourced from an official
+  ClinGen LGMD VCEP Evidence Repository curation — the project's first
+  real calibrated computational (REVEL) score, and a real-world
+  confirmation of the founder-enrichment MANUAL_REVIEW design (see
+  "Expanding the curated set" above).
 - Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (12 of ~20-30 done, see "Expanding the curated set"
+  ClinVar variant set (14 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated
   computational score are known remaining gaps); add PM3/PS1/PM5/PS3/BS3
   as real per-variant criteria (distinct from how clinical.py currently
   handles trans/cis reasoning at the case level);
   revisit PVS1's partial scope (protein-domain criticality,
-  constitutive-exon data); revisit DMD's CNV representation gap (see
-  gene_disease_context.yaml) if real DMD variants are ever added; extend
-  X-linked case interpretation beyond the hemizygous-male case once
-  X-inactivation is worth modeling properly.
+  constitutive-exon data — the real CAPN3 VCEP spec includes a gene-specific
+  PVS1 flowchart that isn't implemented here either); revisit DMD's CNV
+  representation gap (see gene_disease_context.yaml) if real DMD variants
+  are ever added; extend X-linked case interpretation beyond the
+  hemizygous-male case once X-inactivation is worth modeling properly;
+  **consider switching `engine.py`'s combining rules from classic Table 5
+  to the VCEP's Bayesian point-based system** — batch 4 produced a
+  concrete, real example (`CAPN3_c.1939G>T`) of Table 5 under-calling a
+  variant the point system would resolve, which is a much stronger
+  motivating case than existed before batch 4.

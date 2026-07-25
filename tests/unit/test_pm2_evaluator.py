@@ -65,14 +65,23 @@ def test_pm2_matches_golden_case_for_all_curated_bundles():
     assert checked == len(bundles) > 0
 
 
-def test_pm2_founder_case_is_flagged_manual_review_not_silently_met():
-    # The specific case that motivated the evaluator's ancestry-AF branch.
+def test_pm2_founder_case_is_now_not_met_under_real_vcep_threshold():
+    # This fixture (CAPN3_c.550del) is the case that originally motivated
+    # the evaluator's ancestry-AF MANUAL_REVIEW branch, back when CAPN3
+    # used a placeholder PM2 threshold (0.001). Since batch 4 adopted the
+    # real ClinGen LGMD VCEP CAPN3 threshold (<0.0001), this variant's
+    # overall AF (0.00023) now exceeds the threshold on its own, so PM2 is
+    # decided as NOT_MET before the ancestry-specific check is even
+    # reached -- see variant_golden_cases.yaml's curator_note for the full
+    # explanation. The ancestry-AF branch itself is still real code with
+    # real behavior; test_pm2_ancestry_enrichment_below_threshold_is_manual_review
+    # below exercises it directly with hand-built data now that this real
+    # fixture no longer does.
     bundles, _ = loader.load_variant_evidence_bundles()
     thresholds = loader.load_frequency_thresholds()
     bundle = next(b for b in bundles if b.variant.variant_id == "CAPN3_c.550del")
     result = evaluate_pm2(bundle, thresholds)
-    assert result.status == CriterionStatus.MANUAL_REVIEW
-    assert "ancestry" in result.rationale.lower()
+    assert result.status == CriterionStatus.NOT_MET
 
 
 # ------------------------------------------------------- hand-built edge cases
@@ -168,6 +177,82 @@ def test_pm2_missing_gene_threshold_raises():
         )
     )
     expect_schema_error(lambda: evaluate_pm2(bundle, {}))
+
+
+def test_pm2_ancestry_enrichment_below_threshold_is_manual_review():
+    # Direct, hand-built coverage of the ancestry-AF MANUAL_REVIEW branch,
+    # using the local _thresholds() (pm2_max_credible_af=0.001) rather than
+    # the real CAPN3 config -- kept independent of config/population_thresholds.yaml
+    # so this test does not silently stop covering the branch if the real
+    # threshold changes again later. Overall AF is below 0.001, but the
+    # ancestry-specific AF clears it -- the founder-enrichment pattern.
+    bundle = _bundle_with_population_evidence(
+        PopulationEvidence(
+            source="gnomAD", source_version="v4.1.0", retrieval_status=PopulationRetrievalStatus.OBSERVED,
+            overall_af=0.0005, ancestry_specific_max_af=0.002,
+        )
+    )
+    result = evaluate_pm2(bundle, _thresholds())
+    assert result.status == CriterionStatus.MANUAL_REVIEW
+    assert "ancestry" in result.rationale.lower()
+
+
+def test_pm2_gene_specific_strength_is_honored_when_configured():
+    # Covers the batch-4 addition: pm2_strength is read per gene, defaulting
+    # to MODERATE, but a gene can be configured (as CAPN3 now is, via the
+    # real ClinGen LGMD VCEP spec) to SUPPORTING instead.
+    from variant_classifier.models.enums import CriterionStrength
+
+    thresholds = {
+        "ba1_stand_alone_af": 0.05,
+        "genes": {
+            "CAPN3": {
+                "pm2_max_credible_af": 0.0001,
+                "pm2_strength": "SUPPORTING",
+                "bs1_min_af": 0.001,
+                "threshold_source": "test",
+            }
+        },
+    }
+    bundle = _bundle_with_population_evidence(
+        PopulationEvidence(
+            source="gnomAD", source_version="v4.1.0", retrieval_status=PopulationRetrievalStatus.ABSENT,
+            locus_coverage_adequate=True, allele_count=0, allele_number=1000000,
+        )
+    )
+    result = evaluate_pm2(bundle, thresholds)
+    assert result.status == CriterionStatus.MET
+    assert result.strength == CriterionStrength.SUPPORTING
+
+
+def test_pm2_gene_without_strength_override_defaults_to_moderate():
+    # A gene present in config but with no pm2_strength key (e.g. DMD, which
+    # has no VCEP spec adopted here) should keep the generic-ACMG default.
+    thresholds = {
+        "ba1_stand_alone_af": 0.05,
+        "genes": {"DMD": {"pm2_max_credible_af": 0.001, "bs1_min_af": 0.001, "threshold_source": "test"}},
+    }
+    bundle_pe = PopulationEvidence(
+        source="gnomAD", source_version="v4.1.0", retrieval_status=PopulationRetrievalStatus.ABSENT,
+        locus_coverage_adequate=True, allele_count=0, allele_number=1000000,
+    )
+    bundle = VariantEvidenceBundle(
+        variant=VariantIdentity(variant_id="EDGE_CASE_DMD", gene="DMD", genome_build=GenomeBuild.GRCH38),
+        gene_disease_context=GeneDiseaseContext(
+            gene="DMD", disease="dystrophinopathy", inheritance=Inheritance.X_LINKED_RECESSIVE,
+            mechanism=DiseaseMechanism.LOSS_OF_FUNCTION, lof_established=True,
+            specification=Specification(type=SpecificationType.GENERIC_ACMG, version="2015"),
+        ),
+        transcript_consequences=[
+            TranscriptConsequence(transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.MISSENSE_VARIANT)
+        ],
+        population_evidence=[bundle_pe],
+    )
+    from variant_classifier.models.enums import CriterionStrength
+
+    result = evaluate_pm2(bundle, thresholds)
+    assert result.status == CriterionStatus.MET
+    assert result.strength == CriterionStrength.MODERATE
 
 
 def test_pm2_rejects_multiple_population_evidence_entries():

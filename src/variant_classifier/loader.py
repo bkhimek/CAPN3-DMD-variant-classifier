@@ -47,12 +47,23 @@ def load_gene_disease_contexts(path: Path = None) -> Dict[str, GeneDiseaseContex
     return contexts
 
 
+_VALID_PM2_STRENGTHS = ("STAND_ALONE", "VERY_STRONG", "STRONG", "MODERATE", "SUPPORTING")
+
+
 def load_frequency_thresholds(path: Path = None) -> dict:
     """Load config/population_thresholds.yaml into:
 
         {
             "ba1_stand_alone_af": float,
-            "genes": {gene: {"pm2_max_credible_af": float, "bs1_min_af": float, "threshold_source": str}},
+            "genes": {
+                gene: {
+                    "pm2_max_credible_af": float,
+                    "pm2_strength": str,   # one of CriterionStrength's names; defaults to "MODERATE"
+                    "bs1_min_af": float,
+                    "ba1_af": float,       # optional per-gene BA1 override; absent means "use the global default"
+                    "threshold_source": str,
+                },
+            },
         }
 
     Used by evaluators.pm2, evaluators.ba1, and evaluators.bs1 — kept in
@@ -62,6 +73,15 @@ def load_frequency_thresholds(path: Path = None) -> dict:
 
     Named load_frequency_thresholds (not load_pm2_thresholds, its original
     Milestone-2 name) since it now serves three evaluators, not one.
+
+    pm2_strength and ba1_af were added during the batch-4 curated-set
+    expansion, when CAPN3 moved from a placeholder threshold to the real
+    ClinGen LGMD VCEP specification (which uses PM2_Supporting, not
+    PM2_Moderate, and a gene-specific BA1 threshold of 0.003 rather than
+    the generic 0.05). Both are optional per gene, defaulting to the
+    generic-ACMG conventions (Moderate strength, the global BA1 default)
+    for any gene without a VCEP-sourced override — this is what keeps DMD
+    (no VCEP spec adopted here) behaving exactly as before.
     """
     path = path or (CONFIG_DIR / "population_thresholds.yaml")
     if not path.exists():
@@ -75,6 +95,10 @@ def load_frequency_thresholds(path: Path = None) -> dict:
     if not isinstance(ba1_af, (int, float)) or isinstance(ba1_af, bool) or not (0.0 <= ba1_af <= 1.0):
         raise SchemaValidationError(f"{path}: ba1_stand_alone_af must be a number in [0, 1]")
 
+    def _validate_af(key, af):
+        if not isinstance(af, (int, float)) or isinstance(af, bool) or not (0.0 <= af <= 1.0):
+            raise SchemaValidationError(f"{path}: genes.{gene}.{key} must be a number in [0, 1]")
+
     genes: Dict[str, dict] = {}
     for gene, entry in raw["genes"].items():
         if not isinstance(entry, dict) or "pm2_max_credible_af" not in entry or "bs1_min_af" not in entry:
@@ -83,14 +107,25 @@ def load_frequency_thresholds(path: Path = None) -> dict:
             )
         pm2_af = entry["pm2_max_credible_af"]
         bs1_af = entry["bs1_min_af"]
-        for key, af in (("pm2_max_credible_af", pm2_af), ("bs1_min_af", bs1_af)):
-            if not isinstance(af, (int, float)) or isinstance(af, bool) or not (0.0 <= af <= 1.0):
-                raise SchemaValidationError(f"{path}: genes.{gene}.{key} must be a number in [0, 1]")
-        genes[gene] = {
+        _validate_af("pm2_max_credible_af", pm2_af)
+        _validate_af("bs1_min_af", bs1_af)
+
+        pm2_strength = entry.get("pm2_strength", "MODERATE")
+        if pm2_strength not in _VALID_PM2_STRENGTHS:
+            raise SchemaValidationError(
+                f"{path}: genes.{gene}.pm2_strength {pm2_strength!r} is not one of {_VALID_PM2_STRENGTHS}"
+            )
+
+        gene_config = {
             "pm2_max_credible_af": float(pm2_af),
+            "pm2_strength": pm2_strength,
             "bs1_min_af": float(bs1_af),
             "threshold_source": entry.get("threshold_source", ""),
         }
+        if "ba1_af" in entry:
+            _validate_af("ba1_af", entry["ba1_af"])
+            gene_config["ba1_af"] = float(entry["ba1_af"])
+        genes[gene] = gene_config
 
     return {"ba1_stand_alone_af": float(ba1_af), "genes": genes}
 

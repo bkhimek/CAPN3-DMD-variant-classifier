@@ -9,7 +9,8 @@ Design, worked out against the CAPN3_c.550del fixture specifically:
 2. If the source doesn't apply to this variant (NOT_APPLICABLE), likewise
    NOT_EVALUATED — there's nothing to evaluate PM2 against.
 3. If the variant was queried and genuinely ABSENT from a well-covered
-   locus, that is exactly what PM2 asks for — MET, Moderate strength.
+   locus, that is exactly what PM2 asks for — MET, at the gene's
+   configured PM2 strength.
 4. If the variant was OBSERVED with a frequency:
    a. Compare the overall allele frequency against the gene's configured
       max-credible-AF threshold. At or above it, PM2 is NOT_MET — too
@@ -25,9 +26,17 @@ Design, worked out against the CAPN3_c.550del fixture specifically:
       support (see ACMG Engine Detailed Design Guide, Section 7).
    c. Below the threshold with no such ancestry-specific enrichment — MET.
 
+Strength: the evaluator no longer hardcodes Moderate. PM2's strength is
+read per-gene from config/population_thresholds.yaml ("pm2_strength"),
+defaulting to MODERATE (the generic ACMG/AMP convention) when a gene has
+no override. CAPN3 is configured at SUPPORTING, per the real ClinGen LGMD
+VCEP specification (see that config file's threshold_source note) — the
+VCEP only defines a Supporting-strength PM2 for CAPN3, not Moderate.
+
 This intentionally does not implement per-inheritance-pattern max-credible
-allele frequency math (Whiffin et al. 2017); config/population_thresholds.yaml
-documents that as a known simplification.
+allele frequency math (Whiffin et al. 2017) beyond what a VCEP spec
+directly supplies; config/population_thresholds.yaml documents remaining
+simplifications (e.g. no confidence-interval computation).
 """
 
 from typing import Dict
@@ -85,11 +94,15 @@ def evaluate_pm2(bundle: VariantEvidenceBundle, thresholds: dict) -> CriterionRe
             evidence_ids=[evidence_id],
         )
 
+    gene_thresholds = thresholds.get("genes", {})
+    gene_config = gene_thresholds.get(gene, {})
+    pm2_strength = CriterionStrength[gene_config.get("pm2_strength", "MODERATE")]
+
     if evidence.retrieval_status == PopulationRetrievalStatus.ABSENT:
         return CriterionResult(
             code="PM2",
             status=CriterionStatus.MET,
-            strength=CriterionStrength.MODERATE,
+            strength=pm2_strength,
             direction=EvidenceDirection.PATHOGENIC,
             rule_source=RULE_SOURCE,
             rule_version=RULE_VERSION,
@@ -101,7 +114,9 @@ def evaluate_pm2(bundle: VariantEvidenceBundle, thresholds: dict) -> CriterionRe
         )
 
     # retrieval_status == OBSERVED from here on (the only remaining enum value).
-    gene_thresholds = thresholds.get("genes", {})
+    # Unlike strength (which defaults to MODERATE if unconfigured), the numeric
+    # max-credible-AF threshold has no safe default — a gene must be explicitly
+    # configured before an OBSERVED frequency can be compared against anything.
     if gene not in gene_thresholds:
         raise SchemaValidationError(
             f"{context}: no PM2 frequency threshold configured for gene {gene!r} "
@@ -145,7 +160,7 @@ def evaluate_pm2(bundle: VariantEvidenceBundle, thresholds: dict) -> CriterionRe
     return CriterionResult(
         code="PM2",
         status=CriterionStatus.MET,
-        strength=CriterionStrength.MODERATE,
+        strength=pm2_strength,
         direction=EvidenceDirection.PATHOGENIC,
         rule_source=RULE_SOURCE,
         rule_version=RULE_VERSION,

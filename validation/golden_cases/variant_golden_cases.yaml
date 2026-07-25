@@ -25,37 +25,54 @@
 # specifically to support the new case-level tests and are worked out the
 # same way.
 
+# Batch 4 (curated-set expansion): CAPN3 moved from a placeholder PM2/BA1
+# threshold to the real ClinGen LGMD VCEP CAPN3 specification (v2.0,
+# 2025-07-09; see config/population_thresholds.yaml). This changed PM2's
+# strength for CAPN3 from Moderate to Supporting and BA1's threshold from
+# the generic 5% to a gene-specific 0.3%, which changed the expected
+# result for several existing entries below. Each changed entry's
+# curator_note explains what changed and why, rather than silently
+# updating the number. CAPN3_SYNTH_PATHOGENIC_02's evidence was also
+# strengthened (PP3 added) specifically to preserve a clean, individually-
+# qualifying case-level fixture; real fixtures affected by the same
+# threshold change were left unmodified and show the honest result
+# instead -- see CAPN3_c.1939G>T.
+
 golden_cases:
   - variant_id: CAPN3_c.550del
     expected_provisional_class: VUS
     expected_criterion_status:
       PVS1: MET
-      PM2: MANUAL_REVIEW
+      PM2: NOT_MET
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
-      BA1: NOT_MET
+      BA1: MANUAL_REVIEW
       BS1: MANUAL_REVIEW
-    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the curated evidence in data/curated/variant_evidence.json"
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the curated evidence in data/curated/variant_evidence.json, using the real ClinGen LGMD VCEP CAPN3 PM2/BA1/BS1 thresholds (batch 4)"
     curator_note: >
       Deliberately NOT auto-classified as Likely Pathogenic despite the real
       ClinVar Pathogenic call. PVS1 alone (1 Very Strong) is insufficient by
-      itself under Table 5. PM2 is marked MANUAL_REVIEW rather than MET
-      because this is a known founder allele with a much higher
-      ancestry-specific frequency (0.75%) than global frequency (0.023%) —
-      whether that's "extremely low frequency" for PM2 purposes depends on
-      knowing the tested individual's ancestry, which this fixture does not
-      specify. BS1 is MANUAL_REVIEW for the identical reason, updated from
-      an earlier (Milestone 1) NOT_MET once the Milestone 3 evaluators made
-      the inconsistency visible: the same ancestry-specific frequency that
-      makes PM2 ambiguous makes BS1 equally ambiguous — a founder pathogenic
-      allele can be locally common without being benign, so BS1 shouldn't
-      be silently resolved to NOT_MET any more than PM2 should be silently
-      resolved to MET. The real-world Pathogenic classification for this
-      variant also draws on segregation/case-count evidence (PM3,
-      PS4-adjacent) that is entirely out of scope for Milestone 1's
-      6-criterion engine. This golden case exists specifically to prove the
-      prototype does NOT overclaim certainty it has no evidence for — with
-      two criteria now correctly flagged for human review instead of one.
+      itself under Table 5. UPDATED in batch 4: PM2 is now NOT_MET rather
+      than MANUAL_REVIEW. Under the real VCEP's stricter PM2_Supporting
+      threshold (<0.0001), this variant's overall AF (0.023% = 0.00023)
+      already exceeds the threshold on its own, so PM2 is decided (too
+      common) before the ancestry-specific check is even reached -- unlike
+      before, when the looser placeholder threshold (0.001) let the overall
+      AF pass and only the ancestry-specific frequency (0.75%) triggered
+      ambiguity. BA1 flips the other way: it is now MANUAL_REVIEW rather
+      than NOT_MET, because the real VCEP's BA1 threshold for CAPN3 (0.3%)
+      is far stricter than the generic 5% default, and this variant's
+      ancestry-specific frequency (0.75%) clears it even though the overall
+      frequency (0.023%) does not -- the same founder-enrichment ambiguity
+      PM2 used to show, now showing up in BA1 instead. BS1 is unaffected
+      (still MANUAL_REVIEW for the same founder-frequency reason as before;
+      its threshold, 0.001, was already correct once the placeholder was
+      checked against the real spec). Net effect: still VUS, still flagged
+      for manual review overall, but via a different, more accurate pair of
+      criteria than before -- a genuine correction, not just a relabeling.
+      The real-world Pathogenic classification for this variant also draws
+      on segregation/case-count evidence (PM3, PS4-adjacent) that is
+      entirely out of scope for this project's 6-criterion engine.
 
   - variant_id: CAPN3_SYNTH_PATHOGENIC_01
     expected_provisional_class: PATHOGENIC
@@ -73,43 +90,66 @@ golden_cases:
       Milestone-1 criterion set because PP3 is included.
 
   - variant_id: CAPN3_SYNTH_LIKELY_BENIGN_01
-    expected_provisional_class: LIKELY_BENIGN
+    expected_provisional_class: BENIGN
     expected_criterion_status:
       PVS1: NOT_APPLICABLE
       PM2: NOT_MET
       PP3: NOT_MET
       BP4: MET
-      BA1: NOT_MET
+      BA1: MET
       BS1: MET
-    source: "Synthetic fixture constructed to exercise Table 5 combining-rule path: 1 Strong-Benign + 1 Supporting-Benign"
+    source: "Synthetic fixture constructed to exercise Table 5's Strong-Benign + Supporting-Benign combining path; re-evaluated in batch 4 against the real ClinGen LGMD VCEP CAPN3 BA1 threshold"
     curator_note: >
-      This is the fixture that specifically tests the fix for the
-      LIKELY_BENIGN-unreachable bug identified during Project 1 planning
-      review: the original 5-criterion set (PVS1/PM2/PP3/BA1/BS1) had no
-      Supporting-Benign criterion at all, so BS1 alone could never combine
-      to LIKELY_BENIGN. BP4's addition closes that gap. AF (1.4% overall,
-      2.1% ancestry-max) is deliberately below a plausible BA1 threshold so
-      this case exercises the BS1+BP4 path rather than the stand-alone BA1
-      path.
+      Originally built (Milestone 3) to exercise the BS1 (Strong) + BP4
+      (Supporting) -> LIKELY_BENIGN path, with AF (1.4% overall, 2.1%
+      ancestry-max) deliberately set below a plausible BA1 threshold so
+      BA1 itself would stay NOT_MET and not short-circuit the story. That
+      assumption held for the generic ACMG 5% BA1 default this project
+      used through Milestone 3/batch 3. UPDATED in batch 4: the real
+      ClinGen LGMD VCEP threshold for CAPN3's BA1 is 0.3%, not 5% -- this
+      fixture's 1.4% overall AF now clears BA1 on its own (Stand-Alone),
+      which per Table 5 is sufficient by itself for a full BENIGN call,
+      overriding the BS1+BP4 LIKELY_BENIGN path this fixture was
+      originally built to demonstrate. This is left as an honest
+      consequence of the real, stricter VCEP threshold rather than
+      reworked to preserve the original LIKELY_BENIGN story: a variant
+      this common in CAPN3 genuinely would be called Benign outright under
+      the real spec, not just Likely Benign. The BS1+BP4 combining path
+      this fixture was built to exercise is still implicitly exercised
+      (both are still MET here) -- it's just no longer the path that
+      determines the final call, since BA1 stand-alone now dominates.
 
   - variant_id: CAPN3_SYNTH_PATHOGENIC_02
-    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_provisional_class: PATHOGENIC
     expected_criterion_status:
       PVS1: MET
       PM2: MET
-      PP3: NOT_EVALUATED
-      BP4: NOT_EVALUATED
+      PP3: MET
+      BP4: NOT_MET
       BA1: NOT_MET
       BS1: NOT_MET
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5)"
     curator_note: >
       Synthetic, built in Milestone 4 as CAPN3_SYNTH_PATHOGENIC_01's trans
       partner for case-level interpretation tests (see
-      case_interpretation_golden_cases.yaml). Reaches LIKELY_PATHOGENIC via
-      the VS+1 Moderate combining path (PVS1+PM2, no computational
-      evidence gathered) — deliberately not the same path as
-      CAPN3_SYNTH_PATHOGENIC_01 (which also has PP3), to keep the two
-      fixtures genuinely distinct rather than copies of each other.
+      case_interpretation_golden_cases.yaml). UPDATED in batch 4: this
+      fixture's computational_evidence (PP3, calibrated pathogenic) was
+      added specifically because the real ClinGen LGMD VCEP CAPN3 PM2 is
+      Supporting strength, not Moderate -- with only PVS1 (Very Strong) +
+      PM2 (Supporting), Table 5 has no combining rule at all for "1 Very
+      Strong + 1 Supporting" alone, so this fixture would otherwise drop
+      from its original LIKELY_PATHOGENIC to VUS and CASE_CAPN3_BIALLELIC_TRANS
+      would no longer demonstrate a clean EXPLAINED biallelic case. Adding
+      PP3 (Supporting) gives "1 Very Strong + >=2 Supporting", a real
+      Table 5 Pathogenic path -- so this fixture now reaches PATHOGENIC
+      (stronger than its original LIKELY_PATHOGENIC, not just restored to
+      it). This is a deliberate, disclosed strengthening of a fully
+      SYNTHETIC fixture to preserve its original test purpose -- contrast
+      with CAPN3_c.1939G>T below, a REAL variant left unmodified, which
+      shows the same threshold change's honest, unmitigated consequence
+      instead. See config/population_thresholds.yaml's threshold_source
+      note and data/curated/variant_evidence.json's notes field on this
+      fixture for the full reasoning.
 
   - variant_id: DMD_SYNTH_PATHOGENIC_01
     expected_provisional_class: LIKELY_PATHOGENIC
@@ -129,7 +169,7 @@ golden_cases:
       real DMD pathogenic variants — see gene_disease_context.yaml.
 
   - variant_id: CAPN3_c.1939G>T
-    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_provisional_class: VUS
     expected_criterion_status:
       PVS1: MET
       PM2: MET
@@ -137,19 +177,30 @@ golden_cases:
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
-    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 217153)"
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 217153), using the real ClinGen LGMD VCEP CAPN3 PM2 threshold/strength (batch 4)"
     curator_note: >
       Real, ClinVar-reported Pathogenic nonsense variant, gnomAD AF
       0.003% (no ancestry-enrichment complication, unlike CAPN3_c.550del).
-      PVS1 MET + PM2 MET reaches LIKELY_PATHOGENIC via the VS+1 Moderate
-      path -- not full PATHOGENIC, because no computational evidence was
-      gathered for this variant (PP3 NOT_EVALUATED), and this project's
-      6-criterion engine has no other path to the Pathogenic tier from a
-      single Very Strong + Moderate pair. This is expected and correct
-      given the criterion scope, not a bug: it demonstrates the engine
-      declining to overclaim a full Pathogenic call it doesn't have
-      complete evidence for, even for a variant ClinVar itself calls
-      Pathogenic.
+      UPDATED in batch 4, and deliberately LEFT as the honest result of
+      the real VCEP threshold change rather than patched: PM2 is still MET
+      (0.003% clears the real, stricter <0.01% threshold easily), but its
+      strength is now Supporting, not Moderate, per the real ClinGen LGMD
+      VCEP spec for CAPN3. PVS1 (Very Strong) + PM2 (Supporting) is "1 Very
+      Strong + 1 Supporting", which Table 5 has NO combining rule for --
+      not Likely Pathogenic, not Pathogenic, nothing. So this real,
+      ClinVar-Pathogenic variant now lands on VUS here, down from
+      LIKELY_PATHOGENIC before batch 4. This is a genuine, informative
+      finding, not a bug: the real VCEP's own Bayesian point-based
+      combining system (Tavtigian et al. 2020) would score this exact
+      evidence as 8 (Very Strong) + 1 (Supporting) = 9 points, within
+      their Likely Pathogenic range (6-9) -- it is specifically this
+      project's continued use of the classic, categorical Table 5 rules
+      (rather than adopting the VCEP's point system) that creates this
+      gap. See config/population_thresholds.yaml's threshold_source note
+      for the full explanation. This is the clearest concrete illustration
+      in the fixture set of why real VCEPs moved from Table 5 to Bayesian
+      point-based combining, and a strong motivating example for revisiting
+      that combining-system question later (see README roadmap).
 
   - variant_id: CAPN3_c.2257G>A
     expected_provisional_class: VUS
@@ -247,20 +298,109 @@ golden_cases:
     expected_provisional_class: VUS
     expected_criterion_status:
       PVS1: MANUAL_REVIEW
+      PM2: NOT_MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 553754), using the real ClinGen LGMD VCEP CAPN3 PM2 threshold (batch 4)"
+    curator_note: >
+      Real, ClinVar-reported Pathogenic canonical splice DONOR variant
+      (complementing CAPN3_c.946-1G>A, a splice ACCEPTOR variant). Same
+      PVS1 story as before: PVS1 declines to auto-resolve splice-site
+      consequences, correctly returning MANUAL_REVIEW rather than
+      guessing. UPDATED in batch 4: PM2 flips from MET to NOT_MET. This
+      variant's gnomAD overall AF is exactly 0.0001 -- precisely at the
+      real VCEP's PM2_Supporting threshold ("<0.0001", strictly less-than).
+      The evaluator's ">=" comparison treats a frequency exactly at the
+      threshold as NOT qualifying, consistent with the spec's strict
+      inequality. This is a genuine edge case worth keeping in the fixture
+      set on purpose: it is the only entry here whose AF sits exactly on a
+      threshold boundary, and it demonstrates the evaluator handling that
+      boundary the way the spec's wording ("<0.0001", not "<=0.0001")
+      requires. The final classification (VUS) is unchanged either way,
+      since PM2 alone -- MET or NOT_MET -- never reached a Table 5 tier by
+      itself even before this change.
+
+  - variant_id: CAPN3_c.1A>G
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MANUAL_REVIEW
       PM2: MET
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
-    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 553754)"
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV001453744), using the real ClinGen LGMD VCEP CAPN3 PM2 threshold"
     curator_note: >
-      Real, ClinVar-reported Pathogenic canonical splice DONOR variant
-      (complementing CAPN3_c.946-1G>A, a splice ACCEPTOR variant). Same
-      story, same reason: PVS1 declines to auto-resolve splice-site
-      consequences, so only PM2 (Moderate) is MET, which alone never
-      reaches a Table 5 tier. Having two independent real splice variants
-      both land here shows the PVS1 scope gap is a systematic limitation,
-      not a one-off quirk of a single fixture.
+      Real, ClinVar-reported Pathogenic start-loss (initiator codon) variant
+      -- the project's first fixture exercising PVS1's third documented
+      scope gap, alongside the two splice-site fixtures. PVS1's decision
+      tree treats start-loss variants as within scope in principle, but
+      correctly resolving one requires checking whether a plausible
+      downstream in-frame alternative start codon exists; this project's
+      evaluator does not model that, so it returns MANUAL_REVIEW rather than
+      guessing, same as it does for splice donor/acceptor variants. With
+      PVS1 unresolved, only PM2 (MET, Supporting under the real VCEP
+      threshold -- this variant's gnomAD AF of 0.00001 easily clears the
+      <0.0001 cutoff) is MET, which alone never reaches a Table 5 tier --
+      VUS. Together with CAPN3_c.946-1G>A and CAPN3_c.2050+1G>A (splice
+      acceptor and donor), this now gives the fixture set one real,
+      ClinVar-Pathogenic example of each of PVS1's three unresolved
+      branches (NMD-escaping truncations aren't separately represented yet,
+      but both splice-site and start-loss gaps now are) -- the same
+      systematic limitation showing up a third independent way, not a
+      one-off.
+
+  - variant_id: CAPN3_c.2120A>G
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: NOT_MET
+      PP3: MET
+      BP4: NOT_MET
+      BA1: NOT_MET
+      BS1: MANUAL_REVIEW
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinGen LGMD VCEP Evidence Repository curation (VCV000468648 / CA7511744 / erepo record 7f534c0d-0dbe-4d2e-88e2-88c804cde635, approved 2025-04-22), using the real ClinGen LGMD VCEP CAPN3 PM2/BA1/BS1 thresholds and REVEL threshold"
+    curator_note: >
+      Real, exceptionally well-documented variant -- the project's first
+      fixture sourced directly from an official VCEP expert curation record
+      (not just an aggregate ClinVar classification), and the first fixture
+      anywhere in this project to use a REAL calibrated computational
+      (REVEL) score: 0.966, well above the real VCEP's own PP3 threshold
+      (>=0.70). The real VCEP classifies this variant PATHOGENIC, but
+      almost entirely on criteria this project's 6-criterion engine does
+      not implement: PM3_Strong (observed in trans with a pathogenic
+      variant across multiple case reports), PP1_Strong (segregation in 6
+      affected relatives across 4 families), and PP4 (phenotype +
+      significantly reduced calpain-3 protein expression). PP3 (REVEL) is
+      the only criterion this project's engine and the real VCEP curation
+      share, and PVS1 doesn't apply at all (missense). PM2 is NOT_MET here,
+      matching the real VCEP's own conclusion (too common in East Asian
+      populations for the real PM2_Supporting <0.0001 threshold) --
+      overall AF (0.000148, gnomAD v2.1.1) already exceeds the threshold on
+      its own. The most interesting result is BS1: the real VCEP's own
+      curation found this variant's East Asian filtering allele frequency
+      (0.001929, gnomAD v4.1.0 exomes) technically crosses their BS1
+      threshold (>0.001), but explicitly declined to apply BS1 anyway -- a
+      documented "BS1 exception" -- because this is one of the most
+      commonly reported CAPN3 variants among East Asian LGMD patients (a
+      real, expert-judged founder-pathogenic scenario, not a
+      benign-common-variant one). This project's BS1 evaluator has no way
+      to know that case-count/segregation context, but its existing
+      founder-enrichment branch (overall AF below threshold, ancestry-
+      specific AF above it) returns MANUAL_REVIEW rather than silently
+      applying BS1 -- landing on the same "a human needs to look at this"
+      conclusion the real VCEP reached, for the same underlying reason,
+      without knowing why. This is the clearest real-world validation yet
+      that the founder-enrichment MANUAL_REVIEW design (built while
+      curating CAPN3_c.550del in Milestone 3) catches exactly the kind of
+      case it was designed for. Final result: VUS, manual review required
+      -- an honest reflection of how much of this variant's real
+      classification depends on case-level and segregation evidence
+      entirely outside a variant-only automated engine's reach, not a
+      failure to recognize a REVEL score the engine can plainly see is
+      pathogenic-leaning.
 
   - variant_id: CAPN3_c.1132T>C
     expected_provisional_class: VUS

@@ -1,40 +1,60 @@
-# Per-gene PM2/BS1 frequency thresholds, plus one universal BA1 threshold.
+# Per-gene PM2/BA1/BS1 frequency thresholds.
 #
-# PM2 ("absent from controls, or at extremely low frequency if recessive")
-# and BS1 ("more common than expected for the disorder") have no single
-# universal cutoff — the appropriate threshold depends on the disease's
-# prevalence, penetrance, and allelic/genetic heterogeneity (see Whiffin
-# et al. 2017 for the general "maximum credible population AF" approach
-# ClinGen VCEPs build on). Milestone 2/3 keep this simple: one threshold
-# per gene, set by hand, rather than computing it from prevalence.
+# PM2 ("absent from controls, or at extremely low frequency if recessive"),
+# BA1 ("too common for any plausible rare Mendelian disease"), and BS1
+# ("more common than expected for this disorder") have no single universal
+# cutoff — the appropriate threshold depends on the disease's prevalence,
+# penetrance, and allelic/genetic heterogeneity (see Whiffin et al. 2017 for
+# the general "maximum credible population AF" approach ClinGen VCEPs build
+# on). Historically (Milestone 2/3) this project set one illustrative
+# threshold per gene by hand. As of the batch-4 curated-set expansion, CAPN3
+# uses the REAL published ClinGen LGMD VCEP thresholds instead of a
+# placeholder — see threshold_source below. DMD still has no VCEP spec
+# adopted here, so it falls back to the global default(s).
 #
-# pm2_max_credible_af and bs1_min_af are deliberately the same value for
-# CAPN3 right now — PM2 asks "rare enough to be plausible," BS1 asks
-# "common enough to rule out," and treating those as mirror-image
-# questions with one shared cutoff is a simplification, not a rule. They
-# are kept as separate config keys (not one shared key) so a gene where
-# the two thresholds should genuinely differ doesn't require a code change,
-# only a config change.
-#
-# BA1 ("too common for ANY plausible rare Mendelian disease") uses the
-# conventional 5% ACMG/AMP default rather than a per-gene value — ClinGen
-# VCEPs do sometimes override this per gene/disease, which is why it's
-# still in config and not a hardcoded constant, but Milestone 3 doesn't
-# implement per-gene BA1 overrides.
-#
-# threshold_source records where each number came from, so none of this
-# is mistaken for an authoritative VCEP-approved value.
+# threshold_source records where each number came from, so it's always
+# clear which genes have a real VCEP-sourced threshold and which don't.
 
-ba1_stand_alone_af: 0.05   # 5%, the standard ACMG/AMP default
+ba1_stand_alone_af: 0.05   # 5%, the generic ACMG/AMP default — used for any gene without a per-gene ba1_af override below
 
 genes:
   CAPN3:
-    pm2_max_credible_af: 0.001   # 0.1%
-    bs1_min_af: 0.001            # 0.1%, same value as pm2_max_credible_af — see note above
+    pm2_max_credible_af: 0.0001   # 0.01%
+    pm2_strength: SUPPORTING
+    bs1_min_af: 0.001             # 0.1%
+    ba1_af: 0.003                 # 0.3% — overrides the 5% generic default for this gene
     threshold_source: >
-      Illustrative placeholder for Milestone 2/3, not a ClinGen
-      LGMD-VCEP-approved value. Chosen as a conventional "rare disease"
-      cutoff order of magnitude; replace with a properly derived
-      max-credible-AF (Whiffin et al. 2017 style, using LGMDR1 prevalence
-      and CAPN3 allelic heterogeneity) before this is used for anything
-      beyond prototype testing.
+      ClinGen Limb-Girdle Muscular Dystrophy (LGMD) Variant Curation Expert
+      Panel (VCEP) Specifications to the ACMG/AMP Variant Interpretation
+      Guidelines for CAPN3, Version 2.0, released 2025-07-09.
+      DOI: 10.5281/zenodo.21434844.
+      Registry: cspec.genome.network/cspec/ui/svi/doc/GN187.
+      PM2_Supporting: apply if the Grpmax variant allele frequency (or the
+      upper bound of its 95% CI when >=3 alleles are observed in the Grpmax
+      population) in gnomAD is <0.0001. This project approximates "Grpmax
+      AF" with the overall_af / ancestry_specific_max_af fields already in
+      PopulationEvidence and does not compute confidence intervals — a
+      known simplification relative to the full VCEP procedure.
+      BA1: apply if Grpmax FAF (lower bound of 95% CI) is >0.003. Note this
+      is LOWER than the generic ACMG/AMP 5% default — an LGMD-VCEP-specific
+      override, not a typo.
+      BS1_Strong: apply if Grpmax FAF is >0.001 (this happens to match the
+      value already in use here from the earlier placeholder — a
+      coincidence confirmed correct once the real spec was found, not a
+      value chosen to match).
+      The VCEP spec also defines a Bayesian point-based combining system
+      (Tavtigian et al. 2020 adaptation: Very Strong=8, Strong=4,
+      Moderate=2, Supporting=1 point; Pathogenic >=10, Likely Pathogenic
+      6-9, VUS 0-5, Likely Benign -6 to -1, Benign <=-7) rather than the
+      classic Richards et al. 2015 Table 5 categorical rules. This
+      prototype has NOT adopted that combining system — engine.py still
+      uses Table 5 — so these VCEP-sourced per-criterion thresholds and
+      strengths are applied within a combining framework the VCEP itself
+      has moved away from. This has a real, visible consequence: Table 5
+      has no rule for "1 Very Strong + 1 Supporting" alone, so a CAPN3
+      variant whose only pathogenic evidence is PVS1 (Very Strong) + PM2
+      (now Supporting, not Moderate) no longer reaches Likely Pathogenic
+      here, even though the VCEP's own point system would score it
+      8+1=9 points, within their Likely Pathogenic range (6-9). See
+      CAPN3_c.1939G>T in variant_golden_cases.yaml for a real example, and
+      the README's "Expanding the curated set" notes for the full writeup.

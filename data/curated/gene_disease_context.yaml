@@ -12,6 +12,15 @@
 # stay within the project's current representational scope rather than
 # reopen CNV modeling.
 
+# CAPN3's specification was upgraded from GENERIC_ACMG to VCEP during the
+# batch-4 curated-set expansion, once the real ClinGen LGMD VCEP CAPN3
+# specification (v2.0, 2025-07-09) was found. Only PM2/BA1/BS1 thresholds
+# and PM2's strength were actually adopted into this prototype's
+# evaluators (see config/population_thresholds.yaml) -- the VCEP's other
+# criteria (PS1, PS3, PM1, PM3, PM4, PM5, PP1, PP4, BS2, BS4, BP2) and its
+# Bayesian point-based combining system are not implemented here. DMD has
+# no VCEP specification adopted and remains GENERIC_ACMG.
+
 genes:
   CAPN3:
     gene: CAPN3
@@ -20,8 +29,8 @@ genes:
     mechanism: LOSS_OF_FUNCTION
     lof_established: true
     specification:
-      type: GENERIC_ACMG
-      version: "Richards et al. 2015"
+      type: VCEP
+      version: "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
     gene_disease_validity: "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
 
   DMD:

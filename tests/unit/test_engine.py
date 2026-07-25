@@ -56,7 +56,11 @@ def test_founder_case_flags_manual_review_but_not_conflict():
     bundle = next(b for b in bundles if b.variant.variant_id == "CAPN3_c.550del")
     result = classify(bundle, thresholds)
     assert result.provisional_class == ProvisionalClass.VUS
-    assert result.manual_review_required is True  # PM2 and BS1 are both MANUAL_REVIEW
+    # As of batch 4 (real ClinGen LGMD VCEP CAPN3 thresholds), it's BA1 and
+    # BS1 that are MANUAL_REVIEW here, not PM2 and BS1 -- PM2 is now decided
+    # (NOT_MET) since this variant's overall AF alone exceeds the real,
+    # stricter PM2 threshold. See variant_golden_cases.yaml's curator_note.
+    assert result.manual_review_required is True  # BA1 and BS1 are both MANUAL_REVIEW
     assert result.conflicting_evidence_flag is False  # no combining rule satisfied on either side
 
 
