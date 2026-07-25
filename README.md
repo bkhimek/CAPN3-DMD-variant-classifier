@@ -296,6 +296,41 @@ documented scope gaps with real data:
   evidence) converging on the same "needs a human" conclusion the real
   multi-lab ClinVar consensus also reached.
 
+Batch 10 didn't add a new fixture either — a seventh unsuccessful BA1
+search (see below) led back to `CAPN3_c.2257G>A` (p.Asp753Asn), already
+in the set since batch 2 and enriched once already in batch 8, and this
+round upgraded it substantially on two fronts:
+
+- **Coordinates and the VCEP classification are now primary-source
+  confirmed.** Batch 8 had the real LGMD VCEP's Likely-Benign-via-BS1+BP2
+  call from a web search summary only, flagged as unverified. Batch 10
+  fetched the primary ClinVar VCV000281081.42 page directly: it confirms
+  that call word-for-word (3-star "reviewed by expert panel" status,
+  evaluated 2025-10-28) and supplies real coordinates (GRCh38
+  chr15:42410660 G>A), so `coordinate_verified` is now `true`.
+- **A genuinely opposing real source, not just an unimplemented
+  criterion.** A peer-reviewed paper published one month after that VCEP
+  evaluation (Bruno et al. 2025, *Int J Mol Sci* 26(23):11384, PMID
+  41373542) reports this exact variant as the single most frequent
+  finding — 8 of 59 patients (13.5%) — in a multicenter Italian cohort of
+  CAPN3-heterozygous patients, with real phenotype data and new
+  structural modeling, concluding "the aggregated evidence supports a
+  pathogenic role." This doesn't contradict the VCEP's numbers (both cite
+  essentially the same gnomAD frequency and REVEL score) — it answers a
+  different question. The VCEP classified this variant Likely Benign FOR
+  AUTOSOMAL RECESSIVE calpainopathy; the paper argues for pathogenicity in
+  a distinct, less common AUTOSOMAL DOMINANT calpainopathy (LGMDD4) model.
+  `gene_disease_context.yaml` fixes CAPN3 as one inheritance pattern for
+  every variant, so this project structurally cannot represent "benign
+  for recessive disease, possibly pathogenic for dominant disease" as one
+  variant's answer — a schema-level gap, not a missing criterion,
+  previously only mentioned here in passing (batch 8) and now fully
+  primary-source-documented on both sides. The engine's own VUS call ends
+  up being the most epistemically honest of the three real answers on the
+  table (VCEP: Likely Benign; paper: pathogenic-leaning; this project:
+  uncertain) specifically because it commits to neither disease model — a
+  fortunate byproduct of missing criteria, not a designed strength.
+
 A sixth round (batch 7) added one more:
 
 - `DMD_c.93+1G>A` — a real, ClinVar-Pathogenic splice donor variant in DMD
@@ -316,25 +351,37 @@ either. This has now been searched for across five separate rounds
 
 The real, precisely-sourced calibrated computational score gap mentioned
 in every prior round is now closed (`CAPN3_c.2120A>G`'s REVEL=0.966). One
-gap remains open, searched for across five rounds and still not found
-rather than silently skipped:
-skipped: a true common CAPN3 variant to exercise BA1 MET against real data.
-Searched for repeatedly (batches 3, 4, 6, 7, 8) via ClinVar molecular-
-consequence queries, general population-frequency web searches, an
-Ensembl REST API pull of the full CAPN3 genomic-region variant list, and
-a ClinVar/erepo search specifically for benign-classified CAPN3 variants
-— the
-closest real candidate found so far is still `CAPN3_c.2257G>A` at 0.2457%
-overall AF (batch 2), under the 0.3% threshold but not by much. At this
-point the likeliest explanation isn't that the search strategy is missing
-something, but that CAPN3 genuinely doesn't have many easily-indexed
-common coding variants — consistent with it being a disease-relevant
-gene under negative selection even for variants short of clinical
-significance. Remains covered only by hand-built synthetic tests
-(`tests/unit/test_ba1_bs1_evaluators.py`); worth trying a fundamentally
-different approach (e.g. a direct gnomAD constraint/frequency browse
-rather than a ClinVar-anchored search) rather than repeating the same
-strategy again.
+gap remains open, searched for across seven rounds and still not found
+rather than silently skipped: a true common CAPN3 variant to exercise
+BA1 MET against real data. Searched for repeatedly (batches 3, 4, 6, 7,
+8, and 10) via ClinVar molecular-consequence queries, general
+population-frequency web searches, an Ensembl REST API pull of the full
+CAPN3 genomic-region variant list, and a ClinVar/erepo search
+specifically for benign-classified CAPN3 variants. Batch 10 tried the
+"fundamentally different approach" this note used to suggest: pulling
+every cataloged variant directly from the CAPN3 gene region via
+Ensembl's `overlap/region` endpoint (the same technique that found
+`DMD_c.11041A>T` in batch 9) instead of ClinVar-searching for one. It
+didn't work here — a 53kb gene region returns thousands of dbSNP
+entries, the vast majority ultra-rare/singleton, and Ensembl's overlap
+response doesn't include population frequency at all (a separate
+per-variant lookup is needed for that), so brute-force enumeration
+isn't actually more tractable than the ClinVar-anchored searches it was
+meant to replace; gnomAD's own GraphQL API — the tool actually built for
+"which variants in this gene cross X% frequency" — would likely work,
+but is POST-only and out of reach of this project's available fetch
+tooling. Batch 10 instead found real value elsewhere: a web search for
+"CAPN3 common variant" surfaced a brand-new (Nov 2025) peer-reviewed
+paper on `CAPN3_c.2257G>A` (p.Asp753Asn) itself — still, as before, the
+closest real candidate to the BA1 threshold at 0.2457% overall AF, just
+under the 0.3% cutoff — and that paper turned into a substantial
+enrichment of the existing fixture (see below) rather than a new one.
+At this point the likeliest explanation for the BA1 gap isn't that the
+search strategy is missing something, but that CAPN3 genuinely doesn't
+have many easily-indexed common coding variants — consistent with it
+being a disease-relevant gene under negative selection even for
+variants short of clinical significance. Remains covered only by
+hand-built synthetic tests (`tests/unit/test_ba1_bs1_evaluators.py`).
 
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
@@ -515,6 +562,15 @@ case with no matching evidence bundle).
   threshold to `config/population_thresholds.yaml` (no real DMD VCEP spec
   exists yet), surfaced by this being the first real, non-absent DMD
   population-frequency observation in the set.
+- **Batch 10** — done. No new fixture; a seventh unsuccessful BA1 search
+  (this time via an Ensembl gene-region variant pull instead of a
+  ClinVar-anchored search — didn't pan out either, see "Expanding the
+  curated set" above) led back to enriching `CAPN3_c.2257G>A` instead:
+  primary-source-confirmed its VCEP Likely-Benign classification and real
+  coordinates (previously secondhand), and added a brand-new (Nov 2025)
+  peer-reviewed paper arguing the same variant may be pathogenic for a
+  distinct autosomal-dominant calpainopathy this project's
+  one-inheritance-pattern-per-gene schema cannot represent.
 - Later: continue expanding curated fixtures toward the full 20-30
   ClinVar variant set (16 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated

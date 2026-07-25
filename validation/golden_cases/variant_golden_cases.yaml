@@ -211,7 +211,7 @@ golden_cases:
       BP4: NOT_MET
       BA1: NOT_MET
       BS1: MET
-    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real, recurrent CAPN3 variant (p.Asp753Asn, ClinVar VCV000281081), using the real ClinGen LGMD VCEP CAPN3 thresholds (batch 4) and a real REVEL score (batch 8)"
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real, recurrent CAPN3 variant (p.Asp753Asn, ClinVar VCV000281081.42), using the real ClinGen LGMD VCEP CAPN3 thresholds (batch 4) and a real REVEL score (batch 8), coordinates and VCEP details primary-source-confirmed and a real dominant-calpainopathy paper added in batch 10"
     curator_note: >
       Real and genuinely contested in the literature -- not a clean
       textbook case, included deliberately for that reason. gnomAD AF
@@ -228,18 +228,38 @@ golden_cases:
       LGMD VCEP's own current classification for this exact variant is
       LIKELY BENIGN, reached via BS1 + BP2 -- a case-level criterion
       ('in trans with a pathogenic variant... or in cis') this project
-      does not implement at all. So this fixture now demonstrates a real,
-      confirmed instance of the benign-side mirror to
-      CAPN3_c.1939G>T/CAPN3_SYNTH_PATHOGENIC_02's pathogenic-side gap: a
-      real VCEP reaches a confident classification (this time benign) via
-      evidence entirely outside this project's variant-only, 6-criterion,
-      Table-5 engine. Separately, recent (2025) literature proposes this
-      variant may represent a low-penetrance AUTOSOMAL DOMINANT
-      calpainopathy mechanism entirely distinct from the recessive LGMDR1
-      model this project's CAPN3 gene_disease_context assumes for every
-      variant -- this project cannot represent that possibility (one
-      fixed inheritance pattern per gene), flagged here explicitly rather
-      than silently mismodeled.
+      does not implement at all.
+      UPDATED in batch 10, twice over. First, the VCEP classification is
+      now primary-source-confirmed (fetched the ClinVar VCV page
+      directly): the LGMD VCEP's official 3-star expert-panel record
+      (evaluated 2025-10-28) does say Likely Benign via BS1+BP2, exactly
+      as batch 8 found secondhand -- and also gives real coordinates
+      (GRCh38 chr15:42410660 G>A), now recorded with
+      coordinate_verified=true. Second, and more interesting: a
+      peer-reviewed paper published one month after that VCEP evaluation
+      (Bruno et al. 2025, Int J Mol Sci 26(23):11384, PMID 41373542)
+      reports this exact variant as the single most frequent finding (8
+      of 59 patients, 13.5%) in a multicenter Italian cohort of
+      CAPN3-heterozygous patients, with real phenotypic data and new
+      structural modeling, concluding "the aggregated evidence supports a
+      pathogenic role." This is not a contradiction of the VCEP's
+      numbers -- both cite essentially the same gnomAD frequency and
+      REVEL score -- it's a different question: the VCEP classified this
+      variant Likely Benign FOR AUTOSOMAL RECESSIVE calpainopathy; the
+      paper argues for pathogenicity in a distinct, less common AUTOSOMAL
+      DOMINANT calpainopathy (LGMDD4) model. This project's
+      gene_disease_context.yaml fixes CAPN3 as one inheritance pattern
+      (AUTOSOMAL_RECESSIVE) for every variant, so it structurally cannot
+      represent "benign for recessive disease, possibly pathogenic for
+      dominant disease" as a single variant's answer -- a schema-level
+      gap, not a missing criterion, previously only mentioned here in
+      passing and now fully primary-source-documented on both sides. The
+      engine's own VUS call ends up being the most epistemically honest
+      of the three real answers on the table (VCEP: Likely Benign;
+      paper: pathogenic-leaning; this project: uncertain) specifically
+      because it commits to neither disease model -- a fortunate
+      byproduct of missing criteria, not a designed strength, and worth
+      being honest about which it is.
 
   - variant_id: CAPN3_c.946-1G>A
     expected_provisional_class: VUS
