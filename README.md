@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (19 done)
+## Status: Milestone 4 complete, curated variant set at 20 of ~20-30 (low end of target reached)
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -27,10 +27,10 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- **Nineteen curated evidence bundles** (`data/curated/variant_evidence.json`):
-  fifteen real ClinVar-grounded variants (eleven CAPN3, four DMD) and four
+- **Twenty curated evidence bundles** (`data/curated/variant_evidence.json`):
+  sixteen real ClinVar-grounded variants (eleven CAPN3, five DMD) and four
   synthetic cases (three CAPN3, one DMD) constructed to exercise specific
-  combining-rule and case-level paths. This is fifteen increments toward
+  combining-rule and case-level paths. This is sixteen increments toward
   the ~20-30 ClinVar variant set from the original project plan — see
   "Expanding the curated set" below for what each real variant adds and
   where this is headed. Gene/disease context for both CAPN3 and DMD
@@ -60,7 +60,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Nineteen curated variants (CAPN3 and DMD) and eight curated
+- Twenty curated variants (CAPN3 and DMD) and eight curated
   `ClinicalCase` fixtures covering every branch above — including, as of
   batch 12, a pair built on a real ClinVar-sourced DMD variant rather
   than only the original synthetic ones. Every evaluator, the combining
@@ -514,6 +514,38 @@ tooling-blocked rather than merely unsearched this round:
   confirmation of batch 13's structural finding, now also showing that
   PM4 at full Moderate strength doesn't change the outcome either.
 
+Batch 16 added one more, this project's first DMD missense fixture:
+
+- `DMD_c.10103A>G` (p.Asp3368Gly) — a real, de novo variant found by exome
+  sequencing in a woman with X-linked dilated cardiomyopathy (DMD's rare
+  cardiac-predominant phenotype), hemizygous in her son, who has elevated
+  CK and calf hypertrophy but no cardiac involvement yet — a cardiac-axis
+  echo of the same phenotypic-spectrum variability the batch 12 DMD
+  female-carrier case already documents on the skeletal-muscle axis.
+  Every prior real DMD fixture was truncating or splice; this is the
+  project's first DMD missense variant and first DMD fixture with
+  computational evidence. Its REVEL score (0.975) is cited directly from
+  the source publication (d'Apolito et al. 2024, Int J Mol Sci
+  25(5):2787, PMID 38474032) rather than any ClinVar submitter comment.
+  DMD has no VCEP-specific REVEL threshold the way CAPN3 does, so this
+  fixture uses the real, published, gene-agnostic Pejaver et al. 2022
+  calibration instead -- the first real fixture in this project to do so.
+  PM2 MET Moderate (ABSENT from gnomAD/ExAC/1000G, DMD's generic-default
+  PM2 strength since no VCEP override exists) + PP3 MET Supporting
+  (REVEL clears even the Moderate calibration tier) still lands on VUS --
+  the same "1 Moderate + 1 Supporting is insufficient" shape already
+  established for CAPN3, now shown for DMD too. Unlike most of this
+  project's real fixtures, though, this isn't a story about the engine
+  under-calling a confidently-classified variant: ClinVar's own aggregate
+  is "conflicting classifications" (Invitae: Pathogenic, via de novo/
+  segregation/same-residue reasoning this project doesn't implement;
+  GeneDx: Likely Pathogenic; Revvity: Uncertain Significance), and the
+  discovery paper's own authors, applying ACMG/AMP criteria themselves
+  with exactly PM2 and PP3, independently classified it a "rare clinical
+  VUS" too -- this engine's VUS call matches the primary literature's own
+  classification directly, not just a defensible fallback against a scope
+  gap.
+
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
 evidence, hand-derive the expected result, verify against the engine).
@@ -641,7 +673,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       19 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       20 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         8 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -769,8 +801,17 @@ case with no matching evidence bundle).
   this round (client-rendered search pages, a blocked gnomAD API, a
   temporary fetch rate limit) rather than turning up nothing — both gaps
   remain open and are now documented as tooling-blocked.
+- **Batch 16** — done. Added `DMD_c.10103A>G`, this project's first DMD
+  missense fixture and first DMD fixture with computational evidence
+  (REVEL, cited from the source publication, calibrated against the
+  real Pejaver et al. 2022 generic thresholds rather than CAPN3's
+  VCEP-specific ones). Notable for matching a real published ACMG
+  classification (the discovery paper's own VUS call) directly, not just
+  a defensible fallback against a scope gap — see "Expanding the curated
+  set" above. Curated variant set reaches the low end of the original
+  ~20-30 target (20).
 - Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (19 of ~20-30 done, see "Expanding the curated set"
+  ClinVar variant set (20 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated
   computational score are known remaining gaps); add PM3/PS1/PM5/PS3/BS3
   as real per-variant criteria (distinct from how clinical.py currently

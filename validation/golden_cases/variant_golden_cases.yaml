@@ -662,3 +662,55 @@ golden_cases:
       to the in-frame-indel/stop-loss shape): the real VCEP reaches
       Pathogenic here via PM3_Very Strong and PP4_Strong, case-level
       evidence this project's variant-only engine doesn't implement.
+
+  - variant_id: DMD_c.10103A>G
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: MET
+      PM4: NOT_APPLICABLE
+      PP3: MET
+      BP4: NOT_MET
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV001504148.11) and its source publication (d'Apolito et al. 2024, Int J Mol Sci 25(5):2787, PMID 38474032)"
+    curator_note: >
+      This project's first DMD missense fixture and first DMD fixture
+      with computational evidence. De novo variant (p.Asp3368Gly) found
+      by exome sequencing in a woman with X-linked dilated cardiomyopathy
+      (DMD's rare cardiac-predominant phenotype), hemizygous in her son
+      who has elevated CK and calf hypertrophy but no cardiac involvement
+      yet -- a real cardiac-axis echo of the same phenotypic-spectrum
+      variability the batch 12 DMD female-carrier case documents on the
+      skeletal-muscle axis.
+
+      PM2 MET Moderate (ABSENT from gnomAD/ExAC/1000G per both the source
+      paper and ClinVar's own submitter comments; DMD has no VCEP PM2
+      strength override, so the generic Moderate default applies -- unlike
+      CAPN3's real VCEP-configured Supporting). PM4 NOT_APPLICABLE
+      (missense isn't in PM4's scope). PP3 MET Supporting: REVEL=0.975,
+      cited directly from the source paper's Table 1 (not from any
+      ClinVar submitter comment -- Invitae's own in-house modeling was
+      explicitly inconclusive). DMD has no VCEP-specific REVEL threshold,
+      so this fixture uses the real, published, gene-agnostic Pejaver et
+      al. 2022 calibration instead -- the first real fixture in this
+      project to do so.
+
+      1 Moderate (PM2) + 1 Supporting (PP3) doesn't satisfy any Table 5
+      Likely-Pathogenic rule, landing on VUS -- the same insufficient
+      shape documented throughout this file for CAPN3, now shown for DMD
+      too, under DMD's own (Moderate-default, not VCEP-Supporting) PM2
+      strength.
+
+      Notably, this is NOT another "engine under-calls a confidently
+      classified real variant" story: ClinVar's own aggregate is
+      "conflicting classifications" (Invitae: Pathogenic, via de novo
+      occurrence/segregation/same-residue-variant reasoning this project
+      doesn't implement; GeneDx: Likely Pathogenic; Revvity: Uncertain
+      Significance) -- real experts disagree on this one. The discovery
+      paper's own authors, applying ACMG/AMP criteria themselves with
+      exactly PM2 and PP3 (the same two criteria this project's engine
+      has evidence for), independently classified it a "rare clinical
+      VUS" too. This engine's VUS call matches the primary literature's
+      own classification directly, not just a defensible fallback against
+      a scope gap.

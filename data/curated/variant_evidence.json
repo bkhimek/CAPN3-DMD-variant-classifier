@@ -878,6 +878,54 @@
         }
       ],
       "notes": "Real ClinVar entry (Variation ID 166786; dbSNP rs727503837, merged from a legacy rs771137354 -- both appear as synonyms of the same record, confirmed via Ensembl's variation endpoint), official HGVS NM_000070.3(CAPN3):c.598_612del (p.Phe200_Leu204del). Reviewed by expert panel (ClinGen LGMD VCEP, evaluated 2025-03-18): Pathogenic, via PM4 + PM3_Very Strong + PP4_Strong + PM2_Supporting (only PM2/PM4 implemented here). Sourced specifically as a second, complementary PM4 real fixture to CAPN3_c.1401_1403del (batch 14): that one is a single-residue deletion (protein_length_change_aa=1, downgraded to Supporting by this evaluator); this one deletes 5 residues (Phe200-Leu204), so it's the first real fixture to exercise PM4's default Moderate-strength branch rather than the single-residue downgrade. \n\nrepeat_region is curated false with direct primary-source support, not inferred the way CAPN3_c.1401_1403del's was: the VCEP's own comment states outright that this is 'an in-frame deletion of five amino acids in a non-repeat region' -- no HGVS repeat notation ambiguity to reason through here, since a 15bp/5-codon deletion isn't expressed as a tandem-repeat contraction the way the earlier fixture's 3bp GGA-repeat deletion was. \n\nWorth flagging, same pattern as CAPN3_c.1401_1403del: the VCEP's comment states plain 'PM4' with no strength qualifier (unlike their explicitly qualified 'PM3_Very Strong', 'PP4_Strong', and 'PM2_Supporting' in the same sentence), reading as their default (Moderate) strength -- which for a 5-residue deletion is also exactly what this project's evaluator independently lands on (no single-residue downgrade applies here), so this fixture's PM4 strength matches the real VCEP's, unlike the single-residue one. \n\nPopulation frequency: gnomAD v4.1.0 exomes, overall AF 1.368e-05 (20/1,461,882 total alleles), NFE-specific 1.799e-05 (20/1,111,982) -- both retrieved directly from Ensembl's variation endpoint, matching the VCEP's own cited filtering allele frequency basis (20/1,112,002 NFE exome chromosomes) almost exactly. Both figures sit far below CAPN3's real ClinGen LGMD VCEP thresholds (PM2_Supporting <0.0001; BS1_Strong >0.001; BA1 >0.003). Exact GRCh38 coordinates were not independently re-verified beyond the ClinVar-stated 42387851-42387865 (see variant.coordinate_verified=false, matching this project's existing convention for HGVS/ClinVar-ID-anchored fixtures)."
+    },
+    {
+      "variant": {
+        "variant_id": "DMD_c.10103A>G",
+        "gene": "DMD",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 1504148,
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "DMD",
+        "disease": "Duchenne/Becker muscular dystrophy (dystrophinopathy)",
+        "inheritance": "X_LINKED_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (DMD-dystrophinopathy, X-linked)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_004006.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.10103A>G",
+          "hgvs_p": "p.Asp3368Gly"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "checked Dec 2023 per d'Apolito et al. 2024 (exomes + ExAC + 1000 Genomes); no frequency reported by ClinVar submitters either",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true
+        }
+      ],
+      "computational_evidence": {
+        "tool": "REVEL",
+        "tool_version": "as reported in d'Apolito et al. 2024, Int J Mol Sci 25(5):2787, PMID 38474032, Table 1",
+        "calibration_source": "Pejaver et al. 2022 generic REVEL-to-ACMG calibration (PP3 Moderate >=0.773, PP3 Supporting >=0.644, BP4 Supporting <=0.290, BP4 Moderate <=0.183) -- used because DMD has no VCEP-specific REVEL threshold (see config/population_thresholds.yaml); this project's PP3/BP4 evaluators apply Supporting strength regardless of calibration tier",
+        "retrieval_status": "OBSERVED",
+        "score": 0.975,
+        "calibrated_prediction": "PATHOGENIC"
+      },
+      "notes": "Real ClinVar entry (Variation ID 1504148; dbSNP rs2148292190), NM_004006.3(DMD):c.10103A>G (p.Asp3368Gly). This project's first DMD missense fixture and first DMD fixture with computational evidence -- every prior real DMD entry was a truncating/splice variant. Sourced from d'Apolito et al. 2024 (Int J Mol Sci 25(5):2787, PMID 38474032): a de novo heterozygous variant identified by exome sequencing in a 33-year-old woman with dilated cardiomyopathy (X-linked dilated cardiomyopathy, DMD's rare cardiac-predominant phenotype), confirmed absent in both parents (de novo) and found hemizygous in her 8-year-old son, who presents with elevated creatine kinase and calf hypertrophy but no cardiac involvement yet -- a real example of the same phenotypic-spectrum variability this project's DMD female-carrier clinical case fixture (batch 12) already documents, just manifesting on the cardiac axis rather than skeletal muscle. \n\nClinVar's aggregate classification for this variant is 'conflicting classifications' -- Invitae calls it Pathogenic (via de novo occurrence, segregation, and a different pathogenic variant at the same residue, p.Asp3368Tyr -- PS2/PM5/PM1-style case-level reasoning this project doesn't implement), GeneDx calls it Likely Pathogenic, and Revvity calls it Uncertain Significance. The discovery paper's own authors, applying ACMG/AMP criteria themselves, classified it a 'rare clinical VUS' using only PM2 (absent from gnomAD/ExAC/1000G) and PP3 (multiple computational tools predict deleterious) -- which is exactly the evidence this project's engine has access to and exactly the same criteria combination. This is a rare case in this project's curated set where the engine's answer is expected to match a real, published, independently-reasoned ACMG classification directly (rather than illustrating a scope gap against it) -- worth verifying against the engine before finalizing this golden case, not assumed. \n\nREVEL score (0.975) is cited directly from the primary paper's Table 1, not from any ClinVar submitter comment (Invitae's own in-house evidence modeling was explicitly inconclusive per their comment, a different computational approach than REVEL). Since DMD has no VCEP-specific REVEL threshold the way CAPN3 does, this fixture uses the real, published, gene-agnostic Pejaver et al. 2022 calibration instead of CAPN3's VCEP-specific one -- the first real fixture in this project to do so (previously only the CAPN3_SYNTH fixtures referenced this calibration style, informally). 0.975 clears even the Moderate tier (>=0.773) by a wide margin, so PATHOGENIC is unambiguous under this calibration. \n\nPopulation evidence: ABSENT, not a numeric near-zero frequency -- the paper explicitly checked gnomAD, ExAC, and 1000 Genomes and found no record, and ClinVar's Invitae comment independently states 'gnomAD no frequency.' Uses DMD's existing generic-placeholder PM2 threshold config (0.0001, batch 9) purely for context; ABSENT with locus_coverage_adequate does not depend on that threshold value directly."
     }
   ]
 }
