@@ -1,11 +1,14 @@
 {
-  "_comment": "Milestone 4 case-level fixtures — what a specific (synthetic) patient's testing found, as opposed to facts about a single variant. See clinical.py and models/clinical_case.py. Every variant_id referenced here must exist in variant_evidence.json. karyotypic_sex is set to XX for the three CAPN3 cases purely because the model requires a value; it plays no role in autosomal recessive reasoning.",
+  "_comment": "Milestone 4 case-level fixtures \u2014 what a specific (synthetic) patient's testing found, as opposed to facts about a single variant. See clinical.py and models/clinical_case.py. Every variant_id referenced here must exist in variant_evidence.json. karyotypic_sex is set to XX for the three CAPN3 cases purely because the model requires a value; it plays no role in autosomal recessive reasoning.",
   "cases": [
     {
       "case_id": "CASE_CAPN3_BIALLELIC_TRANS",
       "gene": "CAPN3",
       "karyotypic_sex": "XX",
-      "variant_ids": ["CAPN3_SYNTH_PATHOGENIC_01", "CAPN3_SYNTH_PATHOGENIC_02"],
+      "variant_ids": [
+        "CAPN3_SYNTH_PATHOGENIC_01",
+        "CAPN3_SYNTH_PATHOGENIC_02"
+      ],
       "phase": "TRANS",
       "phase_evidence_note": "Synthetic: variant 01 confirmed on the paternal allele, variant 02 on the maternal allele via parental testing."
     },
@@ -13,7 +16,10 @@
       "case_id": "CASE_CAPN3_BIALLELIC_CIS",
       "gene": "CAPN3",
       "karyotypic_sex": "XX",
-      "variant_ids": ["CAPN3_SYNTH_PATHOGENIC_01", "CAPN3_SYNTH_PATHOGENIC_02"],
+      "variant_ids": [
+        "CAPN3_SYNTH_PATHOGENIC_01",
+        "CAPN3_SYNTH_PATHOGENIC_02"
+      ],
       "phase": "CIS",
       "phase_evidence_note": "Synthetic: both variants confirmed on the same (paternal) allele via parental testing; the maternal allele is unaffected."
     },
@@ -21,7 +27,10 @@
       "case_id": "CASE_CAPN3_PHASE_UNKNOWN",
       "gene": "CAPN3",
       "karyotypic_sex": "XX",
-      "variant_ids": ["CAPN3_SYNTH_PATHOGENIC_01", "CAPN3_SYNTH_PATHOGENIC_02"],
+      "variant_ids": [
+        "CAPN3_SYNTH_PATHOGENIC_01",
+        "CAPN3_SYNTH_PATHOGENIC_02"
+      ],
       "phase": "UNKNOWN",
       "phase_evidence_note": "Synthetic: parental samples were not available for testing."
     },
@@ -29,19 +38,41 @@
       "case_id": "CASE_CAPN3_SINGLE_VARIANT",
       "gene": "CAPN3",
       "karyotypic_sex": "XX",
-      "variant_ids": ["CAPN3_c.550del"]
+      "variant_ids": [
+        "CAPN3_c.550del"
+      ]
     },
     {
       "case_id": "CASE_DMD_HEMIZYGOUS_MALE",
       "gene": "DMD",
       "karyotypic_sex": "XY",
-      "variant_ids": ["DMD_SYNTH_PATHOGENIC_01"]
+      "variant_ids": [
+        "DMD_SYNTH_PATHOGENIC_01"
+      ]
     },
     {
       "case_id": "CASE_DMD_FEMALE_CARRIER",
       "gene": "DMD",
       "karyotypic_sex": "XX",
-      "variant_ids": ["DMD_SYNTH_PATHOGENIC_01"]
+      "variant_ids": [
+        "DMD_SYNTH_PATHOGENIC_01"
+      ]
+    },
+    {
+      "case_id": "CASE_DMD_HEMIZYGOUS_MALE_REAL",
+      "gene": "DMD",
+      "karyotypic_sex": "XY",
+      "variant_ids": [
+        "DMD_c.2302C>T"
+      ]
+    },
+    {
+      "case_id": "CASE_DMD_FEMALE_CARRIER_REAL",
+      "gene": "DMD",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "DMD_c.2302C>T"
+      ]
     }
   ]
 }

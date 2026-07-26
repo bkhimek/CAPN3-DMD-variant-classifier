@@ -59,16 +59,19 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Fifteen curated variants (CAPN3 and DMD) and six curated `ClinicalCase`
-  fixtures covering every branch above. Every evaluator, the combining
+- Seventeen curated variants (CAPN3 and DMD) and eight curated
+  `ClinicalCase` fixtures covering every branch above — including, as of
+  batch 12, a pair built on a real ClinVar-sourced DMD variant rather
+  than only the original synthetic ones. Every evaluator, the combining
   engine, and the case interpretation layer are each verified against
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 108 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 109 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
-  does).
+  does; 109 also includes one new hand-built test pairing the real DMD
+  male/female cases, added batch 12).
 
 ## Design notes
 
@@ -401,6 +404,35 @@ being a disease-relevant gene under negative selection even for
 variants short of clinical significance. Remains covered only by
 hand-built synthetic tests (`tests/unit/test_ba1_bs1_evaluators.py`).
 
+Batch 12 didn't add a new variant fixture, but closed a different,
+longstanding gap: every Milestone 4 `ClinicalCase` fixture had used
+synthetic variants (`DMD_SYNTH_PATHOGENIC_01`, `CAPN3_SYNTH_PATHOGENIC_01`/
+`02`), even after the curated set grew to include several real, cleanly
+`LIKELY_PATHOGENIC` DMD variants across batches 7-11 — none of them had
+ever actually been wired into a case-level fixture. Added
+`CASE_DMD_HEMIZYGOUS_MALE_REAL` and `CASE_DMD_FEMALE_CARRIER_REAL`, both
+built on the real `DMD_c.2302C>T`, reproducing the existing
+male-EXPLAINED / female-MANUAL_REVIEW pair end-to-end on real data for
+the first time. The female-carrier case is grounded in real biology, not
+just an abstract "what if XX": DMD manifesting carriers are a documented
+phenomenon (2.5-7.8% report muscle weakness, up to ~8% present with
+dilated cardiomyopathy), and Brioschi et al. (BMC Med Genet 2012;13:73,
+DOI 10.1186/1471-2350-13-73) found X-inactivation skewing — the usual
+proposed mechanism — did not reliably track with phenotype (skewed in 2
+of 6 symptomatic carriers vs. 5 of 11 asymptomatic ones). That real
+unpredictability is exactly why this project's MANUAL_REVIEW here is
+honest rather than a shortfall: the published literature itself can't
+cleanly resolve genotype-to-phenotype for a carrier from X-inactivation
+data alone. `CAPN3`'s biallelic-case fixtures remain synthetic for a
+structural reason, not an oversight: no real CAPN3 variant in this
+project's curated set reaches PATHOGENIC/LIKELY_PATHOGENIC on its own
+(every real CAPN3 fixture lands VUS, per the scope gaps documented
+throughout this section) — case_interpretation's EXPLAINED branch
+requires two independently-QUALIFYING classifications, so a real
+biallelic CAPN3 EXPLAINED case isn't buildable from this project's
+current real fixtures without also closing one of those variant-level
+gaps first.
+
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
 evidence, hand-derive the expected result, verify against the engine).
@@ -492,7 +524,7 @@ data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
     variant_evidence.json       17 curated variants (CAPN3 + DMD) -- growing toward ~20-30
-    clinical_cases.json         6 curated ClinicalCase fixtures (Milestone 4)
+    clinical_cases.json         8 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
 
@@ -520,7 +552,7 @@ pytest
 ```
 
 `pytest.ini` sets `pythonpath = src`, so this works out of the box with no
-extra environment variables. All 108 tests currently pass.
+extra environment variables. All 109 tests currently pass.
 
 A dependency-free alternative is also included, useful in environments
 without PyPI access:
@@ -593,6 +625,12 @@ case with no matching evidence bundle).
   nonsense variant (LIKELY_PATHOGENIC, same shape as `DMD_c.2302C>T` at a
   different exon). Found while searching unsuccessfully for a real
   BP4-MET fixture, which remains an open gap alongside BA1.
+- **Batch 12** — done. No new variant fixture; added the project's first
+  real-variant Milestone 4 clinical cases (`CASE_DMD_HEMIZYGOUS_MALE_REAL`
+  / `CASE_DMD_FEMALE_CARRIER_REAL`, both on `DMD_c.2302C>T`), replacing
+  reliance on synthetic variants for that layer's real-data coverage and
+  grounding the female-carrier MANUAL_REVIEW case in real DMD
+  manifesting-carrier literature.
 - Later: continue expanding curated fixtures toward the full 20-30
   ClinVar variant set (17 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated

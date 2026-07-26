@@ -70,3 +70,44 @@ case_interpretations:
       X-linked carrier interpretation depends on X-inactivation biology
       this project does not model, so guessing would be worse than
       admitting the gap (see clinical.py's module docstring).
+
+  - case_id: CASE_DMD_HEMIZYGOUS_MALE_REAL
+    expected_status: EXPLAINED
+    source: "Hand-derived: XY, single real Likely Pathogenic variant (DMD_c.2302C>T, ClinVar Variation ID 11222), X-linked recessive gene"
+    curator_note: >
+      Batch 12: the project's first Milestone 4 clinical case built on a
+      REAL variant rather than a synthetic one. Every prior clinical
+      case (this file's first six entries) used
+      DMD_SYNTH_PATHOGENIC_01/CAPN3_SYNTH_PATHOGENIC_01/02 or, for the
+      single-variant recessive case, CAPN3_c.550del -- but no real DMD
+      variant had ever been wired into a case-level fixture, despite the
+      project accumulating several real, cleanly LIKELY_PATHOGENIC DMD
+      variants across batches 7-11. Uses DMD_c.2302C>T (real ClinVar
+      nonsense variant, absent from gnomAD, PVS1 Very Strong + PM2
+      Moderate). Same reasoning as CASE_DMD_HEMIZYGOUS_MALE, now
+      end-to-end real rather than synthetic-variant-plus-real-logic.
+
+  - case_id: CASE_DMD_FEMALE_CARRIER_REAL
+    expected_status: MANUAL_REVIEW
+    source: "Hand-derived: same real variant as the hemizygous male case above, but karyotypic_sex=XX"
+    curator_note: >
+      Batch 12, paired with CASE_DMD_HEMIZYGOUS_MALE_REAL. Same variant,
+      same individual classification -- only karyotypic_sex differs, and
+      that alone changes the answer, exactly as the synthetic-variant
+      pair already demonstrated. Grounded here in real biology, not just
+      an abstract "what if XX" scenario: DMD manifesting carriers are a
+      well-documented real phenomenon (2.5-7.8% report muscle weakness;
+      up to ~8% present with dilated cardiomyopathy), and X-inactivation
+      skewing is often invoked as the mechanism but does not reliably
+      predict phenotype -- Brioschi et al., "Genetic characterization in
+      symptomatic female DMD carriers: lack of relationship between
+      X-inactivation, transcriptional DMD allele balancing and
+      phenotype", BMC Med Genet 2012;13:73, DOI 10.1186/1471-2350-13-73,
+      found skewed X-inactivation in only 2 of 6 symptomatic carriers and
+      in 5 of 11 asymptomatic ones. That real-world unpredictability is
+      precisely why this project's MANUAL_REVIEW here is the honest
+      answer rather than a gap to be embarrassed about: even the
+      published literature cannot cleanly predict a carrier's phenotype
+      from genotype plus X-inactivation pattern alone, so an automated
+      engine confidently resolving this to EXPLAINED or INSUFFICIENT
+      would be claiming more certainty than the field itself has.

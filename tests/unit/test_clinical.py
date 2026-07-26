@@ -47,7 +47,7 @@ def test_interpret_case_matches_golden_case_for_all_curated_cases():
     cases = loader.load_clinical_cases()
     goldens = loader.load_case_interpretation_goldens()
 
-    assert len(cases) == 6
+    assert len(cases) == 8
     for case in cases:
         golden = goldens[case.case_id]
         result = interpret_case(case, classifications, contexts[case.gene])
@@ -78,6 +78,20 @@ def test_dmd_male_vs_female_differ_only_by_karyotypic_sex():
 
     male_result = interpret_case(cases["CASE_DMD_HEMIZYGOUS_MALE"], classifications, contexts["DMD"])
     female_result = interpret_case(cases["CASE_DMD_FEMALE_CARRIER"], classifications, contexts["DMD"])
+    assert male_result.status == CaseInterpretationStatus.EXPLAINED
+    assert female_result.status == CaseInterpretationStatus.MANUAL_REVIEW
+
+
+def test_dmd_male_vs_female_differ_only_by_karyotypic_sex_real_variant():
+    # Same proof as above, but end-to-end on a real ClinVar-sourced DMD
+    # variant (DMD_c.2302C>T) instead of the synthetic one — added batch 12,
+    # the project's first real-variant Milestone 4 clinical case.
+    classifications = _classify_all_bundles()
+    contexts = loader.load_gene_disease_contexts()
+    cases = {c.case_id: c for c in loader.load_clinical_cases()}
+
+    male_result = interpret_case(cases["CASE_DMD_HEMIZYGOUS_MALE_REAL"], classifications, contexts["DMD"])
+    female_result = interpret_case(cases["CASE_DMD_FEMALE_CARRIER_REAL"], classifications, contexts["DMD"])
     assert male_result.status == CaseInterpretationStatus.EXPLAINED
     assert female_result.status == CaseInterpretationStatus.MANUAL_REVIEW
 
