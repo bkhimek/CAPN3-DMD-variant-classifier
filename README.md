@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (18 done)
+## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (19 done)
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -27,10 +27,10 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- **Eighteen curated evidence bundles** (`data/curated/variant_evidence.json`):
-  fourteen real ClinVar-grounded variants (ten CAPN3, four DMD) and four
+- **Nineteen curated evidence bundles** (`data/curated/variant_evidence.json`):
+  fifteen real ClinVar-grounded variants (eleven CAPN3, four DMD) and four
   synthetic cases (three CAPN3, one DMD) constructed to exercise specific
-  combining-rule and case-level paths. This is fourteen increments toward
+  combining-rule and case-level paths. This is fifteen increments toward
   the ~20-30 ClinVar variant set from the original project plan — see
   "Expanding the curated set" below for what each real variant adds and
   where this is headed. Gene/disease context for both CAPN3 and DMD
@@ -60,7 +60,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Eighteen curated variants (CAPN3 and DMD) and eight curated
+- Nineteen curated variants (CAPN3 and DMD) and eight curated
   `ClinicalCase` fixtures covering every branch above — including, as of
   batch 12, a pair built on a real ClinVar-sourced DMD variant rather
   than only the original synthetic ones. Every evaluator, the combining
@@ -491,6 +491,29 @@ second new criterion" below for how the gap was found. Its real fixture:
   Pathogenic through this engine (now covering all three consequence
   shapes: loss-of-function, missense, and in-frame indel/stop-loss).
 
+Batch 15 added one more, in the same round as a wider search for real
+BA1 (8th attempt) and BP4-MET (3rd attempt) fixtures hit real tooling
+walls (client-rendered ClinVar/ClinVar-Miner search pages, a blocked
+gnomAD GraphQL endpoint, a temporary fetch rate limit) rather than
+turning up nothing — both gaps remain open, now documented as
+tooling-blocked rather than merely unsearched this round:
+
+- `CAPN3_c.598_612del` (p.Phe200_Leu204del) — a second real PM4 fixture,
+  chosen specifically to complement `CAPN3_c.1401_1403del`. That one is a
+  single-residue in-frame deletion (PM4 downgraded to Supporting by this
+  evaluator's single-residue rule); this one deletes five residues, so
+  it's the first real fixture to exercise PM4's default Moderate-strength
+  branch. Real, expert-panel-reviewed (ClinGen LGMD VCEP, evaluated
+  2025-03-18), Pathogenic via PM4 + PM3_Very Strong + PP4_Strong +
+  PM2_Supporting. Its `repeat_region: false` curation is more
+  straightforward than the first PM4 fixture's: the VCEP's own comment
+  states outright that this is "an in-frame deletion of five amino acids
+  in a non-repeat region," with no HGVS tandem-repeat notation to reason
+  through the way `c.1395GGA[2]` required. PM2 and PM4 both MET (Moderate
+  this time, not Supporting), still landing on VUS — a third independent
+  confirmation of batch 13's structural finding, now also showing that
+  PM4 at full Moderate strength doesn't change the outcome either.
+
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
 evidence, hand-derive the expected result, verify against the engine).
@@ -618,7 +641,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       18 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       19 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         8 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -739,8 +762,15 @@ case with no matching evidence bundle).
   instead (see "PM4: a second new criterion" above). Added its first real
   fixture, `CAPN3_c.1401_1403del`, and extended batch 13's structural
   proof to cover the in-frame indel/stop-loss shape too.
+- **Batch 15** — done. Added `CAPN3_c.598_612del`, a second real PM4
+  fixture exercising the evaluator's default Moderate-strength branch
+  (complementing batch 14's single-residue Supporting-strength one). An
+  8th BA1 attempt and a 3rd BP4-MET attempt both hit real tooling walls
+  this round (client-rendered search pages, a blocked gnomAD API, a
+  temporary fetch rate limit) rather than turning up nothing — both gaps
+  remain open and are now documented as tooling-blocked.
 - Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (18 of ~20-30 done, see "Expanding the curated set"
+  ClinVar variant set (19 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated
   computational score are known remaining gaps); add PM3/PS1/PM5/PS3/BS3
   as real per-variant criteria (distinct from how clinical.py currently

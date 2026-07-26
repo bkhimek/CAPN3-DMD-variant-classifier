@@ -618,3 +618,47 @@ golden_cases:
       not implement) plus PM4 at what reads as full Moderate strength,
       not the Supporting this evaluator defaults to for a single-residue
       change -- both gaps are structural and disclosed, not bugs.
+
+  - variant_id: CAPN3_c.598_612del
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: MET
+      PM4: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV000166786.66, reviewed by the ClinGen LGMD VCEP, Pathogenic, evaluated 2025-03-18)"
+    curator_note: >
+      A second, complementary real PM4 fixture, added in the same round as
+      CAPN3_c.1401_1403del. That one is a single-residue in-frame deletion
+      (PM4 downgraded to Supporting); this one deletes five residues,
+      p.Phe200_Leu204del, so it's the first real fixture to exercise this
+      evaluator's default Moderate-strength PM4 branch rather than the
+      single-residue downgrade.
+
+      repeat_region is curated false on direct primary-source support this
+      time, not inferred: the VCEP's own comment states outright that this
+      is "an in-frame deletion of five amino acids in a non-repeat
+      region" -- no HGVS tandem-repeat notation to reason through the way
+      CAPN3_c.1401_1403del's c.1395GGA[2] required.
+
+      PM2 MET Supporting (gnomAD v4.1.0 exomes overall AF 1.368e-05, NFE
+      1.799e-05, both under CAPN3's real PM2_Supporting threshold of
+      0.0001, matching the VCEP's own cited filtering allele frequency
+      basis almost exactly). PM4 MET Moderate (5-residue change, no
+      single-residue downgrade applies) -- this is also what the real
+      VCEP's own comment reads as having applied (bare "PM4", no strength
+      qualifier, unlike their explicitly qualified PM3_Very Strong/
+      PP4_Strong/PM2_Supporting in the same sentence), so this fixture's
+      PM4 strength matches the real VCEP's, unlike the Supporting-vs-
+      Moderate mismatch flagged on CAPN3_c.1401_1403del.
+
+      Net result: still VUS -- 1 Moderate + 1 Supporting alone doesn't
+      satisfy any Table 5 Likely-Pathogenic rule, so even PM4 at full
+      Moderate strength doesn't change the outcome. A third, independent
+      confirmation of batch 13's structural finding (extended in batch 14
+      to the in-frame-indel/stop-loss shape): the real VCEP reaches
+      Pathogenic here via PM3_Very Strong and PP4_Strong, case-level
+      evidence this project's variant-only engine doesn't implement.

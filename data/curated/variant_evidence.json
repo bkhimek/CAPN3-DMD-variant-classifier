@@ -833,6 +833,51 @@
         }
       ],
       "notes": "Real ClinVar entry (Variation ID 553852; dbSNP rs746075428), official HGVS NM_000070.3(CAPN3):c.1395GGA[2] (p.Glu467del), equivalently written c.1401_1403del. Reviewed by expert panel (ClinGen LGMD VCEP, evaluated 2025-06-24): Pathogenic, via PM3_Very Strong + PP4_Moderate + PM2_Supporting + PM4 (none of which besides PM2/PM4 are implemented by this project). Sourced specifically as batch 14's real fixture for the newly-implemented PM4 evaluator, closing the loop on a variant this project's own notes had referenced by name (in the CAPN3_c.2257G>A enrichment write-up) without ever formally sourcing it. \n\nrepeat_region curation note (the reason this fixture was chosen deliberately, not casually): the official HGVS uses short-tandem-repeat notation, c.1395GGA[2] -- the reference allele is a GGA-trinucleotide run (GGAGGAGGA, 3 copies) and this variant contracts it to 2 copies (GGAGGA), deleting one GGA unit and one glutamate residue. Read naively, that looks exactly like the kind of 'repeat region' PM4 is defined to exclude (Richards et al. 2015: '...in a nonrepeat region'). But the real ClinGen LGMD VCEP's own Pathogenic classification for this exact variant applies PM4 anyway, with no repeat-region caveat or discussion in their comment -- they simply state '...is expected to cause an in-frame deletion of one amino acid, p.(Glu467del) (PM4).' Taken at face value, that is a real, expert-panel-level judgment that a small (2-3 copy) incidental trinucleotide run inside an otherwise unremarkable coding region is not the kind of 'repeat region' the PM4 exclusion is aimed at -- unlike, say, a polyglutamine/polyalanine tract or a locus with a documented high population rate of benign in-frame indels, which is what the exclusion exists to guard against (indels there are common, expected, and usually uninformative; sequencing/alignment artifacts are also more likely). This fixture's repeat_region is therefore curated as false, on the strength of that real-world precedent, not guessed either way. \n\nprotein_length_change_aa is curated as 1 (a single glutamate residue), which is what the VCEP, Invitae/Labcorp, and LabCorp submitter comments all independently confirm ('deletion of 1 amino acid(s)', 'remove one amino acid'). This project's PM4 evaluator downgrades single-residue in-frame changes to Supporting strength by default (the general ClinGen SVI caution, not CAPN3-specific). Worth flagging honestly: the real VCEP's comment states plain 'PM4' with no strength qualifier, unlike their explicitly qualified 'PM3_Very Strong', 'PP4_Moderate', and 'PM2_Supporting' in the same sentence -- which reads as their having applied PM4 at its unmodified default (Moderate), not Supporting. This project's generic Supporting default for this fixture is therefore a disclosed departure from what the real CAPN3-specific VCEP appears to have done, not a hidden one -- consistent with how this project has already handled other real-vs-project strength mismatches (e.g. PM2's Supporting-vs-Moderate story elsewhere in this file). \n\nPopulation frequency: gnomAD v4.1.0 exomes (matching the VCEP's own primary source), overall AF 1.437e-05 (21/1,461,872 total alleles), NFE-specific 1.888e-05 (21/1,111,998), both retrieved directly from Ensembl's variation endpoint (dbSNP rs746075428 population frequencies) rather than approximated from the VCEP's filtering-allele-frequency (FAF) statistic, which is a more conservative upper-confidence-bound figure, not a raw allele frequency, and would not be a fair like-for-like match to how this project reports overall_af / ancestry_specific_max_af elsewhere. Both figures sit far below CAPN3's real ClinGen LGMD VCEP thresholds (PM2_Supporting <0.0001; BS1_Strong >0.001; BA1 >0.003). Exact GRCh38 coordinates were not independently re-verified during curation beyond the ClinVar-stated 42401681-42401683 (see variant.coordinate_verified=false, matching this project's existing convention for HGVS/ClinVar-ID-anchored fixtures)."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.598_612del",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 166786,
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "inframe_deletion",
+          "mane_select": true,
+          "hgvs_c": "c.598_612del",
+          "hgvs_p": "p.Phe200_Leu204del",
+          "repeat_region": false,
+          "protein_length_change_aa": 5
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0 exomes",
+          "retrieval_status": "OBSERVED",
+          "overall_af": 1.368e-05,
+          "ancestry_specific_max_af": 1.799e-05,
+          "allele_count": 20,
+          "allele_number": 1461882
+        }
+      ],
+      "notes": "Real ClinVar entry (Variation ID 166786; dbSNP rs727503837, merged from a legacy rs771137354 -- both appear as synonyms of the same record, confirmed via Ensembl's variation endpoint), official HGVS NM_000070.3(CAPN3):c.598_612del (p.Phe200_Leu204del). Reviewed by expert panel (ClinGen LGMD VCEP, evaluated 2025-03-18): Pathogenic, via PM4 + PM3_Very Strong + PP4_Strong + PM2_Supporting (only PM2/PM4 implemented here). Sourced specifically as a second, complementary PM4 real fixture to CAPN3_c.1401_1403del (batch 14): that one is a single-residue deletion (protein_length_change_aa=1, downgraded to Supporting by this evaluator); this one deletes 5 residues (Phe200-Leu204), so it's the first real fixture to exercise PM4's default Moderate-strength branch rather than the single-residue downgrade. \n\nrepeat_region is curated false with direct primary-source support, not inferred the way CAPN3_c.1401_1403del's was: the VCEP's own comment states outright that this is 'an in-frame deletion of five amino acids in a non-repeat region' -- no HGVS repeat notation ambiguity to reason through here, since a 15bp/5-codon deletion isn't expressed as a tandem-repeat contraction the way the earlier fixture's 3bp GGA-repeat deletion was. \n\nWorth flagging, same pattern as CAPN3_c.1401_1403del: the VCEP's comment states plain 'PM4' with no strength qualifier (unlike their explicitly qualified 'PM3_Very Strong', 'PP4_Strong', and 'PM2_Supporting' in the same sentence), reading as their default (Moderate) strength -- which for a 5-residue deletion is also exactly what this project's evaluator independently lands on (no single-residue downgrade applies here), so this fixture's PM4 strength matches the real VCEP's, unlike the single-residue one. \n\nPopulation frequency: gnomAD v4.1.0 exomes, overall AF 1.368e-05 (20/1,461,882 total alleles), NFE-specific 1.799e-05 (20/1,111,982) -- both retrieved directly from Ensembl's variation endpoint, matching the VCEP's own cited filtering allele frequency basis (20/1,112,002 NFE exome chromosomes) almost exactly. Both figures sit far below CAPN3's real ClinGen LGMD VCEP thresholds (PM2_Supporting <0.0001; BS1_Strong >0.001; BA1 >0.003). Exact GRCh38 coordinates were not independently re-verified beyond the ClinVar-stated 42387851-42387865 (see variant.coordinate_verified=false, matching this project's existing convention for HGVS/ClinVar-ID-anchored fixtures)."
     }
   ]
 }
