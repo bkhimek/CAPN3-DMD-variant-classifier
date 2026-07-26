@@ -111,3 +111,33 @@ case_interpretations:
       from genotype plus X-inactivation pattern alone, so an automated
       engine confidently resolving this to EXPLAINED or INSUFFICIENT
       would be claiming more certainty than the field itself has.
+
+  - case_id: CASE_DMD_HEMIZYGOUS_MALE_VUS_REAL
+    expected_status: MANUAL_REVIEW
+    source: "Hand-derived: XY, single real VUS-classified variant (DMD_c.10103A>G), X-linked recessive gene"
+    curator_note: >
+      Batch 17. Closes a genuine, previously-untested branch of
+      interpret_x_linked_case: every prior X-linked case fixture (six of
+      them, across batches 1-12) used a variant individually classified
+      either (Likely) Pathogenic or (Likely) Benign -- no curated fixture,
+      real or synthetic, had ever exercised the function's final
+      catch-all path (karyotypic_sex=XY, but the variant's own
+      classification is neither qualifying nor benign-side), even though
+      the code has always had that branch. Found the same way PM4's gap
+      was found (batch 14): checking what the curated set actually
+      exercises, not assuming coverage from the code existing.
+
+      Uses DMD_c.10103A>G's real hemizygous case directly: the source
+      paper's proband (index case) has an unspecified de novo missense
+      variant; her 8-year-old son is hemizygous for the same variant and
+      presents with elevated CK and calf hypertrophy, but was diagnosed
+      only with "unspecified myopathy due to DMD defect" -- his own
+      treating clinicians did not resolve his case to a confident
+      Duchenne/Becker diagnosis either. This engine's MANUAL_REVIEW
+      answer (variant classified VUS, not yet conclusive on its own)
+      independently lands in the same place real clinical practice did
+      for this exact patient -- not a coincidence, since both are
+      following the same underlying evidence (a variant with real but
+      currently insufficient evidence), but a nice confirmation that the
+      case-level layer's honesty holds up against a real, messy,
+      still-unresolved case rather than only clean textbook ones.

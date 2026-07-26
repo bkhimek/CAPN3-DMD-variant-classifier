@@ -2,7 +2,7 @@
 
 The headline test, test_interpret_case_matches_golden_case_for_all_curated_cases,
 runs the full pipeline (evaluate every variant a case references via
-engine.classify(), then clinical.interpret_case()) against all six curated
+engine.classify(), then clinical.interpret_case()) against all curated
 ClinicalCase fixtures and checks the result against
 case_interpretation_golden_cases.yaml — golden expectations written
 independently of this code, same philosophy as every other golden-case
@@ -47,7 +47,7 @@ def test_interpret_case_matches_golden_case_for_all_curated_cases():
     cases = loader.load_clinical_cases()
     goldens = loader.load_case_interpretation_goldens()
 
-    assert len(cases) == 8
+    assert len(cases) == 9
     for case in cases:
         golden = goldens[case.case_id]
         result = interpret_case(case, classifications, contexts[case.gene])

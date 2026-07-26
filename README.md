@@ -60,10 +60,13 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Twenty curated variants (CAPN3 and DMD) and eight curated
+- Twenty curated variants (CAPN3 and DMD) and nine curated
   `ClinicalCase` fixtures covering every branch above — including, as of
   batch 12, a pair built on a real ClinVar-sourced DMD variant rather
-  than only the original synthetic ones. Every evaluator, the combining
+  than only the original synthetic ones, and, as of batch 17, the case-
+  level layer's previously-untested MANUAL_REVIEW catch-all branch (a
+  hemizygous male whose only variant is VUS, not yet qualifying or
+  benign). Every evaluator, the combining
   engine, and the case interpretation layer are each verified against
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
@@ -546,6 +549,23 @@ Batch 16 added one more, this project's first DMD missense fixture:
   classification directly, not just a defensible fallback against a scope
   gap.
 
+Batch 17 didn't add a new variant fixture -- it closed a case-level gap
+found the same way PM4's gap was found (batch 14): checking what the
+curated set actually exercises, not assuming coverage exists because the
+code does. `interpret_x_linked_case`'s final branch -- karyotypic_sex=XY,
+but the variant's own classification is neither qualifying (Likely
+Pathogenic/Pathogenic) nor benign-side -- returns MANUAL_REVIEW, and had
+existed in `clinical.py` since Milestone 4, but no curated `ClinicalCase`
+fixture, real or synthetic, had ever actually reached it; every prior
+X-linked case used a cleanly (Likely) Pathogenic or (Likely) Benign
+variant. `CASE_DMD_HEMIZYGOUS_MALE_VUS_REAL` closes it using
+`DMD_c.10103A>G`'s real hemizygous case directly: the source paper's
+8-year-old hemizygous son has elevated CK and calf hypertrophy but was
+diagnosed only with "unspecified myopathy due to DMD defect" -- his own
+clinicians didn't resolve his case to a confident diagnosis either. This
+engine's MANUAL_REVIEW answer lands in the same place real clinical
+practice did for this exact patient.
+
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
 evidence, hand-derive the expected result, verify against the engine).
@@ -674,7 +694,7 @@ data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
     variant_evidence.json       20 curated variants (CAPN3 + DMD) -- growing toward ~20-30
-    clinical_cases.json         8 curated ClinicalCase fixtures (Milestone 4)
+    clinical_cases.json         9 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
 
@@ -810,6 +830,13 @@ case with no matching evidence bundle).
   a defensible fallback against a scope gap — see "Expanding the curated
   set" above. Curated variant set reaches the low end of the original
   ~20-30 target (20).
+- **Batch 17** — done. No new variant fixture; closed a case-level gap
+  instead. `CASE_DMD_HEMIZYGOUS_MALE_VUS_REAL` is the first curated
+  `ClinicalCase` to exercise `interpret_x_linked_case`'s MANUAL_REVIEW
+  catch-all branch (hemizygous male, non-qualifying/non-benign variant),
+  which existed in code since Milestone 4 but had never actually been
+  reached by any curated fixture. Uses `DMD_c.10103A>G`'s real hemizygous
+  son, whose own real diagnosis was similarly unresolved.
 - Later: continue expanding curated fixtures toward the full 20-30
   ClinVar variant set (20 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated
