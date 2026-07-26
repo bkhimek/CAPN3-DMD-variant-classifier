@@ -67,11 +67,12 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 109 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 110 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
-  does; 109 also includes one new hand-built test pairing the real DMD
-  male/female cases, added batch 12).
+  does; also includes two hand-built tests pairing the real DMD
+  male/female cases (batch 12) and proving no real CAPN3 variant can
+  currently reach Pathogenic/Likely Pathogenic (batch 13)).
 
 ## Design notes
 
@@ -433,6 +434,34 @@ biallelic CAPN3 EXPLAINED case isn't buildable from this project's
 current real fixtures without also closing one of those variant-level
 gaps first.
 
+Batch 13 turned that loose end into a proven claim rather than an
+open question. Given (1) the real ClinGen LGMD VCEP threshold this
+project adopted for CAPN3 (batch 4) fixes PM2 at SUPPORTING strength,
+never MODERATE, and (2) PP3's strength is hardcoded SUPPORTING
+everywhere in `pp3.py` with no gene override — the only pathogenic-
+direction criteria any single real CAPN3 variant can ever have MET are,
+at most, PVS1 (Very Strong, loss-of-function variants only) + PM2
+(Supporting), or PM2 (Supporting) + PP3 (Supporting, missense variants
+only). Table 5 has no combining rule for "1 Very Strong + 1 Supporting"
+alone, nor for "2 Supporting" alone without at least one Moderate or
+Strong criterion. So, as this project is currently configured, **no
+real CAPN3 variant can reach PATHOGENIC or LIKELY_PATHOGENIC through
+this engine, regardless of how strong its individual real-world
+evidence is** — not a fixture-search problem, a structural one. This is
+now locked in by
+`tests/unit/test_engine.py::test_no_real_capn3_variant_currently_reaches_pathogenic_tier`,
+which checks every real CAPN3 fixture's golden case against this claim
+and is designed to fail loudly (not silently pass) if a future change
+(e.g. a gene-specific PM2 Moderate override, or a higher-strength PP3)
+ever makes it false. Concretely, this also means `CASE_CAPN3_BIALLELIC_TRANS`-style
+real biallelic clinical cases (see "Case-level scope" and batch 12
+above) cannot be built from real CAPN3 fixtures until this changes —
+closing it would need either implementing more of the real VCEP's
+criteria (PM3/PP1/PP4/PS1/PS3), or adopting the VCEP's Bayesian point
+system instead of Table 5 (see the "Real ClinGen LGMD VCEP thresholds"
+note above) — both already-identified, larger pieces of future work,
+not new ones.
+
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
 evidence, hand-derive the expected result, verify against the engine).
@@ -552,7 +581,7 @@ pytest
 ```
 
 `pytest.ini` sets `pythonpath = src`, so this works out of the box with no
-extra environment variables. All 109 tests currently pass.
+extra environment variables. All 110 tests currently pass.
 
 A dependency-free alternative is also included, useful in environments
 without PyPI access:
@@ -631,6 +660,13 @@ case with no matching evidence bundle).
   reliance on synthetic variants for that layer's real-data coverage and
   grounding the female-carrier MANUAL_REVIEW case in real DMD
   manifesting-carrier literature.
+- **Batch 13** — done. No new fixture; proved (and locked in with a
+  regression test) that no real CAPN3 variant can currently reach
+  PATHOGENIC/LIKELY_PATHOGENIC through this engine, a structural
+  consequence of CAPN3's real VCEP PM2-Supporting-only threshold plus
+  PP3's hardcoded Supporting strength — turning batch 12's open question
+  about real biallelic CAPN3 cases into a documented, well-understood
+  limitation rather than an unexplained gap.
 - Later: continue expanding curated fixtures toward the full 20-30
   ClinVar variant set (17 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated

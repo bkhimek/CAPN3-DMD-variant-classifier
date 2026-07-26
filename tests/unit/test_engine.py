@@ -32,6 +32,48 @@ def test_classify_matches_golden_case_provisional_class_for_all_curated_bundles(
         )
 
 
+def test_no_real_capn3_variant_currently_reaches_pathogenic_tier():
+    """Regression/documentation test, added batch 13.
+
+    This is a structural consequence of two facts, not a coincidence of
+    which fixtures happen to be curated: (1) the real ClinGen LGMD VCEP
+    threshold adopted for CAPN3 (batch 4) fixes PM2 at SUPPORTING
+    strength, never MODERATE; (2) PP3's strength is hardcoded SUPPORTING
+    everywhere in this engine (pp3.py has no gene-specific override). For
+    a loss-of-function CAPN3 variant, the only pathogenic-direction
+    criteria that can be MET are PVS1 (Very Strong) and PM2 (Supporting) —
+    Table 5 has no rule for "1 Very Strong + 1 Supporting" alone (see
+    CAPN3_c.1939G>T). For a missense CAPN3 variant, only PM2 and PP3 can
+    be MET, both Supporting — Table 5 has no rule for "2 Supporting"
+    alone without at least one Moderate or Strong criterion either. So,
+    as currently configured, no real CAPN3 variant — however strong its
+    individual evidence — can reach PATHOGENIC or LIKELY_PATHOGENIC
+    through this engine. This test locks that fact in as an explicit,
+    intentional claim rather than an implicit one: if it ever starts
+    failing (e.g. a gene-specific PM2 strength override, or a
+    higher-strength PP3), that's a real, deliberate change to notice and
+    document — not something that should happen silently.
+    """
+    bundles, rejected = loader.load_variant_evidence_bundles()
+    assert rejected == []
+    golden_cases = loader.load_golden_cases()
+
+    real_capn3_ids = [
+        b.variant.variant_id for b in bundles
+        if b.variant.gene == "CAPN3" and "SYNTH" not in b.variant.variant_id
+    ]
+    assert len(real_capn3_ids) >= 5, "expected several real CAPN3 fixtures to check this against"
+
+    for variant_id in real_capn3_ids:
+        expected = golden_cases[variant_id].expected_provisional_class
+        assert expected not in (ProvisionalClass.PATHOGENIC, ProvisionalClass.LIKELY_PATHOGENIC), (
+            f"{variant_id}: golden case now expects {expected}, contradicting this test's "
+            "documented claim that no real CAPN3 variant can currently reach that tier — if "
+            "this is an intentional config/evaluator change, update or remove this test "
+            "deliberately rather than leaving it failing."
+        )
+
+
 def test_evaluate_all_returns_exactly_six_criteria_in_fixed_order():
     bundles, _ = loader.load_variant_evidence_bundles()
     thresholds = loader.load_frequency_thresholds()
