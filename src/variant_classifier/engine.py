@@ -35,7 +35,7 @@ Two things this engine does NOT do, both by design for Milestone 3:
 
 from typing import List
 
-from .evaluators import evaluate_ba1, evaluate_bp4, evaluate_bs1, evaluate_pm2, evaluate_pp3, evaluate_pvs1
+from .evaluators import evaluate_ba1, evaluate_bp4, evaluate_bs1, evaluate_pm2, evaluate_pm4, evaluate_pp3, evaluate_pvs1
 from .models import CriterionResult, ProvisionalClassification, VariantEvidenceBundle
 from .models.enums import ClassificationStatus, CriterionStatus, CriterionStrength, EvidenceDirection, ProvisionalClass
 
@@ -44,13 +44,15 @@ RULE_VERSION = "2015"
 
 
 def evaluate_all(bundle: VariantEvidenceBundle, thresholds: dict) -> List[CriterionResult]:
-    """Run all six Milestone-1-scope evaluators. Always returns exactly six
-    CriterionResults, one per code in a fixed order — order doesn't matter
-    for combine() but a fixed order makes output diffs/reports readable.
+    """Run all seven supported evaluators (six from Milestone 1, plus PM4
+    added batch 14). Always returns exactly seven CriterionResults, one
+    per code in a fixed order — order doesn't matter for combine() but a
+    fixed order makes output diffs/reports readable.
     """
     return [
         evaluate_pvs1(bundle),
         evaluate_pm2(bundle, thresholds),
+        evaluate_pm4(bundle),
         evaluate_pp3(bundle),
         evaluate_bp4(bundle),
         evaluate_ba1(bundle, thresholds),

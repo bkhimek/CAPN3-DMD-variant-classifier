@@ -38,6 +38,15 @@ def require_bool(data: dict, field: str, context: str) -> bool:
     return value
 
 
+def optional_bool(data: dict, field: str, context: str) -> Optional[bool]:
+    value = data.get(field)
+    if value is None:
+        return None
+    if not isinstance(value, bool):
+        raise SchemaValidationError(f"{context}: '{field}' must be true/false if provided, got {value!r}")
+    return value
+
+
 def optional_int(data: dict, field: str, context: str, minimum: Optional[int] = None) -> Optional[int]:
     value = data.get(field)
     if value is None:

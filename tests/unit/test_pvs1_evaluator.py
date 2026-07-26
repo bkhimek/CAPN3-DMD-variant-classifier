@@ -169,8 +169,11 @@ def test_pvs1_synonymous_variant_is_not_applicable():
 
 
 def test_pvs1_inframe_deletion_is_not_applicable():
+    # repeat_region must be stated for INFRAME_DELETION since batch 14 (PM4's scope,
+    # not PVS1's) — irrelevant to this test's assertion, so just pick a value.
     transcript = TranscriptConsequence(
         transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.INFRAME_DELETION,
+        repeat_region=False,
     )
     bundle = _bundle(transcript)
     result = evaluate_pvs1(bundle)

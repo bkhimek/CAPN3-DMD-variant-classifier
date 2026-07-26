@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (17 done)
+## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (18 done)
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -27,10 +27,10 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- **Fifteen curated evidence bundles** (`data/curated/variant_evidence.json`):
-  eleven real ClinVar-grounded variants (nine CAPN3, two DMD) and four
+- **Eighteen curated evidence bundles** (`data/curated/variant_evidence.json`):
+  fourteen real ClinVar-grounded variants (ten CAPN3, four DMD) and four
   synthetic cases (three CAPN3, one DMD) constructed to exercise specific
-  combining-rule and case-level paths. This is six increments toward
+  combining-rule and case-level paths. This is fourteen increments toward
   the ~20-30 ClinVar variant set from the original project plan — see
   "Expanding the curated set" below for what each real variant adds and
   where this is headed. Gene/disease context for both CAPN3 and DMD
@@ -43,10 +43,11 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   results (see below).
 - Schema-validation tests (`tests/unit/`) covering both valid and
   invalid records for every model.
-- Six evaluators, one per Milestone-1-scope criterion
-  (`src/variant_classifier/evaluators/`): `pvs1.py`, `pm2.py`, `pp3.py`,
-  `bp4.py`, `ba1.py`, `bs1.py`. PVS1 is deliberately partial — see "PVS1
-  scope" below.
+- Seven evaluators, one per implemented criterion
+  (`src/variant_classifier/evaluators/`): `pvs1.py`, `pm2.py`, `pm4.py`,
+  `pp3.py`, `bp4.py`, `ba1.py`, `bs1.py`. PVS1 is deliberately partial —
+  see "PVS1 scope" below. PM4 was added in batch 14 — see "PM4: a second
+  new criterion" below.
 - A **combining engine** (`src/variant_classifier/engine.py`) implementing
   the ACMG/AMP combining rules (Richards et al. 2015, Table 5), including
   a genuine conflict path (`conflicting_evidence_flag`) rather than
@@ -59,7 +60,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Seventeen curated variants (CAPN3 and DMD) and eight curated
+- Eighteen curated variants (CAPN3 and DMD) and eight curated
   `ClinicalCase` fixtures covering every branch above — including, as of
   batch 12, a pair built on a real ClinVar-sourced DMD variant rather
   than only the original synthetic ones. Every evaluator, the combining
@@ -67,12 +68,14 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 110 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 118 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does; also includes two hand-built tests pairing the real DMD
-  male/female cases (batch 12) and proving no real CAPN3 variant can
-  currently reach Pathogenic/Likely Pathogenic (batch 13)).
+  male/female cases (batch 12), proving no real CAPN3 variant can
+  currently reach Pathogenic/Likely Pathogenic (batch 13, extended in
+  batch 14 to cover PM4 too), and a dedicated `test_pm4_evaluator.py`
+  suite added in batch 14).
 
 ## Design notes
 
@@ -462,6 +465,32 @@ system instead of Table 5 (see the "Real ClinGen LGMD VCEP thresholds"
 note above) — both already-identified, larger pieces of future work,
 not new ones.
 
+Batch 14 added a new criterion, not just a new fixture — see "PM4: a
+second new criterion" below for how the gap was found. Its real fixture:
+
+- `CAPN3_c.1401_1403del` (p.Glu467del) — a real, expert-panel-reviewed
+  in-frame single-glutamate deletion (ClinVar VCV000553852.19, ClinGen
+  LGMD VCEP, Pathogenic since 2025-06-24). Chosen specifically to source
+  PM4's first real fixture, and interesting for a reason beyond that: its
+  official HGVS (`c.1395GGA[2]`) uses short-tandem-repeat notation — the
+  reference is a 3-copy GGA run, contracting to 2 copies — which reads,
+  naively, like exactly the "repeat region" PM4 is defined to exclude
+  (Richards et al. 2015: "...in a nonrepeat region"). The real VCEP's own
+  Pathogenic comment applies PM4 to this variant anyway, with no
+  repeat-region caveat. This project's fixture follows that real-world
+  precedent (`repeat_region: false`, with the reasoning laid out in full
+  in the fixture's own `notes` field) rather than mechanically reading
+  the HGVS notation as disqualifying — the distinction being drawn is
+  between an incidental 2-3-copy in-gene run (what this variant is) and
+  a genuinely repeat-prone locus with a documented high population rate
+  of benign in-frame indels (what the PM4 exclusion is actually aimed
+  at). PM2 and PM4 both MET (Supporting strength each — this evaluator
+  downgrades single-residue in-frame changes by default), landing on
+  VUS: a second, independent proof point for batch 13's structural
+  finding that no real CAPN3 variant currently reaches Pathogenic/Likely
+  Pathogenic through this engine (now covering all three consequence
+  shapes: loss-of-function, missense, and in-frame indel/stop-loss).
+
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
 evidence, hand-derive the expected result, verify against the engine).
@@ -498,6 +527,42 @@ once the evaluator needed it for stop-gained variants too. All three
 documented scope gaps (splice donor/acceptor, start-loss, NMD-escaping
 truncations) now have at least one real fixture exercising them, as of
 batch 9's `DMD_c.11041A>T` — see "Expanding the curated set" below.
+
+**PM4: a second new criterion (batch 14).** This project's first six
+evaluators were all built in Milestones 1-3; PM4 is the first one added
+since. It was found by accident of investigation, not by plan: batch 14
+went looking for a real stop-loss variant to fill in what looked like a
+PVS1 scope gap (`PVS1` returns `NOT_APPLICABLE` for `stop_lost`). Before
+writing a fix, that assumption was checked against the primary criterion
+definitions (Abou Tayoun et al. 2018's PVS1 decision tree; Richards et
+al. 2015 Table 3) — and turned out to be wrong. PVS1 is specifically
+about null/loss-of-function variants; a stop-loss variant produces an
+elongated protein, not a null one, so `NOT_APPLICABLE` was already
+correct. Richards et al. 2015 Table 3 assigns stop-loss variants (and
+in-frame indels) to **PM4** — "protein length changes as a result of
+in-frame deletions/insertions in a nonrepeat region or stop-loss
+variants" (Moderate) — a criterion this project had never implemented,
+even though `Consequence` has always included `INFRAME_DELETION`,
+`INFRAME_INSERTION`, and `STOP_LOST`. No curated fixture had ever used
+any of them, so the gap stayed invisible until batch 14 went looking.
+Confirmed via a full-suite check before writing any evaluator code: zero
+existing fixtures use a PM4-relevant consequence, so implementing it
+carries zero risk of silently changing any existing classification (all
+17 pre-existing golden cases gained only an additive `PM4: NOT_APPLICABLE`
+line). `src/variant_classifier/evaluators/pm4.py`: in scope only for
+`INFRAME_DELETION`/`INFRAME_INSERTION`/`STOP_LOST` (everything else is
+`NOT_APPLICABLE`); not gated on an established loss-of-function
+mechanism the way PVS1 is (Richards et al. 2015 doesn't condition PM4 on
+mechanism); `NOT_MET` if `TranscriptConsequence.repeat_region` is `true`
+(required to be stated explicitly for PM4-relevant consequences, same
+never-guess convention as `nmd_predicted`); otherwise `MET`, at
+Supporting strength if `protein_length_change_aa == 1` (the ClinGen SVI's
+general caution against full Moderate strength for single-residue
+indels absent gene-specific evidence) or Moderate otherwise, including
+when the size isn't recorded at all (a disclosed simplification, not a
+silent guess — the rationale always states which case applied). See
+"Expanding the curated set" above for `CAPN3_c.1401_1403del`, its real
+fixture.
 
 **PM2 and founder mutations.** PM2 asks whether a variant is absent or at
 extremely low frequency in the general population. A single global allele
@@ -539,6 +604,7 @@ src/variant_classifier/
   evaluators/
     pvs1.py                   evaluate_pvs1() — see "PVS1 scope" above
     pm2.py                    evaluate_pm2()
+    pm4.py                    evaluate_pm4() — see "PM4: a second new criterion" above
     pp3.py                    evaluate_pp3()
     bp4.py                    evaluate_bp4()
     ba1.py                    evaluate_ba1()
@@ -552,7 +618,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       17 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       18 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         8 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -581,7 +647,7 @@ pytest
 ```
 
 `pytest.ini` sets `pythonpath = src`, so this works out of the box with no
-extra environment variables. All 110 tests currently pass.
+extra environment variables. All 118 tests currently pass.
 
 A dependency-free alternative is also included, useful in environments
 without PyPI access:
@@ -667,8 +733,14 @@ case with no matching evidence bundle).
   PP3's hardcoded Supporting strength — turning batch 12's open question
   about real biallelic CAPN3 cases into a documented, well-understood
   limitation rather than an unexplained gap.
+- **Batch 14** — done. Implemented PM4 (`evaluate_pm4()`), this project's
+  first new criterion since Milestone 3 — found while investigating what
+  looked like a PVS1 stop-loss gap and turned out to be a missing PM4
+  instead (see "PM4: a second new criterion" above). Added its first real
+  fixture, `CAPN3_c.1401_1403del`, and extended batch 13's structural
+  proof to cover the in-frame indel/stop-loss shape too.
 - Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (17 of ~20-30 done, see "Expanding the curated set"
+  ClinVar variant set (18 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated
   computational score are known remaining gaps); add PM3/PS1/PM5/PS3/BS3
   as real per-variant criteria (distinct from how clinical.py currently

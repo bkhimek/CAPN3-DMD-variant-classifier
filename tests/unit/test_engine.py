@@ -53,6 +53,19 @@ def test_no_real_capn3_variant_currently_reaches_pathogenic_tier():
     failing (e.g. a gene-specific PM2 strength override, or a
     higher-strength PP3), that's a real, deliberate change to notice and
     document — not something that should happen silently.
+
+    Extended in batch 14 with a third shape, in-frame indel/stop-loss
+    CAPN3 variants: only PM2 and PM4 can be MET (PVS1 and PP3 are both
+    out of scope for that consequence class). This evaluator's PM4
+    defaults a single-residue change to Supporting, so the best case is
+    "2 Supporting" — same insufficient shape as the missense case, and
+    still no Table 5 rule for it. Even in the case where PM4 landed at
+    its unmodified Moderate strength (as the real ClinGen LGMD VCEP
+    appears to have applied it for CAPN3_c.1401_1403del — see that
+    fixture's curator_note), "1 Moderate + 1 Supporting" alone still
+    doesn't satisfy any Likely-Pathogenic rule in Table 5. So PM4's
+    addition does not create a new way for a real CAPN3 variant to clear
+    this bar; it was checked, not assumed.
     """
     bundles, rejected = loader.load_variant_evidence_bundles()
     assert rejected == []
@@ -74,12 +87,13 @@ def test_no_real_capn3_variant_currently_reaches_pathogenic_tier():
         )
 
 
-def test_evaluate_all_returns_exactly_six_criteria_in_fixed_order():
+def test_evaluate_all_returns_exactly_seven_criteria_in_fixed_order():
+    # Was "exactly six" through Milestone 3; PM4 added batch 14.
     bundles, _ = loader.load_variant_evidence_bundles()
     thresholds = loader.load_frequency_thresholds()
     bundle = bundles[0]
     results = evaluate_all(bundle, thresholds)
-    assert [r.code for r in results] == ["PVS1", "PM2", "PP3", "BP4", "BA1", "BS1"]
+    assert [r.code for r in results] == ["PVS1", "PM2", "PM4", "PP3", "BP4", "BA1", "BS1"]
 
 
 def test_pathogenic_case_has_no_manual_review_and_no_conflict():

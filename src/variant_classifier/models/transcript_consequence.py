@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from ..errors import SchemaValidationError
-from ._coerce import coerce_enum, optional_str, require_bool, require_dict, require_str
+from ._coerce import coerce_enum, optional_bool, optional_int, optional_str, require_bool, require_dict, require_str
 from .enums import Consequence
 
 
@@ -23,8 +23,11 @@ class TranscriptConsequence:
     hgvs_p: Optional[str] = None
     exon: Optional[str] = None
     nmd_predicted: Optional[bool] = None
+    repeat_region: Optional[bool] = None
+    protein_length_change_aa: Optional[int] = None
 
     NMD_RELEVANT_CONSEQUENCES = (Consequence.FRAMESHIFT_VARIANT, Consequence.STOP_GAINED)
+    PM4_RELEVANT_CONSEQUENCES = (Consequence.INFRAME_DELETION, Consequence.INFRAME_INSERTION, Consequence.STOP_LOST)
 
     def __post_init__(self) -> None:
         context = f"TranscriptConsequence[{self.transcript_id}]"
@@ -35,6 +38,14 @@ class TranscriptConsequence:
                 "NMD prediction. (Originally only enforced for frameshift_variant; widened to "
                 "stop_gained too during the PVS1 evaluator build, since nonsense variants are "
                 "subject to the same NMD-vs-last-exon logic.)"
+            )
+        if self.consequence in TranscriptConsequence.PM4_RELEVANT_CONSEQUENCES and self.repeat_region is None:
+            raise SchemaValidationError(
+                f"{context}: repeat_region must be explicitly true or false for a "
+                f"{self.consequence.value} — PM4 excludes repeat-region indels/stop-losses by "
+                "definition (Richards et al. 2015), so this cannot be evaluated safely from an "
+                "unstated repeat-region status. Same 'never silently guess' convention as "
+                "nmd_predicted for frameshift/stop_gained."
             )
 
     @classmethod
@@ -56,4 +67,6 @@ class TranscriptConsequence:
             hgvs_p=optional_str(data, "hgvs_p"),
             exon=optional_str(data, "exon"),
             nmd_predicted=nmd_value,
+            repeat_region=optional_bool(data, "repeat_region", ctx),
+            protein_length_change_aa=optional_int(data, "protein_length_change_aa", ctx, minimum=1),
         )
