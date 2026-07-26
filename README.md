@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (16 done)
+## Status: Milestone 4 complete, curated variant set expanding toward 20-30 (17 done)
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -331,6 +331,24 @@ round upgraded it substantially on two fronts:
   uncertain) specifically because it commits to neither disease model — a
   fortunate byproduct of missing criteria, not a designed strength.
 
+Batch 11 added one more, again while searching (unsuccessfully) for
+something else:
+
+- `DMD_c.8944C>T` (p.Arg2982Ter) — a real, cleanly-sourced DMD nonsense
+  variant (ClinVar VCV000011211.24, Pathogenic since a 1992 literature
+  report and reconfirmed by seven independent submitters since),
+  unanimously absent from gnomAD/1000 Genomes/TOPMed. PVS1 Very Strong +
+  PM2 Moderate lands on LIKELY_PATHOGENIC — the same shape as
+  `DMD_c.2302C>T`, just at a different exon (60 of 79). Found while
+  looking for a real BP4-MET fixture (a calibrated computational score
+  landing BENIGN from real data), which this project still doesn't have
+  — the only real benign-leaning score on record is
+  `CAPN3_c.2257G>A`'s INDETERMINATE REVEL (batch 8). That gap remains
+  open, genuinely hard to source via search rather than merely
+  unexamined, in the same way the BA1 gap is. This fixture doesn't close
+  it, but does grow the set (17 of ~20-30) with another fully real,
+  unsurprising, easy-to-verify addition.
+
 A sixth round (batch 7) added one more:
 
 - `DMD_c.93+1G>A` — a real, ClinVar-Pathogenic splice donor variant in DMD
@@ -473,7 +491,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       16 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       17 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         6 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -571,8 +589,12 @@ case with no matching evidence bundle).
   peer-reviewed paper arguing the same variant may be pathogenic for a
   distinct autosomal-dominant calpainopathy this project's
   one-inheritance-pattern-per-gene schema cannot represent.
+- **Batch 11** — done. Added `DMD_c.8944C>T`, a real, cleanly-sourced DMD
+  nonsense variant (LIKELY_PATHOGENIC, same shape as `DMD_c.2302C>T` at a
+  different exon). Found while searching unsuccessfully for a real
+  BP4-MET fixture, which remains an open gap alongside BA1.
 - Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (16 of ~20-30 done, see "Expanding the curated set"
+  ClinVar variant set (17 of ~20-30 done, see "Expanding the curated set"
   above; a true common/BA1-level CAPN3 variant and a real calibrated
   computational score are known remaining gaps); add PM3/PS1/PM5/PS3/BS3
   as real per-variant criteria (distinct from how clinical.py currently

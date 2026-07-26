@@ -532,3 +532,28 @@ golden_cases:
       converge on the same honest "needs a human" conclusion the real
       multi-lab ClinVar consensus also reached, for different but
       compatible reasons.
+
+  - variant_id: DMD_c.8944C>T
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_criterion_status:
+      PVS1: MET
+      PM2: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV000011211.24), Pathogenic since 1992"
+    curator_note: >
+      Real, cleanly-sourced DMD nonsense variant (p.Arg2982Ter, exon 60 of
+      79), absent from gnomAD/1000 Genomes/TOPMed per multiple independent
+      submitters -- one of this project's more unanimous ABSENT calls.
+      Added in batch 11 while searching (again unsuccessfully) for a real
+      BP4-MET fixture; that gap remains open (this project's only real
+      benign-leaning computational score is CAPN3_c.2257G>A's
+      INDETERMINATE REVEL, batch 8). PVS1 Very Strong (nmd_predicted=true,
+      same exon-position judgment convention as DMD_c.2302C>T) + PM2
+      Moderate (absent, default strength since DMD has no VCEP-sourced
+      pm2_strength override) lands cleanly on LIKELY_PATHOGENIC, matching
+      DMD_c.2302C>T's shape exactly -- included for set growth (17 of
+      ~20-30) and as a second real DMD PVS1-MET example at a different
+      exon, not because it breaks new evaluator ground.
