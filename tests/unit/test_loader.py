@@ -64,6 +64,21 @@ def test_load_all_real_fixtures_have_no_cross_check_warnings():
     assert result["rejected_evidence"] == []
 
 
+def test_load_golden_cases_bayesian_from_real_fixture():
+    # Added batch 20 (Milestone 5) alongside bayesian.py.
+    goldens = loader.load_golden_cases_bayesian()
+    assert len(goldens) == 22
+    assert goldens["CAPN3_SYNTH_PATHOGENIC_01"]["expected_provisional_class"].value == "PATHOGENIC"
+    assert goldens["CAPN3_SYNTH_PATHOGENIC_01"]["expected_points"] == 10
+    # BA1 stand-alone fixtures bypass point-summing -- expected_points is null/None.
+    assert goldens["DMD_c.5234G>A"]["expected_points"] is None
+    # every variant with a Bayesian golden case must also have a real evidence bundle
+    bundles, rejected = loader.load_variant_evidence_bundles()
+    assert rejected == []
+    bundle_ids = {b.variant.variant_id for b in bundles}
+    assert set(goldens) == bundle_ids
+
+
 def test_load_all_flags_golden_case_with_no_matching_bundle(tmp_path=None):
     # Build a minimal scratch repo layout so this test doesn't depend on
     # mutating the real curated fixtures.

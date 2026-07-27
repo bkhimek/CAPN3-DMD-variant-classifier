@@ -10,6 +10,7 @@ time anything in this project goes from raw evidence to a classification.
 """
 
 from variant_classifier import loader
+from variant_classifier.bayesian import classify_bayesian
 from variant_classifier.engine import classify, combine, evaluate_all
 from variant_classifier.models import CriterionResult
 from variant_classifier.models.enums import ClassificationStatus, CriterionStatus, CriterionStrength, EvidenceDirection, ProvisionalClass
@@ -85,6 +86,42 @@ def test_no_real_capn3_variant_currently_reaches_pathogenic_tier():
             "this is an intentional config/evaluator change, update or remove this test "
             "deliberately rather than leaving it failing."
         )
+
+
+def test_capn3_c1939_reaches_likely_pathogenic_under_bayesian_combining():
+    """Closes the loop test_no_real_capn3_variant_currently_reaches_pathogenic_tier's
+    own docstring anticipated, added batch 20 (Milestone 5).
+
+    That test's claim is scoped to *this engine as currently configured* --
+    i.e. Table 5 combining (engine.combine()). It explicitly names one of
+    the two ways that scoping could someday change: "a gene-specific PM2
+    strength override, or a higher-strength PP3." Milestone 5 adds a third
+    way that test's docstring didn't anticipate by name but its own
+    reasoning already implied: keep every evaluator and threshold
+    identical, and change the *combining system* instead. CAPN3_c.1939G>T
+    (PVS1 Very Strong + PM2 Supporting) has no Table 5 rule and stays VUS
+    under classify() -- confirmed unchanged by
+    test_no_real_capn3_variant_currently_reaches_pathogenic_tier still
+    passing -- but reaches 9 points (Likely Pathogenic, 6-9) under
+    classify_bayesian(), because Tavtigian et al. 2020's point system does
+    define a combination for "1 Very Strong + 1 Supporting" that Table 5
+    simply never enumerated. This is not a contradiction between the two
+    tests: one says "Table 5, as configured, cannot reach this tier for
+    real CAPN3 evidence"; this one says "a different, equally real
+    combining system, given the identical evidence, can." Both are true
+    at once, which is exactly bayesian.py's own point.
+    """
+    bundles, rejected = loader.load_variant_evidence_bundles()
+    assert rejected == []
+    thresholds = loader.load_frequency_thresholds()
+    bundle = next(b for b in bundles if b.variant.variant_id == "CAPN3_c.1939G>T")
+
+    table5_result = classify(bundle, thresholds)
+    bayesian_result = classify_bayesian(bundle, thresholds)
+
+    assert table5_result.provisional_class == ProvisionalClass.VUS
+    assert bayesian_result.provisional_class == ProvisionalClass.LIKELY_PATHOGENIC
+    assert bayesian_result.points == 9
 
 
 def test_evaluate_all_returns_exactly_seven_criteria_in_fixed_order():

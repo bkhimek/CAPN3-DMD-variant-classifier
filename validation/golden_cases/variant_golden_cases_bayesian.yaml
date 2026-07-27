@@ -1,0 +1,248 @@
+# Bayesian point-based combining golden cases (Milestone 5 / batch 20),
+# parallel to variant_golden_cases.yaml rather than replacing it. Same
+# philosophy as every other golden case in this project (curated
+# independently of the code under test), and the same underlying
+# per-variant evidence and evaluator results as the Table 5 file --
+# nothing about evaluate_all() changes between the two combining systems,
+# only the combining step itself. See variant_golden_cases.yaml for the
+# full per-criterion expected_criterion_status of every fixture; this
+# file only adds what's new: the Bayesian point total and resulting
+# class, and (for the four fixtures where the two systems disagree) why.
+#
+# Point values and thresholds: Very Strong=8, Strong=4, Moderate=2,
+# Supporting=1 (pathogenic); Strong=-4, Moderate=-2, Supporting=-1
+# (benign); >=10 Pathogenic, 6-9 Likely Pathogenic, 0-5 VUS, -1 to -5
+# Likely Benign, <=-6 Benign; BA1 Stand-Alone bypasses point-summing
+# (immediate Benign, same as Table 5); a minimum of two contributing
+# criteria is required for any Likely/definite Pathogenic or
+# Likely/definite Benign result, BA1 stand-alone excepted (Tavtigian et
+# al. 2020, as quoted in ACGS 2024 UK Practice Guidelines v1 -- see
+# src/variant_classifier/bayesian.py's module docstring for the full
+# quote and citation).
+
+golden_cases:
+  - variant_id: CAPN3_SYNTH_LIKELY_BENIGN_01
+    expected_provisional_class: BENIGN
+    expected_points: null
+    source: "Hand-derived from Tavtigian et al. 2020's point system, applied to this project's synthetic Milestone 1 fixture"
+    curator_note: >
+      BA1 MET (Stand-Alone) bypasses point-summing, same as Table 5 --
+      BENIGN either way. (Net point sum of BP4 Supporting (-1) + BS1
+      Strong (-4) = -5, shown for information in the engine's rationale
+      but not used to decide this result, since BA1 stand-alone already
+      settles it.)
+
+  - variant_id: CAPN3_SYNTH_PATHOGENIC_01
+    expected_provisional_class: PATHOGENIC
+    expected_points: 10
+    source: "Hand-derived from Tavtigian et al. 2020's point system, applied to this project's synthetic Milestone 1 fixture"
+    curator_note: >
+      PVS1 Very Strong (8) + PM2 Supporting (1) + PP3 Supporting (1) = 10
+      points, at the Pathogenic threshold exactly. Matches Table 5's
+      PATHOGENIC result (via "1 Very Strong + 1 Moderate + >=1
+      Supporting"... actually via PM2 here being Supporting not
+      Moderate, Table 5 reaches PATHOGENIC through "1 Very Strong + >=2
+      Supporting"). Same answer, different path through each system.
+
+  - variant_id: CAPN3_SYNTH_PATHOGENIC_02
+    expected_provisional_class: PATHOGENIC
+    expected_points: 10
+    source: "Hand-derived from Tavtigian et al. 2020's point system, applied to this project's synthetic Milestone 4 case-level fixture"
+    curator_note: >
+      Same MET criteria and same result as CAPN3_SYNTH_PATHOGENIC_01 (10
+      points, PATHOGENIC). This fixture was deliberately strengthened in
+      Milestone 3/4 with a PP3 entry specifically to keep demonstrating a
+      clean case-level EXPLAINED result under Table 5's stricter
+      combining (see README, "Real ClinGen LGMD VCEP thresholds"); under
+      Bayesian combining it reaches PATHOGENIC the same way, so that
+      design choice remains sound either way.
+
+  - variant_id: CAPN3_c.1132T>C
+    expected_provisional_class: VUS
+    expected_points: 1
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "PM2 Supporting (1) alone -- 1 point, 1 contributing criterion, below the 2-criterion minimum. VUS either way."
+
+  - variant_id: CAPN3_c.1343G>A
+    expected_provisional_class: VUS
+    expected_points: 1
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "PM2 Supporting (1) alone -- same shape as CAPN3_c.1132T>C. VUS either way."
+
+  - variant_id: CAPN3_c.1401_1403del
+    expected_provisional_class: VUS
+    expected_points: 2
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      PM2 Supporting (1) + PM4 Supporting (1) = 2 points, 2 contributing
+      criteria -- meets the 2-criterion minimum, but 2 points falls in
+      the 0-5 VUS band, well short of the 6-point Likely Pathogenic
+      floor. VUS either way; a useful counter-example showing the
+      2-criterion minimum and the point threshold are two independent
+      checks, not the same rule restated.
+
+  - variant_id: CAPN3_c.1939G>T
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_points: 9
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      THE flagship divergence case this whole milestone exists to make
+      concrete. PVS1 Very Strong (8) + PM2 Supporting (1) = 9 points, 2
+      contributing criteria -- squarely in the 6-9 Likely Pathogenic
+      band. Table 5 lands this same evidence on VUS, because Table 5
+      simply has no combining rule for "1 Very Strong + 1 Supporting"
+      alone (see variant_golden_cases.yaml's curator_note and the
+      README's "Real ClinGen LGMD VCEP thresholds for CAPN3" design
+      note, written back in batch 4 when this discrepancy was first
+      found and left as a documented but unimplemented gap). This
+      variant is real (ClinVar Variation ID 217153, p.Glu647Ter,
+      Pathogenic) and the ClinGen LGMD VCEP's own real CAPN3
+      specification pairs its thresholds with exactly this Bayesian
+      point system rather than Table 5 (see README) -- but this
+      project has not primary-source-verified the VCEP's own specific
+      point breakdown for this exact variant, so that claim is
+      deliberately not made here. What batch 4 already established and
+      this milestone now demonstrates concretely is the general,
+      structural point: real VCEP thresholds paired with Table 5's
+      combining rules can under-call evidence that the same thresholds
+      paired with the VCEP's own combining system would not.
+
+  - variant_id: CAPN3_c.1A>G
+    expected_provisional_class: VUS
+    expected_points: 1
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "PM2 Supporting (1) alone (PVS1 is MANUAL_REVIEW for this start-loss variant, not MET, so contributes no points). VUS either way."
+
+  - variant_id: CAPN3_c.2050+1G>A
+    expected_provisional_class: VUS
+    expected_points: 0
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "No criterion MET (PVS1 is MANUAL_REVIEW for this splice donor variant) -- 0 points. VUS either way."
+
+  - variant_id: CAPN3_c.2120A>G
+    expected_provisional_class: VUS
+    expected_points: 1
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "PP3 Supporting (1) alone (BS1 is MANUAL_REVIEW for founder-enrichment ambiguity, not MET). VUS either way."
+
+  - variant_id: CAPN3_c.2257G>A
+    expected_provisional_class: VUS
+    expected_points: -4
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      BS1 Strong (-4) alone -- 1 contributing criterion, below the
+      2-criterion minimum, so VUS despite -4 nominally sitting inside
+      the -1 to -5 Likely Benign band. Direct confirmation, via the
+      point system's own explicit rule rather than Table 5's separate
+      combining-rule enumeration, of this project's already-documented
+      "BS1 alone can never reach LIKELY_BENIGN" design principle (see
+      README's "Criterion coverage" design note). Same conclusion, two
+      independent mechanisms.
+
+  - variant_id: CAPN3_c.550del
+    expected_provisional_class: VUS
+    expected_points: 8
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      PVS1 Very Strong (8) alone -- 1 contributing criterion, below the
+      2-criterion minimum, so VUS despite 8 points nominally sitting
+      inside the 6-9 Likely Pathogenic band. This is the literal example
+      ACGS's 2024 guidelines use to illustrate the 2-criterion minimum
+      rule ("PVS1_vstr (8 points) ... classified as a VUS pending a
+      second corroborating piece of evidence") -- a fortunate, unplanned
+      match between this project's own real fixture and the example the
+      real guidelines chose.
+
+  - variant_id: CAPN3_c.598_612del
+    expected_provisional_class: VUS
+    expected_points: 3
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "PM2 Supporting (1) + PM4 Moderate (2) = 3 points, 2 contributing criteria, still short of the 6-point Likely Pathogenic floor. VUS either way."
+
+  - variant_id: CAPN3_c.946-1G>A
+    expected_provisional_class: VUS
+    expected_points: 1
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "PM2 Supporting (1) alone (PVS1 is MANUAL_REVIEW for this splice acceptor variant, not MET). VUS either way."
+
+  - variant_id: DMD_SYNTH_PATHOGENIC_01
+    expected_provisional_class: PATHOGENIC
+    expected_points: 10
+    source: "Hand-derived from Tavtigian et al. 2020's point system, applied to this project's synthetic Milestone 4 case-level fixture"
+    curator_note: >
+      A second, independent divergence pattern from CAPN3_c.1939G>T's:
+      PVS1 Very Strong (8) + PM2 Moderate (2) = exactly 10 points, at the
+      Pathogenic threshold. Table 5 lands "1 Very Strong + 1 Moderate" on
+      LIKELY_PATHOGENIC only (Table 5's flat PATHOGENIC tier needs "1
+      Very Strong + >=2 Moderate", not just one) -- so this fixture moves
+      up a full tier under Bayesian combining. Same underlying evidence,
+      same qualifying strength either way for Milestone 4's case-level
+      purposes (both PATHOGENIC and LIKELY_PATHOGENIC are in
+      clinical.py's _QUALIFYING set), so this divergence doesn't change
+      any case-level result -- see the new
+      test_clinical_case_interpretation_agnostic_to_combining_system.
+
+  - variant_id: DMD_c.10103A>G
+    expected_provisional_class: VUS
+    expected_points: 3
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "PM2 Moderate (2) + PP3 Supporting (1) = 3 points, 2 contributing criteria, short of the 6-point floor. VUS either way -- matches the real discovery paper's own independent VUS call either way too."
+
+  - variant_id: DMD_c.11041A>T
+    expected_provisional_class: VUS
+    expected_points: 0
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "No criterion MET (PVS1 is MANUAL_REVIEW for this NMD-escaping nonsense variant) -- 0 points. VUS either way."
+
+  - variant_id: DMD_c.2302C>T
+    expected_provisional_class: PATHOGENIC
+    expected_points: 10
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      Same PVS1 Very Strong + PM2 Moderate = 10-point shape as
+      DMD_SYNTH_PATHOGENIC_01 -- the project's first REAL fixture to
+      show this divergence (Table 5: LIKELY_PATHOGENIC; Bayesian:
+      PATHOGENIC). Wired into CASE_DMD_HEMIZYGOUS_MALE_REAL /
+      CASE_DMD_FEMALE_CARRIER_REAL (batch 12); both case-level results
+      are unaffected by this variant-level tier change, since
+      clinical.py's _QUALIFYING set treats Pathogenic and Likely
+      Pathogenic identically for case-level purposes -- see
+      test_clinical_case_interpretation_agnostic_to_combining_system.
+
+  - variant_id: DMD_c.5163G>C
+    expected_provisional_class: VUS
+    expected_points: -1
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      BP4 Supporting (-1) alone -- 1 contributing criterion, below the
+      2-criterion minimum. This is the second literal example ACGS's
+      2024 guidelines use for the 2-criterion minimum rule ("BP4_sup (-1
+      points) ... classified as a VUS"), and this project's own real
+      fixture happens to match it exactly, same as CAPN3_c.550del does
+      for the PVS1_vstr example. VUS either way.
+
+  - variant_id: DMD_c.5234G>A
+    expected_provisional_class: BENIGN
+    expected_points: null
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      BA1 MET (Stand-Alone) bypasses point-summing, same as Table 5 --
+      BENIGN either way. (Net point sum of BS1 Strong (-4) = -4, shown
+      for information only, not used to decide this result.)
+
+  - variant_id: DMD_c.8944C>T
+    expected_provisional_class: PATHOGENIC
+    expected_points: 10
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      Third real fixture with the PVS1 Very Strong + PM2 Moderate = 10
+      point shape (same as DMD_c.2302C>T and DMD_SYNTH_PATHOGENIC_01) --
+      LIKELY_PATHOGENIC under Table 5, PATHOGENIC under Bayesian. Not
+      wired into any ClinicalCase fixture, so no case-level ripple to
+      check here.
+
+  - variant_id: DMD_c.93+1G>A
+    expected_provisional_class: VUS
+    expected_points: 2
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: "PM2 Moderate (2) alone (PVS1 is MANUAL_REVIEW for this splice donor variant, not MET) -- 2 points, 1 contributing criterion, below the 2-criterion minimum regardless. VUS either way."

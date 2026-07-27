@@ -10,6 +10,7 @@ test in this project.
 """
 
 from variant_classifier import loader
+from variant_classifier.bayesian import classify_bayesian
 from variant_classifier.clinical import interpret_case, interpret_recessive_case, interpret_x_linked_case
 from variant_classifier.engine import classify
 from variant_classifier.errors import SchemaValidationError
@@ -94,6 +95,48 @@ def test_dmd_male_vs_female_differ_only_by_karyotypic_sex_real_variant():
     female_result = interpret_case(cases["CASE_DMD_FEMALE_CARRIER_REAL"], classifications, contexts["DMD"])
     assert male_result.status == CaseInterpretationStatus.EXPLAINED
     assert female_result.status == CaseInterpretationStatus.MANUAL_REVIEW
+
+
+def test_clinical_case_interpretation_agnostic_to_combining_system():
+    """Added batch 20 (Milestone 5), alongside bayesian.py.
+
+    clinical.py's functions all take a pre-computed `classifications` dict
+    as a parameter -- they never call engine.classify() themselves (see
+    clinical.py's own module docstring: "It does not re-derive
+    variant-level evidence; it consumes engine.classify()'s output").
+    That's a deliberate separation of concerns, and this test is the
+    concrete proof of it: feed every curated ClinicalCase the exact same
+    real evidence, but classified via classify_bayesian() instead of
+    classify(), and every case-level result should be identical to the
+    Table-5-fed golden expectation.
+
+    This matters concretely for DMD_c.2302C>T and DMD_c.8944C>T, both of
+    which move from LIKELY_PATHOGENIC (Table 5) to PATHOGENIC (Bayesian) --
+    see variant_golden_cases_bayesian.yaml. clinical.py's own
+    _QUALIFYING set treats both tiers identically for case-level purposes,
+    so CASE_DMD_HEMIZYGOUS_MALE_REAL still resolves EXPLAINED either way,
+    and CASE_DMD_FEMALE_CARRIER_REAL still resolves MANUAL_REVIEW either
+    way (karyotypic sex, not variant tier, drives that one). Nothing here
+    required touching case_interpretation_golden_cases.yaml.
+    """
+    bundles, rejected = loader.load_variant_evidence_bundles()
+    assert rejected == []
+    thresholds = loader.load_frequency_thresholds()
+    contexts = loader.load_gene_disease_contexts()
+    cases = loader.load_clinical_cases()
+    goldens = loader.load_case_interpretation_goldens()
+
+    bayesian_classifications = {b.variant.variant_id: classify_bayesian(b, thresholds) for b in bundles}
+
+    for case in cases:
+        golden = goldens[case.case_id]
+        result = interpret_case(case, bayesian_classifications, contexts[case.gene])
+        assert result.status == golden["expected_status"], (
+            f"{case.case_id}: Bayesian-fed interpretation is {result.status}, golden case (written "
+            f"against Table 5) expects {golden['expected_status']} -- if this genuinely differs by "
+            "combining system, that's a real finding worth its own fixture, not a silent mismatch. "
+            f"Rationale: {result.rationale}"
+        )
 
 
 # ------------------------------------------------------- hand-built edge cases

@@ -5,7 +5,16 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set at 22 of ~20-30
+## Status: Milestone 5 complete, curated variant set at 22 of ~20-30
+
+Milestone 5 (batch 20) added a second combining system -- Bayesian
+point-based combining (Tavtigian et al. 2020), offered alongside, not
+replacing, Milestone 3's classic Table 5 rules -- and is expected to be
+this project's last milestone before development moves to a new,
+complementary project starting one stage earlier in the pipeline (raw
+sequencing reads rather than an already-identified variant). See
+"Milestone 5: Bayesian point-based combining" below for what it found and
+why this felt like the right place to stop.
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -53,6 +62,11 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   a genuine conflict path (`conflicting_evidence_flag`) rather than
   silently picking a side when evidence satisfies both a pathogenic and a
   benign combining rule at once.
+- A **second combining system** (`src/variant_classifier/bayesian.py`),
+  added Milestone 5 (batch 20): Bayesian point-based combining (Tavtigian
+  et al. 2020), run over the exact same `evaluate_all()` output as Table
+  5, offered alongside it rather than replacing it. See "Milestone 5:
+  Bayesian point-based combining" below.
 - Two new Milestone 4 models — `ClinicalCase` (what was found in one
   patient: gene, karyotypic sex, one or two variant_ids, phase between
   them if two) and `CaseInterpretation` (the case-level verdict) — plus
@@ -71,14 +85,16 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 118 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 134 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does; also includes two hand-built tests pairing the real DMD
   male/female cases (batch 12), proving no real CAPN3 variant can
-  currently reach Pathogenic/Likely Pathogenic (batch 13, extended in
-  batch 14 to cover PM4 too), and a dedicated `test_pm4_evaluator.py`
-  suite added in batch 14).
+  currently reach Pathogenic/Likely Pathogenic *under Table 5* (batch 13,
+  extended in batch 14 to cover PM4 too, and given an explicit Bayesian
+  counterpart in batch 20 rather than left to look contradicted by it), a
+  dedicated `test_pm4_evaluator.py` suite added in batch 14, and a
+  dedicated `test_bayesian.py` suite (13 tests) added in batch 20).
 
 ## Design notes
 
@@ -157,7 +173,12 @@ demonstrating a clean case-level EXPLAINED result — a disclosed fixture
 design choice, not a silent one, and a different treatment than the real
 variant got on purpose. This is the strongest concrete argument this
 project has produced so far for eventually adopting Bayesian point-based
-combining rather than Table 5 (see Roadmap).
+combining rather than Table 5 (see Roadmap) — batch 20 (Milestone 5,
+"Bayesian point-based combining" below) followed through on this: run
+through `bayesian.py` instead of `engine.py`, `CAPN3_c.1939G>T`'s exact
+same evidence (PVS1 Very Strong + PM2 Supporting) sums to 9 points,
+Likely Pathogenic, closing this specific gap without touching Table 5's
+own behavior at all.
 
 **Expanding the curated set.** Three real, ClinVar-documented CAPN3
 variants were added alongside the original `CAPN3_c.550del`, chosen
@@ -626,6 +647,117 @@ Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
 evidence, hand-derive the expected result, verify against the engine).
 
+**Milestone 5: Bayesian point-based combining (batch 20).** Every prior
+milestone changed what evidence gets gathered or what criteria get
+evaluated; Milestone 5 changes neither -- it adds a second way to combine
+the exact same evaluated criteria into a classification.
+`src/variant_classifier/bayesian.py` implements Tavtigian et al. 2020's
+"naturally scaled point system" (Human Mutation 41(6):1023-1041), offered
+*alongside* `engine.py`'s classic Table 5 rules rather than replacing
+them -- `combine_bayesian()`/`classify_bayesian()` sit next to
+`combine()`/`classify()`, both callable, both tested, both real. Point
+values and thresholds are quoted directly from the ACGS 2024 UK Practice
+Guidelines for Variant Classification (which cites Tavtigian et al. 2020
+verbatim; see `bayesian.py`'s module docstring for the exact quote):
+pathogenic-direction points (Very Strong=8, Strong=4, Moderate=2,
+Supporting=1) and benign-direction points (Strong=-4, Moderate=-2,
+Supporting=-1) sum to a single net total, classified >=10 Pathogenic, 6-9
+Likely Pathogenic, 0-5 VUS, -1 to -5 Likely Benign, <=-6 Benign -- with
+two carried-over exceptions, not new inventions: BA1 Stand-Alone still
+bypasses point-summing entirely and resolves straight to BENIGN, exactly
+as it does in Table 5; and, per Tavtigian et al. 2020 (via ACGS 2024), a
+minimum of two contributing criteria is required to reach any
+Likely/definite Pathogenic or Likely/definite Benign result, so a single
+criterion's points alone -- however large -- caps out at VUS.
+
+Why this was worth building now rather than left as a roadmap bullet:
+batch 4 already produced a concrete, real discrepancy (`CAPN3_c.1939G>T`
+dropping from LIKELY_PATHOGENIC to VUS once CAPN3's real VCEP threshold
+set PM2 to Supporting strength) and explicitly named the Bayesian point
+system as the real-world fix the VCEP itself uses. Rather than continue
+describing that gap in prose, Milestone 5 made it a running, tested
+comparison. Hand-deriving Bayesian point totals for all 22 curated
+fixtures (independently, before running any new code, same convention as
+every other batch) turned up four real divergences, not just the one
+already anticipated:
+
+- `CAPN3_c.1939G>T` (PVS1 Very Strong + PM2 Supporting = 9 points) — VUS
+  under Table 5 (no rule for "1 Very Strong + 1 Supporting" alone),
+  LIKELY_PATHOGENIC under Bayesian. The anticipated case, now concrete.
+- `DMD_SYNTH_PATHOGENIC_01`, `DMD_c.2302C>T`, `DMD_c.8944C>T` (PVS1 Very
+  Strong + PM2 Moderate = 10 points each) — LIKELY_PATHOGENIC under Table
+  5 (its flat PATHOGENIC tier needs "1 Very Strong + >=2 Moderate", not
+  just one), PATHOGENIC under Bayesian. A second, independent divergence
+  shape found only by checking every fixture rather than just the one
+  already suspected — two of these three are real fixtures.
+
+Both shapes share the same root cause: Table 5's combining rules were
+built as a discrete, hand-enumerated list (Table 5 in Richards et al.
+2015), not derived from the point values later fit to approximate it, so
+a few real evidence combinations that clear the Bayesian point thresholds
+were simply never enumerated as their own Table 5 rule. This project's
+own further literature check (Tavtigian et al. 2020 itself) surfaces a
+third, opposite-direction inconsistency neither this project's fixtures
+happen to exercise: Table 5's "2 Strong" Pathogenic rule is reported as
+the weakest of its eight Pathogenic combining paths (posterior probability
+0.975 vs >0.99 for the rest), and 2 Strong criteria (4+4=8 points) fall
+*short* of the 10-point Bayesian Pathogenic threshold — a case where Table
+5 is arguably more permissive than the point system, not less. Documented
+in `bayesian.py`'s module docstring for completeness; this project has no
+Strong-strength pathogenic-direction evaluator, so no current fixture can
+actually reach it.
+
+One more real design difference, not a bug: Table 5's `combine()` can
+report `conflicting_evidence_flag=True` when pathogenic-direction and
+benign-direction criteria satisfy separate rules simultaneously.
+`combine_bayesian()` cannot produce that state by construction — a single
+net point sum always resolves to exactly one band. This is one of the
+Bayesian framework's own claimed advantages, not something this project
+invented; `combine_bayesian()`'s rationale still states both directions'
+subtotals whenever both contributed, so nothing is hidden, just resolved
+differently.
+
+Case-level ripple effects were checked, not assumed. `clinical.py` never
+calls `engine.classify()` directly — every function takes a pre-computed
+`classifications` dict as a parameter, a separation of concerns baked in
+since Milestone 4 specifically so case-level reasoning wouldn't need to
+know or care how a variant's classification was produced. Feeding every
+curated `ClinicalCase` fixture Bayesian-derived classifications instead of
+Table 5 ones (`test_clinical_case_interpretation_agnostic_to_combining_system`)
+reproduces every existing case-level golden expectation exactly, including
+for `CASE_DMD_HEMIZYGOUS_MALE_REAL` and `CASE_DMD_FEMALE_CARRIER_REAL`,
+built on `DMD_c.2302C>T` — even though that variant's own tier moves from
+LIKELY_PATHOGENIC to PATHOGENIC between the two systems, `clinical.py`'s
+`_QUALIFYING` set treats both tiers identically for case-level purposes,
+so nothing downstream changes. No case-level golden case needed touching.
+
+Golden cases for this milestone live in a new, parallel file,
+`validation/golden_cases/variant_golden_cases_bayesian.yaml`, rather than
+added as extra fields inside the existing Table 5 file — the per-criterion
+evidence and evaluator results are identical between the two systems (only
+the combining step differs), so this file only records what's new: each
+fixture's Bayesian point total and resulting class, with a curator_note
+explaining any divergence from the Table 5 result. `test_bayesian.py` is
+the dedicated test suite (13 tests): the headline
+`test_bayesian_matches_hand_derivation_for_all_curated_bundles` check, a
+`test_bayesian_diverges_from_table5_for_exactly_the_four_documented_fixtures`
+regression lock (so a future evaluator or threshold change that silently
+creates or removes a divergence gets noticed), point-value spot checks
+against the Tavtigian 2020 values quoted above, and hand-built edge cases
+for the 2-criterion minimum rule (including the two exact examples ACGS's
+2024 guidelines themselves use: `PVS1_vstr` alone and `BP4_sup` alone,
+both of which this project already happens to have as real fixtures —
+`CAPN3_c.550del` and `DMD_c.5163G>C` respectively).
+
+What Milestone 5 deliberately does not do: it does not change
+`engine.classify()`'s behavior, does not change which combining system
+`clinical.py` is fed by default (that remains a caller's choice, still
+Table 5 in every existing test), and does not re-derive or replace any
+existing Table 5 golden case. Adding a second, real, working combining
+system was the goal — deciding to make it the project's default, if that
+ever happens, is a separate decision for a separate day, not bundled into
+this milestone.
+
 **Case-level scope.** clinical.py deliberately does not extend the
 per-variant evaluator pattern from Milestone 2/3 — PM3 ("detected in trans
 with a pathogenic variant") has a structural circularity a per-variant
@@ -730,7 +862,8 @@ src/variant_classifier/
     evidence_bundle.py         VariantEvidenceBundle (container, this repo only)
     golden_case.py             GoldenCase (container, this repo only)
   loader.py                  loads/validates the curated fixtures below
-  engine.py                  evaluate_all() + combine() + classify() — the combining engine
+  engine.py                  evaluate_all() + combine() + classify() — Table 5 combining engine
+  bayesian.py                 combine_bayesian() + classify_bayesian() — Milestone 5, see above
   clinical.py                 interpret_case() — case-level reasoning, see "Case-level scope" above
   evaluators/
     pvs1.py                   evaluate_pvs1() — see "PVS1 scope" above
@@ -755,8 +888,9 @@ data/
   synthetic/                 placeholder — larger generated datasets (empty)
 
 validation/golden_cases/
-  variant_golden_cases.yaml            expected per-variant results (renamed from
+  variant_golden_cases.yaml            expected per-variant results, Table 5 (renamed from
                                         capn3_milestone1.yaml once DMD variants existed)
+  variant_golden_cases_bayesian.yaml   expected per-variant results, Bayesian (Milestone 5)
   case_interpretation_golden_cases.yaml expected case-level results (Milestone 4)
 
 tests/unit/                  pytest tests
@@ -778,7 +912,7 @@ pytest
 ```
 
 `pytest.ini` sets `pythonpath = src`, so this works out of the box with no
-extra environment variables. All 118 tests currently pass.
+extra environment variables. All 134 tests currently pass.
 
 A dependency-free alternative is also included, useful in environments
 without PyPI access:
@@ -808,6 +942,11 @@ case with no matching evidence bundle).
   engine.
 - **Milestone 4** — done. `ClinicalCase`/`CaseInterpretation` models and
   `clinical.py`'s case-level reasoning (see "Case-level scope" above).
+- **Milestone 5** — done (batch 20). Bayesian point-based combining
+  (`bayesian.py`, Tavtigian et al. 2020), offered alongside Table 5's
+  `engine.py` rather than replacing it. See "Milestone 5: Bayesian
+  point-based combining" above for the four real divergences found and
+  the case-level agnosticism proof.
 - **Batch 4** — done. Adopted the real ClinGen LGMD VCEP CAPN3
   specification's PM2/BA1/BS1 thresholds and PM2 strength (see "Real
   ClinGen LGMD VCEP thresholds for CAPN3" above); re-derived every golden
@@ -913,21 +1052,36 @@ case with no matching evidence bundle).
   RCVs; BP4 MET alone lands on VUS (Table 5 needs a second
   benign-direction criterion for Likely Benign), the real-data
   complement to `CAPN3_SYNTH_LIKELY_BENIGN_01`'s synthetic BS1+BP4 pair.
-- Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (22 of ~20-30 done, see "Expanding the curated set"
-  above; every criterion-level real-data gap identified so far is now
-  closed, so further additions are for breadth rather than a specific
-  known gap); add PM3/PS1/PM5/PS3/BS3
-  as real per-variant criteria (distinct from how clinical.py currently
-  handles trans/cis reasoning at the case level);
-  revisit PVS1's partial scope (protein-domain criticality,
-  constitutive-exon data — the real CAPN3 VCEP spec includes a gene-specific
-  PVS1 flowchart that isn't implemented here either); revisit DMD's CNV
-  representation gap (see gene_disease_context.yaml) if real DMD variants
-  are ever added; extend X-linked case interpretation beyond the
-  hemizygous-male case once X-inactivation is worth modeling properly;
-  **consider switching `engine.py`'s combining rules from classic Table 5
-  to the VCEP's Bayesian point-based system** — batch 4 produced a
-  concrete, real example (`CAPN3_c.1939G>T`) of Table 5 under-calling a
-  variant the point system would resolve, which is a much stronger
-  motivating case than existed before batch 4.
+- **Batch 20 (Milestone 5)** — done. Added Bayesian point-based combining
+  (`bayesian.py`, Tavtigian et al. 2020) as a second, fully tested
+  combining system alongside Table 5's `engine.py`. Found four real
+  divergences by hand-deriving Bayesian results for all 22 fixtures
+  before writing any code: `CAPN3_c.1939G>T` (VUS under Table 5,
+  LIKELY_PATHOGENIC under Bayesian — the case batch 4 originally
+  flagged as the motivating example) plus a second, independently
+  discovered shape in `DMD_SYNTH_PATHOGENIC_01`, `DMD_c.2302C>T`, and
+  `DMD_c.8944C>T` (LIKELY_PATHOGENIC under Table 5, PATHOGENIC under
+  Bayesian). Proved `clinical.py`'s case-level layer is fully agnostic
+  to which combining system produced its input classifications — no
+  case-level golden case needed touching. This was chosen deliberately
+  as this project's likely last milestone before development moves to a
+  complementary project starting one stage earlier in the pipeline (raw
+  sequencing reads rather than an already-identified variant) — see
+  "Milestone 5: Bayesian point-based combining" above.
+- Later, if this project resumes rather than moving to that next one:
+  continue expanding curated fixtures toward the full 20-30 ClinVar
+  variant set (22 of ~20-30 done, see "Expanding the curated set" above;
+  every criterion-level real-data gap identified so far is now closed,
+  so further additions would be for breadth rather than a specific known
+  gap); add PM3/PS1/PM5/PS3/BS3 as real per-variant criteria (distinct
+  from how clinical.py currently handles trans/cis reasoning at the case
+  level); revisit PVS1's partial scope (protein-domain criticality,
+  constitutive-exon data — the real CAPN3 VCEP spec includes a
+  gene-specific PVS1 flowchart that isn't implemented here either);
+  revisit DMD's CNV representation gap (see gene_disease_context.yaml)
+  if real DMD variants are ever added; extend X-linked case
+  interpretation beyond the hemizygous-male case once X-inactivation is
+  worth modeling properly; decide whether `clinical.py` (or any other
+  caller) should default to Bayesian rather than Table 5 now that both
+  are real, tested options — deliberately left as an open decision by
+  Milestone 5, not made for the caller.

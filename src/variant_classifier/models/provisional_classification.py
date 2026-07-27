@@ -24,6 +24,13 @@ class ProvisionalClassification:
     rationale: str
     conflicting_evidence_flag: bool = False
     manual_review_required: bool = False
+    # Net Bayesian point total (Tavtigian et al. 2020), when this result came from
+    # bayesian.combine_bayesian() rather than engine.py's classic Table 5 combine().
+    # None for Table 5 results -- points aren't a concept Table 5 uses. Added batch 20
+    # (Milestone 5) alongside bayesian.py; kept optional rather than added as a new
+    # required field so every pre-existing Table 5 result and golden case stays valid
+    # with no migration needed.
+    points: Optional[int] = None
 
     def __post_init__(self) -> None:
         if not self.criteria:
@@ -69,6 +76,8 @@ class ProvisionalClassification:
         rationale = require_str(data, "rationale", ctx)
         conflicting_evidence_flag = bool(data.get("conflicting_evidence_flag", False))
         manual_review_required = bool(data.get("manual_review_required", False))
+        points_raw = data.get("points")
+        points = int(points_raw) if points_raw is not None else None
         return cls(
             provisional_class=provisional_class,
             status=status,
@@ -78,4 +87,5 @@ class ProvisionalClassification:
             rationale=rationale,
             conflicting_evidence_flag=conflicting_evidence_flag,
             manual_review_required=manual_review_required,
+            points=points,
         )

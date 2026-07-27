@@ -15,7 +15,7 @@ import yaml
 
 from .errors import SchemaValidationError
 from .models import ClinicalCase, GeneDiseaseContext, GoldenCase, VariantEvidenceBundle
-from .models.enums import CaseInterpretationStatus
+from .models.enums import CaseInterpretationStatus, ProvisionalClass
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CURATED_DIR = REPO_ROOT / "data" / "curated"
@@ -180,6 +180,55 @@ def load_golden_cases(path: Path = None) -> Dict[str, GoldenCase]:
             raise SchemaValidationError(f"{path}: duplicate golden case for variant_id={case.variant_id!r}")
         golden_cases[case.variant_id] = case
     return golden_cases
+
+
+def load_golden_cases_bayesian(path: Path = None) -> Dict[str, dict]:
+    """Load validation/golden_cases/variant_golden_cases_bayesian.yaml into
+    {variant_id: {"expected_provisional_class": ProvisionalClass, "expected_points":
+    Optional[int], "source": str, "curator_note": str}}.
+
+    Deliberately a plain dict, not a GoldenCase (added batch 20 / Milestone 5,
+    alongside bayesian.py): GoldenCase requires a non-empty
+    expected_criterion_status mapping, which doesn't apply here -- the
+    per-criterion results are identical to the Table 5 file (same
+    evaluate_all() output feeds both combining systems), so this file only
+    records what's new: the point total and resulting class. Same
+    lightweight-dict pattern as load_case_interpretation_goldens().
+    """
+    path = path or (GOLDEN_CASES_DIR / "variant_golden_cases_bayesian.yaml")
+    if not path.exists():
+        raise FileNotFoundError(f"Bayesian golden case file not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        raw = yaml.safe_load(handle) or {}
+    if not isinstance(raw, dict) or "golden_cases" not in raw:
+        raise SchemaValidationError(f"{path}: expected a top-level 'golden_cases' list")
+    entries = raw["golden_cases"]
+    if not isinstance(entries, list):
+        raise SchemaValidationError(f"{path}: 'golden_cases' must be a list")
+    goldens: Dict[str, dict] = {}
+    for i, entry in enumerate(entries):
+        if not isinstance(entry, dict) or "variant_id" not in entry or "expected_provisional_class" not in entry:
+            raise SchemaValidationError(
+                f"{path}: golden_cases[{i}] must include 'variant_id' and 'expected_provisional_class'"
+            )
+        variant_id = entry["variant_id"]
+        try:
+            expected_provisional_class = ProvisionalClass(entry["expected_provisional_class"])
+        except ValueError as exc:
+            valid = ", ".join(sorted(v.value for v in ProvisionalClass))
+            raise SchemaValidationError(
+                f"{path}: golden_cases[{i}].expected_provisional_class="
+                f"{entry['expected_provisional_class']!r} invalid; expected one of {valid}"
+            ) from exc
+        if variant_id in goldens:
+            raise SchemaValidationError(f"{path}: duplicate variant_id {variant_id!r}")
+        goldens[variant_id] = {
+            "expected_provisional_class": expected_provisional_class,
+            "expected_points": entry.get("expected_points"),
+            "source": entry.get("source", ""),
+            "curator_note": entry.get("curator_note", ""),
+        }
+    return goldens
 
 
 def load_clinical_cases(path: Path = None) -> List[ClinicalCase]:
