@@ -663,6 +663,51 @@ golden_cases:
       Pathogenic here via PM3_Very Strong and PP4_Strong, case-level
       evidence this project's variant-only engine doesn't implement.
 
+  - variant_id: DMD_c.5234G>A
+    expected_provisional_class: BENIGN
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: NOT_MET
+      PM4: NOT_APPLICABLE
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: MET
+      BS1: MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV000094657.45, Benign, criteria provided/multiple submitters/no conflicts)"
+    curator_note: >
+      This project's first real BA1-MET fixture, closing a gap searched
+      for across nine rounds (batches 3, 4, 6, 7, 8, 10, plus two
+      tooling-blocked rounds in batches 14/15) -- the gap was always
+      framed as "a true common variant to exercise BA1 MET against real
+      data," not CAPN3-specific, and this DMD example satisfies it
+      cleanly. Found via a ClinVar Miner per-submitter benign-variant
+      listing page that rendered as static HTML, unlike the client-
+      rendered search/listing pages that blocked batches 14/15's
+      attempts -- the same class of tooling obstacle, worked around by
+      finding a page shape that doesn't need JavaScript.
+
+      About as unambiguous as a BA1 case gets: gnomAD exomes overall
+      48.59% (533313/1097681 alleles), corroborated independently by
+      TOPMed (38.1%), 1000 Genomes (46.5%), and ExAC (51.4%) -- a
+      near-50/50 common polymorphism in most populations, lowest in
+      gnomAD's African/African American subgroup at ~6.7% (still above
+      the 5% generic BA1 threshold on its own, so no founder-enrichment
+      ambiguity applies the way it does for CAPN3_c.550del or
+      CAPN3_c.2120A>G). ClinVar's real aggregate classification is
+      Benign (16 of 19 contributing submissions); one submitter's own
+      comment states the reasoning almost verbatim as BA1's logic --
+      an automated frequency-based score judged the variant "too
+      frequent to cause the disease."
+
+      BA1 MET (Stand-Alone) resolves this directly to BENIGN per Table 5,
+      with no need for PP3/BP4 (left NOT_EVALUATED -- no
+      computational_evidence curated, since it would be redundant to the
+      headline result). This is also this project's first real fixture to
+      land on flat BENIGN rather than VUS/Likely-Pathogenic/Likely-Benign
+      -- every real fixture before this one landed somewhere in that
+      middle band, a side effect of which scope gaps this project's real
+      fixtures have happened to probe.
+
   - variant_id: DMD_c.10103A>G
     expected_provisional_class: VUS
     expected_criterion_status:

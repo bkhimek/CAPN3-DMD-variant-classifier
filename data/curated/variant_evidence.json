@@ -926,6 +926,49 @@
         "calibrated_prediction": "PATHOGENIC"
       },
       "notes": "Real ClinVar entry (Variation ID 1504148; dbSNP rs2148292190), NM_004006.3(DMD):c.10103A>G (p.Asp3368Gly). This project's first DMD missense fixture and first DMD fixture with computational evidence -- every prior real DMD entry was a truncating/splice variant. Sourced from d'Apolito et al. 2024 (Int J Mol Sci 25(5):2787, PMID 38474032): a de novo heterozygous variant identified by exome sequencing in a 33-year-old woman with dilated cardiomyopathy (X-linked dilated cardiomyopathy, DMD's rare cardiac-predominant phenotype), confirmed absent in both parents (de novo) and found hemizygous in her 8-year-old son, who presents with elevated creatine kinase and calf hypertrophy but no cardiac involvement yet -- a real example of the same phenotypic-spectrum variability this project's DMD female-carrier clinical case fixture (batch 12) already documents, just manifesting on the cardiac axis rather than skeletal muscle. \n\nClinVar's aggregate classification for this variant is 'conflicting classifications' -- Invitae calls it Pathogenic (via de novo occurrence, segregation, and a different pathogenic variant at the same residue, p.Asp3368Tyr -- PS2/PM5/PM1-style case-level reasoning this project doesn't implement), GeneDx calls it Likely Pathogenic, and Revvity calls it Uncertain Significance. The discovery paper's own authors, applying ACMG/AMP criteria themselves, classified it a 'rare clinical VUS' using only PM2 (absent from gnomAD/ExAC/1000G) and PP3 (multiple computational tools predict deleterious) -- which is exactly the evidence this project's engine has access to and exactly the same criteria combination. This is a rare case in this project's curated set where the engine's answer is expected to match a real, published, independently-reasoned ACMG classification directly (rather than illustrating a scope gap against it) -- worth verifying against the engine before finalizing this golden case, not assumed. \n\nREVEL score (0.975) is cited directly from the primary paper's Table 1, not from any ClinVar submitter comment (Invitae's own in-house evidence modeling was explicitly inconclusive per their comment, a different computational approach than REVEL). Since DMD has no VCEP-specific REVEL threshold the way CAPN3 does, this fixture uses the real, published, gene-agnostic Pejaver et al. 2022 calibration instead of CAPN3's VCEP-specific one -- the first real fixture in this project to do so (previously only the CAPN3_SYNTH fixtures referenced this calibration style, informally). 0.975 clears even the Moderate tier (>=0.773) by a wide margin, so PATHOGENIC is unambiguous under this calibration. \n\nPopulation evidence: ABSENT, not a numeric near-zero frequency -- the paper explicitly checked gnomAD, ExAC, and 1000 Genomes and found no record, and ClinVar's Invitae comment independently states 'gnomAD no frequency.' Uses DMD's existing generic-placeholder PM2 threshold config (0.0001, batch 9) purely for context; ABSENT with locus_coverage_adequate does not depend on that threshold value directly."
+    },
+    {
+      "variant": {
+        "variant_id": "DMD_c.5234G>A",
+        "gene": "DMD",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 94657,
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "DMD",
+        "disease": "Duchenne/Becker muscular dystrophy (dystrophinopathy)",
+        "inheritance": "X_LINKED_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (DMD-dystrophinopathy, X-linked)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_004006.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.5234G>A",
+          "hgvs_p": "p.Arg1745His"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0 exomes",
+          "retrieval_status": "OBSERVED",
+          "overall_af": 0.4859,
+          "ancestry_specific_max_af": 0.7111,
+          "allele_count": 533313,
+          "allele_number": 1097681
+        }
+      ],
+      "notes": "Real ClinVar entry (Variation ID 94657; dbSNP rs1801187), NM_004006.3(DMD):c.5234G>A (p.Arg1745His). This project's first real BA1-MET fixture, closing a gap searched for unsuccessfully across nine rounds for CAPN3 specifically (batches 3, 4, 6, 7, 8, 10, plus two tooling-blocked attempts in batch 14/15's round) -- the gap's own framing was always 'a true common variant to exercise BA1 MET against real data', not CAPN3-specific, and this DMD example satisfies it just as well. Found via ClinVar Miner's per-submitter benign-variant listing (a page that, unlike ClinVar's own search-results page or most ClinVar Miner gene-level listings tried in earlier rounds, rendered as static HTML rather than requiring JavaScript -- the same class of tooling obstacle flagged as blocking in batches 14/15, now circumvented by finding one specific page shape that works). \n\nThis is about as unambiguous a BA1 case as exists: multiple independent sources agree the variant allele is extremely common -- gnomAD exomes overall 48.59% (533313/1097681), gnomAD combined 36.9-38.4%, TOPMed 38.1%, 1000 Genomes 46.5%, ExAC 51.4% -- essentially a near-50/50 common polymorphism in most populations (lowest in gnomAD's African/African American subgroup at ~6.7%, still above the 5% generic BA1 threshold on its own). ClinVar's aggregate classification is Benign (16 of 19 contributing submissions, 'criteria provided, multiple submitters, no conflicts'); one submitter's comment states the reasoning almost verbatim as BA1's own logic: an automated frequency-based score judged the variant 'too frequent to cause the disease.' \n\nNo computational_evidence is curated for this fixture -- BA1 alone is expected to resolve this to Benign regardless (Richards et al. 2015: BA1 is Stand-Alone benign evidence, sufficient by itself), so PP3/BP4 would be redundant to the headline result; verify against the engine before finalizing the golden case rather than assuming which exact combining path fires."
     }
   ]
 }
