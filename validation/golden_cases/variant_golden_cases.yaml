@@ -759,3 +759,56 @@ golden_cases:
       VUS" too. This engine's VUS call matches the primary literature's
       own classification directly, not just a defensible fallback against
       a scope gap.
+
+  - variant_id: DMD_c.5163G>C
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: NOT_MET
+      PM4: NOT_APPLICABLE
+      PP3: NOT_MET
+      BP4: MET
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 455905, rs72468630) with REVEL retrieved from dbNSFP via myvariant.info, calibrated per Pejaver et al. 2022's generic REVEL-to-ACMG thresholds"
+    curator_note: >
+      This project's first real BP4-MET fixture, closing the real-data
+      gap flagged after batch 18 (the README's "One real-data gap
+      remains open" note). NM_004006.3(DMD):c.5163G>C (p.Lys1721Asn),
+      REVEL=0.167 -- below even DMD's real Pejaver Moderate-tier BP4
+      threshold (<=0.183), not just the Supporting one (<=0.290), so
+      unambiguously benign-zone under this calibration. Unlike
+      DMD_c.10103A>G's REVEL (cited directly from its discovery paper),
+      this score came from dbNSFP via myvariant.info's public API
+      (https://myvariant.info/v1/query?q=dbsnp.rsid:rs72468630) -- a
+      standard precomputed annotation database, not a paper or ClinVar
+      submitter comment; disclosed here rather than implied otherwise.
+
+      ClinVar itself independently classifies this variant Benign or
+      Likely Benign across six RCV records spanning multiple conditions
+      (Duchenne muscular dystrophy, Becker muscular dystrophy, X-linked
+      dilated cardiomyopathy, cardiovascular phenotype, "not specified",
+      "not provided") and multiple submitters with no conflicts --
+      strong independent corroboration that this is a real benign
+      variant, not just a low REVEL score in isolation.
+
+      Population frequency (0.021% per ClinVar Miner's gnomAD-derived
+      listing) was deliberately chosen to sit above DMD's PM2 threshold
+      (0.01%, hence PM2 NOT_MET rather than contributing pathogenic
+      evidence) but below its BS1 placeholder (0.1%, hence BS1 NOT_MET)
+      -- narrow enough that BP4 is the sole benign-direction criterion
+      MET, not overshadowed by frequency evidence the way BA1 dominated
+      DMD_c.5234G>A (batch 18). This is intentional: the point of this
+      fixture is to exercise BP4 as a standalone signal.
+
+      1 Supporting-Benign criterion (BP4) alone does not satisfy Table
+      5's Likely-Benign rule (needs 1 Strong + 1 Supporting, or 2
+      Supporting) -- landing on VUS despite BP4 MET is correct, not a
+      bug. It's the same "one Supporting-tier criterion alone is
+      insufficient" lesson this project has shown repeatedly on the
+      pathogenic side, now demonstrated from the benign side with real
+      data. It's also the direct complement to
+      CAPN3_SYNTH_LIKELY_BENIGN_01 (Milestone 1, synthetic), which was
+      deliberately built with BOTH BS1 and BP4 MET specifically because
+      neither alone is sufficient -- this fixture shows the "alone"
+      half of that story with a real variant for the first time.

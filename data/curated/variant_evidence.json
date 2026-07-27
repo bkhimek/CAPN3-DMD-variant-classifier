@@ -969,6 +969,54 @@
         }
       ],
       "notes": "Real ClinVar entry (Variation ID 94657; dbSNP rs1801187), NM_004006.3(DMD):c.5234G>A (p.Arg1745His). This project's first real BA1-MET fixture, closing a gap searched for unsuccessfully across nine rounds for CAPN3 specifically (batches 3, 4, 6, 7, 8, 10, plus two tooling-blocked attempts in batch 14/15's round) -- the gap's own framing was always 'a true common variant to exercise BA1 MET against real data', not CAPN3-specific, and this DMD example satisfies it just as well. Found via ClinVar Miner's per-submitter benign-variant listing (a page that, unlike ClinVar's own search-results page or most ClinVar Miner gene-level listings tried in earlier rounds, rendered as static HTML rather than requiring JavaScript -- the same class of tooling obstacle flagged as blocking in batches 14/15, now circumvented by finding one specific page shape that works). \n\nThis is about as unambiguous a BA1 case as exists: multiple independent sources agree the variant allele is extremely common -- gnomAD exomes overall 48.59% (533313/1097681), gnomAD combined 36.9-38.4%, TOPMed 38.1%, 1000 Genomes 46.5%, ExAC 51.4% -- essentially a near-50/50 common polymorphism in most populations (lowest in gnomAD's African/African American subgroup at ~6.7%, still above the 5% generic BA1 threshold on its own). ClinVar's aggregate classification is Benign (16 of 19 contributing submissions, 'criteria provided, multiple submitters, no conflicts'); one submitter's comment states the reasoning almost verbatim as BA1's own logic: an automated frequency-based score judged the variant 'too frequent to cause the disease.' \n\nNo computational_evidence is curated for this fixture -- BA1 alone is expected to resolve this to Benign regardless (Richards et al. 2015: BA1 is Stand-Alone benign evidence, sufficient by itself), so PP3/BP4 would be redundant to the headline result; verify against the engine before finalizing the golden case rather than assuming which exact combining path fires."
+    },
+    {
+      "variant": {
+        "variant_id": "DMD_c.5163G>C",
+        "gene": "DMD",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 455905,
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "DMD",
+        "disease": "Duchenne/Becker muscular dystrophy (dystrophinopathy)",
+        "inheritance": "X_LINKED_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "GENERIC_ACMG",
+          "version": "Richards et al. 2015"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (DMD-dystrophinopathy, X-linked)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_004006.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.5163G>C",
+          "hgvs_p": "p.Lys1721Asn"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "as reported by ClinVar Miner (PreventionGenetics benign-variant listing)",
+          "retrieval_status": "OBSERVED",
+          "overall_af": 0.00021
+        }
+      ],
+      "computational_evidence": {
+        "tool": "REVEL",
+        "tool_version": "dbNSFP-precomputed, retrieved via myvariant.info (chrX:g.32381067C>G / rs72468630)",
+        "calibration_source": "Pejaver et al. 2022 generic REVEL-to-ACMG calibration (PP3 Moderate >=0.773, PP3 Supporting >=0.644, BP4 Supporting <=0.290, BP4 Moderate <=0.183) -- used because DMD has no VCEP-specific REVEL threshold (see config/population_thresholds.yaml); this project's PP3/BP4 evaluators apply Supporting strength regardless of calibration tier",
+        "retrieval_status": "OBSERVED",
+        "score": 0.167,
+        "calibrated_prediction": "BENIGN"
+      },
+      "notes": "Real ClinVar entry (Variation ID 455905; dbSNP rs72468630), NM_004006.3(DMD):c.5163G>C (p.Lys1721Asn). This project's first real BP4-MET fixture, closing the last open real-data gap noted after batch 18. REVEL score (0.167) retrieved from dbNSFP via myvariant.info (https://myvariant.info/v1/query?q=dbsnp.rsid:rs72468630) -- ClinVar submitter comments for this variant don't cite a computational score directly (most Benign calls for a variant this rare-but-still-population-observed lean on frequency/segregation rather than REVEL), so unlike DMD_c.10103A>G (batch 16, REVEL cited directly in the source paper), this fixture's REVEL comes from a standard precomputed annotation database rather than a specific paper or ClinVar comment -- disclosed here rather than implied to be VCEP/paper-sourced. \n\n0.167 clears even DMD's real Pejaver Moderate-tier BP4 threshold (<=0.183), not just the Supporting one (<=0.290) -- unambiguously in the benign zone under this calibration. ClinVar itself shows this variant classified Benign or Likely Benign across six independent RCV records (Duchenne muscular dystrophy, Becker muscular dystrophy, X-linked dilated cardiomyopathy, cardiovascular phenotype, 'not specified', 'not provided'), spanning multiple submitters with no conflicting classifications recorded. \n\nPopulation frequency (0.021%, gnomAD-derived per ClinVar Miner's listing) is deliberately in a band that does NOT trigger BA1 or BS1 (below DMD's generic 5% BA1 default and its 0.1% BS1 placeholder) -- chosen specifically so BP4 is the standalone distinguishing benign-direction criterion in this fixture, not overshadowed by frequency-based evidence the way BA1 dominated DMD_c.5234G>A (batch 18). It's also above DMD's own PM2 threshold (0.01%), so PM2 is expected NOT_MET (too common for PM2) rather than contributing pathogenic-direction evidence either. \n\nExpected combining result: BP4 MET (Supporting, this evaluator's hardcoded strength regardless of calibration tier) is the only benign-direction criterion MET -- BS1 is NOT_MET at this frequency, so Table 5's Likely-Benign rule (1 Strong-Benign + 1 Supporting-Benign, or 2 Supporting-Benign) is not satisfied by BP4 alone. Landing on VUS despite BP4 MET is not a bug: it's the same 'one Supporting-tier criterion alone is insufficient' lesson this project has already shown repeatedly on the pathogenic side, now shown from the benign side with real data -- BP4's role here is to be correctly exercised and correctly insufficient alone, mirroring exactly why CAPN3_SYNTH_LIKELY_BENIGN_01 (Milestone 1) was deliberately built with BOTH BS1 and BP4 MET rather than either alone. Verify against the engine before finalizing the golden case rather than assuming."
     }
   ]
 }

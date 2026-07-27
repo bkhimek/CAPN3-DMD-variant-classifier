@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 4 complete, curated variant set at 21 of ~20-30
+## Status: Milestone 4 complete, curated variant set at 22 of ~20-30
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -27,10 +27,10 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- **Twenty-one curated evidence bundles** (`data/curated/variant_evidence.json`):
-  seventeen real ClinVar-grounded variants (eleven CAPN3, six DMD) and four
+- **Twenty-two curated evidence bundles** (`data/curated/variant_evidence.json`):
+  eighteen real ClinVar-grounded variants (eleven CAPN3, seven DMD) and four
   synthetic cases (three CAPN3, one DMD) constructed to exercise specific
-  combining-rule and case-level paths. This is seventeen increments toward
+  combining-rule and case-level paths. This is eighteen increments toward
   the ~20-30 ClinVar variant set from the original project plan — see
   "Expanding the curated set" below for what each real variant adds and
   where this is headed. Gene/disease context for both CAPN3 and DMD
@@ -60,7 +60,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Twenty-one curated variants (CAPN3 and DMD) and nine curated
+- Twenty-two curated variants (CAPN3 and DMD) and nine curated
   `ClinicalCase` fixtures covering every branch above — including, as of
   batch 12, a pair built on a real ClinVar-sourced DMD variant rather
   than only the original synthetic ones, and, as of batch 17, the case-
@@ -593,13 +593,34 @@ framing never required that gene.
   band, a side effect of which scope gaps the real fixtures happened to
   probe rather than anything about BENIGN being harder to reach.
 
-One real-data gap remains open: a real, precisely-sourced BP4-MET example
-(a calibrated computational score landing BENIGN from real data). The
-project's one real benign-leaning computational score remains
-`CAPN3_c.2257G>A`'s INDETERMINATE REVEL (batch 8); DMD's real Pejaver
-calibration (batch 16) opens a second, easier-to-clear avenue for this
-(BP4 Supporting at REVEL <=0.290, vs. CAPN3's real VCEP threshold of
-<=0.10) that hasn't been searched yet.
+Batch 19 closed that last open real-data gap:
+
+- `DMD_c.5163G>C` (p.Lys1721Asn) — a real, ClinVar-documented DMD
+  missense variant (Variation ID 455905, rs72468630), classified Benign
+  or Likely Benign across six independent RCV records spanning multiple
+  conditions and submitters with no conflicts. Found via
+  `myvariant.info`'s public REST API (`dbnsfp.revel` field), a new
+  discovery this round — the first working source in this project for
+  precomputed REVEL scores after both NCBI eutils and gnomAD's GraphQL
+  API were confirmed blocked/non-functional in this environment. REVEL
+  = 0.167, clearing even DMD's real Pejaver et al. 2022 Moderate-tier
+  BP4 threshold (<=0.183), not just the Supporting one (<=0.290) —
+  unambiguously benign-zone. Population frequency (0.021%) was
+  deliberately chosen to sit above DMD's PM2 threshold but below its
+  BS1 placeholder, so BP4 is the sole benign-direction criterion MET,
+  not overshadowed by frequency evidence the way BA1 dominated
+  `DMD_c.5234G>A` (batch 18). BP4 MET (Supporting) alone doesn't
+  satisfy Table 5's Likely-Benign rule (needs 1 Strong + 1 Supporting,
+  or 2 Supporting), so this lands on VUS — the direct real-data
+  complement to `CAPN3_SYNTH_LIKELY_BENIGN_01`, which was built with
+  both BS1 and BP4 MET specifically because neither alone suffices.
+
+Every real-data gap the project set out to find — BA1 MET, BS1 MET
+(pre-existing), PM4 at both strengths, and now BP4 MET — has a real
+fixture behind it. The curated variant set has reached the low end of
+its original ~20-30 target with room to keep growing, but no longer has
+a specific "still missing" criterion-level story driving what gets added
+next.
 
 Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
@@ -728,7 +749,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       21 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       22 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         9 curated ClinicalCase fixtures (Milestone 4)
   source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
   synthetic/                 placeholder — larger generated datasets (empty)
@@ -883,10 +904,20 @@ case with no matching evidence bundle).
   BP4-MET example — DMD's real Pejaver calibration (batch 16) opens an
   easier avenue for this than CAPN3's strict VCEP threshold, not yet
   searched.
+- **Batch 19** — done. Added `DMD_c.5163G>C`, closing the project's last
+  open real-data gap (a real BP4-MET example). REVEL score (0.167)
+  sourced from `myvariant.info`'s dbNSFP-backed public API — a new
+  working data source discovered this round after NCBI eutils and
+  gnomAD's GraphQL API were both confirmed non-functional in this
+  environment. Real ClinVar Benign/Likely-Benign consensus across six
+  RCVs; BP4 MET alone lands on VUS (Table 5 needs a second
+  benign-direction criterion for Likely Benign), the real-data
+  complement to `CAPN3_SYNTH_LIKELY_BENIGN_01`'s synthetic BS1+BP4 pair.
 - Later: continue expanding curated fixtures toward the full 20-30
-  ClinVar variant set (21 of ~20-30 done, see "Expanding the curated set"
-  above; a real BP4-MET example is the one known remaining gap); add
-  PM3/PS1/PM5/PS3/BS3
+  ClinVar variant set (22 of ~20-30 done, see "Expanding the curated set"
+  above; every criterion-level real-data gap identified so far is now
+  closed, so further additions are for breadth rather than a specific
+  known gap); add PM3/PS1/PM5/PS3/BS3
   as real per-variant criteria (distinct from how clinical.py currently
   handles trans/cis reasoning at the case level);
   revisit PVS1's partial scope (protein-domain criticality,
