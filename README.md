@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 5 complete, curated variant set at 22 of ~20-30
+## Status: Milestone 5 complete, curated variant set at 22 of ~20-30, CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
 
 Milestone 5 (batch 20) added a second combining system -- Bayesian
 point-based combining (Tavtigian et al. 2020), offered alongside, not
@@ -85,7 +85,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 134 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 142 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does; also includes two hand-built tests pairing the real DMD
@@ -884,8 +884,14 @@ data/
     gene_disease_context.yaml   CAPN3 and DMD
     variant_evidence.json       22 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         9 curated ClinicalCase fixtures (Milestone 4)
-  source/                    placeholder — raw pulls from ClinVar/gnomAD/VEP (empty)
+  source/
+    pipeline_annotate_calls/  real (trimmed) sample of CAPN3-DMD-variant-calling-pipeline's
+                              ANNOTATE_CALLS VCF output, used by test_pipeline_adapter.py
   synthetic/                 placeholder — larger generated datasets (empty)
+
+src/variant_classifier/
+  pipeline_adapter.py         build_bundles_from_pipeline_output() — CAPN3-DMD-variant-calling-pipeline's
+                              VCF -> VariantEvidenceBundle (Batch 21, see Status above)
 
 validation/golden_cases/
   variant_golden_cases.yaml            expected per-variant results, Table 5 (renamed from
@@ -912,7 +918,7 @@ pytest
 ```
 
 `pytest.ini` sets `pythonpath = src`, so this works out of the box with no
-extra environment variables. All 134 tests currently pass.
+extra environment variables. All 142 tests currently pass.
 
 A dependency-free alternative is also included, useful in environments
 without PyPI access:
@@ -1068,6 +1074,26 @@ case with no matching evidence bundle).
   complementary project starting one stage earlier in the pipeline (raw
   sequencing reads rather than an already-identified variant) — see
   "Milestone 5: Bayesian point-based combining" above.
+- **Batch 21 (Projects 4x5 integration)** — done. Added
+  `src/variant_classifier/pipeline_adapter.py`: turns
+  CAPN3-DMD-variant-calling-pipeline's `ANNOTATE_CALLS` VCF output (VEP
+  transcript consequence + gnomAD v4.1 population frequency, GATK/DeepVariant-
+  concordant HG002 calls) into real `VariantEvidenceBundle` instances, reusing
+  `loader.load_gene_disease_contexts()` rather than duplicating it. Lives here,
+  not in the pipeline repo, so that repo stays free of a runtime dependency on
+  this package (see the adapter's own module docstring). Verified against a real,
+  hand-trimmed 5-record sample of CAPN3-DMD-variant-calling-pipeline's actual output
+  (`data/source/pipeline_annotate_calls/`, see its README for exactly which
+  records and why): every VEP/gnomAD field hand-checked against an independent
+  `bcftools`/`vep` run matches exactly, multi-allelic sites correctly split
+  into one bundle per allele (including reproducing VEP's own indel-allele-
+  trimming convention), and records with no MANE-transcript CSQ hit (i.e.
+  outside both genes' actual transcript span) correctly produce no bundle
+  rather than a fabricated one. `ComputationalEvidence` and NMD/repeat-region
+  determination for consequences that need them are explicitly left absent,
+  not guessed (see the adapter docstring for why) — neither path is exercised
+  by real HG002 data, which is confirmed clinically empty for CAPN3/DMD
+  pathogenic variation. 8 new tests (`test_pipeline_adapter.py`), 142 total.
 - Later, if this project resumes rather than moving to that next one:
   continue expanding curated fixtures toward the full 20-30 ClinVar
   variant set (22 of ~20-30 done, see "Expanding the curated set" above;
