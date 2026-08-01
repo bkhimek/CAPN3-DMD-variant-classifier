@@ -1,0 +1,42 @@
+# Per-gene dosage-sensitivity curation, used by cnv_scoring.py for Section 2
+# (haploinsufficiency-overlap) categories of the ACMG/ClinGen Technical
+# Standards for the Interpretation and Reporting of Constitutional
+# Copy-Number Variants (Riggs et al. 2020, Genetics in Medicine 22:245-257).
+#
+# hi_score follows ClinGen's own Haploinsufficiency (HI) curation scale used
+# by its Dosage Sensitivity Curation task team (0 = no evidence available,
+# 1 = little evidence, 2 = emerging evidence, 3 = sufficient evidence /
+# established -- ClinGen also defines 30/40 reserved codes for autosomal
+# recessive / dosage-insensitive genes that this project does not use).
+# hi_established = true iff hi_score == 3 -- ClinGen's own "sufficient
+# evidence for dosage pathogenicity" bar, which is exactly what Riggs 2020
+# category 2A requires ("complete overlap of an established ... gene").
+# See search.clinicalgenome.org/kb/gene-dosage for the live curation.
+#
+# Only DMD is populated here. CAPN3-LGMDR1 is autosomal recessive
+# (loss-of-function requires a hit on BOTH copies) -- ClinGen's
+# haploinsufficiency dosage-sensitivity framework is scoped to
+# single-copy-loss-causes-disease mechanisms (autosomal dominant, or
+# X-linked hemizygous as in DMD's own mechanism). A single-copy deletion of
+# CAPN3 does not, by itself, cause LGMDR1 the way a deletion of DMD causes
+# dystrophinopathy in a hemizygous male -- a genuine biological reason CAPN3
+# has no entry here, not an oversight. See README, "DMD CNV/structural-
+# variant scoring (batch 23)" for the full writeup, including why Section
+# 2H (predicted-but-not-established HI, via DECIPHER/pLI/LOEUF) is deferred
+# rather than guessed at for any future gene added here without those three
+# external prediction datasets wired up.
+
+genes:
+  DMD:
+    hi_score: 3
+    hi_established: true
+    source: >
+      ClinGen Dosage Sensitivity Curation, DMD: Haploinsufficiency score 3
+      ("sufficient evidence for dosage pathogenicity"). Curation page:
+      search.clinicalgenome.org/kb/gene-dosage (DMD). Consistent with DMD's
+      mechanism already recorded in data/curated/gene_disease_context.yaml
+      (LOSS_OF_FUNCTION, X-linked recessive / functionally hemizygous in
+      males) and with the real Xp21 contiguous gene deletion syndrome
+      literature (complex glycerol kinase deficiency; e.g. PMID 23739620,
+      PMC8543963) confirming that complete loss of one DMD copy alone is
+      sufficient to cause dystrophinopathy.

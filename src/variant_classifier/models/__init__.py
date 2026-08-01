@@ -30,10 +30,21 @@ Plus two Milestone 4 models for case-level (not variant-level) reasoning:
 
 - ClinicalCase                (clinical_case.py)
 - CaseInterpretation           (case_interpretation.py)
+
+Plus three batch-23 models for DMD CNV/deletion scoring -- a deliberately
+separate evidence family, not an extension of VariantEvidenceBundle (see
+cnv_deletion_evidence.py's docstring for why):
+
+- CnvDeletionEvidence          (cnv_deletion_evidence.py)
+- CnvCategoryResult            (cnv_category_result.py)
+- CnvProvisionalClassification (cnv_provisional_classification.py)
 """
 
-from .clinical_case import ClinicalCase
 from .case_interpretation import CaseInterpretation
+from .clinical_case import ClinicalCase
+from .cnv_category_result import CnvCategoryResult
+from .cnv_deletion_evidence import CnvDeletionEvidence
+from .cnv_provisional_classification import CnvProvisionalClassification
 from .computational_evidence import ComputationalEvidence
 from .criterion_result import CriterionResult
 from .evidence_bundle import VariantEvidenceBundle
@@ -48,6 +59,9 @@ from .variant_identity import VariantIdentity
 __all__ = [
     "CaseInterpretation",
     "ClinicalCase",
+    "CnvCategoryResult",
+    "CnvDeletionEvidence",
+    "CnvProvisionalClassification",
     "ComputationalEvidence",
     "CriterionResult",
     "GeneDiseaseContext",

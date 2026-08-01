@@ -14,7 +14,7 @@ from typing import Dict, List, Tuple
 import yaml
 
 from .errors import SchemaValidationError
-from .models import ClinicalCase, GeneDiseaseContext, GoldenCase, VariantEvidenceBundle
+from .models import CnvDeletionEvidence, ClinicalCase, GeneDiseaseContext, GoldenCase, VariantEvidenceBundle
 from .models.enums import CaseInterpretationStatus, ProvisionalClass
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -130,6 +130,55 @@ def load_frequency_thresholds(path: Path = None) -> dict:
     return {"ba1_stand_alone_af": float(ba1_af), "genes": genes}
 
 
+def load_dosage_sensitivity(path: Path = None) -> Dict[str, dict]:
+    """Load config/dosage_sensitivity.yaml into:
+
+        {gene: {"hi_score": int, "hi_established": bool, "source": str}}
+
+    Used by cnv_scoring.py's category 2A check ("complete overlap of an
+    established dosage-sensitive gene"). Added batch 23 alongside
+    cnv_scoring.py and models/cnv_deletion_evidence.py -- kept in loader.py
+    next to load_frequency_thresholds() since both are the same shape of
+    thing: a small, hand-curated, per-gene YAML config an evaluator/scoring
+    module needs before it can reason about a specific variant/CNV.
+
+    hi_established must equal (hi_score == 3) -- ClinGen's own "sufficient
+    evidence" bar for category 2A -- checked here rather than trusted
+    blindly from the YAML, so a future curator typo (hi_score: 2,
+    hi_established: true) is rejected loudly instead of silently
+    misclassifying a gene as dosage-sensitive-established.
+    """
+    path = path or (CONFIG_DIR / "dosage_sensitivity.yaml")
+    if not path.exists():
+        raise FileNotFoundError(f"Dosage sensitivity config not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        raw = yaml.safe_load(handle) or {}
+    if not isinstance(raw, dict) or "genes" not in raw:
+        raise SchemaValidationError(f"{path}: expected a top-level 'genes' mapping")
+
+    genes: Dict[str, dict] = {}
+    for gene, entry in raw["genes"].items():
+        if not isinstance(entry, dict) or "hi_score" not in entry or "hi_established" not in entry:
+            raise SchemaValidationError(f"{path}: genes.{gene} must include both 'hi_score' and 'hi_established'")
+        hi_score = entry["hi_score"]
+        hi_established = entry["hi_established"]
+        if not isinstance(hi_score, int) or isinstance(hi_score, bool) or not (0 <= hi_score <= 3):
+            raise SchemaValidationError(f"{path}: genes.{gene}.hi_score must be an integer in [0, 3]")
+        if not isinstance(hi_established, bool):
+            raise SchemaValidationError(f"{path}: genes.{gene}.hi_established must be true/false")
+        if hi_established != (hi_score == 3):
+            raise SchemaValidationError(
+                f"{path}: genes.{gene}.hi_established={hi_established} is inconsistent with hi_score="
+                f"{hi_score} -- hi_established must be true iff hi_score == 3"
+            )
+        genes[gene] = {
+            "hi_score": hi_score,
+            "hi_established": hi_established,
+            "source": entry.get("source", ""),
+        }
+    return genes
+
+
 def load_variant_evidence_bundles(path: Path = None) -> Tuple[List[VariantEvidenceBundle], List[Tuple[dict, str]]]:
     """Load data/curated/variant_evidence.json into a list of validated
     VariantEvidenceBundle instances.
@@ -225,6 +274,82 @@ def load_golden_cases_bayesian(path: Path = None) -> Dict[str, dict]:
         goldens[variant_id] = {
             "expected_provisional_class": expected_provisional_class,
             "expected_points": entry.get("expected_points"),
+            "source": entry.get("source", ""),
+            "curator_note": entry.get("curator_note", ""),
+        }
+    return goldens
+
+
+def load_cnv_deletion_evidence(path: Path = None) -> Tuple[List[CnvDeletionEvidence], List[Tuple[dict, str]]]:
+    """Load data/curated/cnv_deletion_evidence.json into a list of validated
+    CnvDeletionEvidence instances. Mirrors load_variant_evidence_bundles():
+    returns (evidence, rejected) rather than raising on the first bad
+    record, for the same reason -- a growing curated set can have one bad
+    entry among several good ones.
+    """
+    path = path or (CURATED_DIR / "cnv_deletion_evidence.json")
+    if not path.exists():
+        raise FileNotFoundError(f"CNV deletion evidence file not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        raw = json.load(handle)
+    if not isinstance(raw, dict) or "cases" not in raw or not isinstance(raw["cases"], list):
+        raise SchemaValidationError(f"{path}: expected a top-level 'cases' list")
+
+    evidence: List[CnvDeletionEvidence] = []
+    rejected: List[Tuple[dict, str]] = []
+    for i, entry in enumerate(raw["cases"]):
+        try:
+            evidence.append(CnvDeletionEvidence.from_dict(entry, f"cases[{i}]"))
+        except SchemaValidationError as exc:
+            rejected.append((entry, str(exc)))
+    return evidence, rejected
+
+
+def load_cnv_deletion_golden_cases(path: Path = None) -> Dict[str, dict]:
+    """Load validation/golden_cases/cnv_deletion_golden_cases.yaml into
+    {cnv_id: {"expected_provisional_class": ProvisionalClass, "expected_points":
+    Optional[float], "expected_category_code": Optional[str], "source": str,
+    "curator_note": str}}.
+
+    Same lightweight-dict pattern as load_golden_cases_bayesian() -- a full
+    GoldenCase doesn't fit here (it requires a non-empty
+    expected_criterion_status mapping keyed by ACMG codes, which a CNV
+    result never has), so this records only what cnv_scoring.py actually
+    produces: a provisional class, a net point total, and (for this
+    project's single-category-per-CNV model) which category code drove it.
+    """
+    path = path or (GOLDEN_CASES_DIR / "cnv_deletion_golden_cases.yaml")
+    if not path.exists():
+        raise FileNotFoundError(f"CNV deletion golden case file not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        raw = yaml.safe_load(handle) or {}
+    if not isinstance(raw, dict) or "golden_cases" not in raw:
+        raise SchemaValidationError(f"{path}: expected a top-level 'golden_cases' list")
+    entries = raw["golden_cases"]
+    if not isinstance(entries, list):
+        raise SchemaValidationError(f"{path}: 'golden_cases' must be a list")
+    goldens: Dict[str, dict] = {}
+    for i, entry in enumerate(entries):
+        if not isinstance(entry, dict) or "cnv_id" not in entry or "expected_provisional_class" not in entry:
+            raise SchemaValidationError(
+                f"{path}: golden_cases[{i}] must include 'cnv_id' and 'expected_provisional_class'"
+            )
+        cnv_id = entry["cnv_id"]
+        try:
+            expected_provisional_class = ProvisionalClass(entry["expected_provisional_class"])
+        except ValueError as exc:
+            valid = ", ".join(sorted(v.value for v in ProvisionalClass))
+            raise SchemaValidationError(
+                f"{path}: golden_cases[{i}].expected_provisional_class="
+                f"{entry['expected_provisional_class']!r} invalid; expected one of {valid}"
+            ) from exc
+        if cnv_id in goldens:
+            raise SchemaValidationError(f"{path}: duplicate cnv_id {cnv_id!r}")
+        expected_points = entry.get("expected_points")
+        goldens[cnv_id] = {
+            "expected_provisional_class": expected_provisional_class,
+            "expected_points": float(expected_points) if expected_points is not None else None,
+            "expected_category_code": entry.get("expected_category_code"),
             "source": entry.get("source", ""),
             "curator_note": entry.get("curator_note", ""),
         }

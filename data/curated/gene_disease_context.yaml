@@ -6,11 +6,16 @@
 # CAPN3 was the only gene populated through Milestone 3. DMD was added in
 # Milestone 4 specifically for X-linked hemizygous interpretation (see
 # clinical.py). Note: DMD pathogenic variants are very often multi-exon
-# deletions/duplications (structural, copy-number variants), which this
-# project's TranscriptConsequence model does not represent — the DMD
-# fixture added here is a synthetic point/small-indel variant instead, to
-# stay within the project's current representational scope rather than
-# reopen CNV modeling.
+# deletions/duplications (structural, copy-number variants), which
+# VariantEvidenceBundle/TranscriptConsequence (and therefore this file's
+# GeneDiseaseContext, which every VariantEvidenceBundle references) still
+# do not represent -- CNV deletions are modeled separately, as of batch
+# 23, via CnvDeletionEvidence + cnv_scoring.py (config/dosage_sensitivity.yaml,
+# not this file, holds their gene-level input). The DMD point-mutation
+# fixtures in variant_evidence.json remain real/synthetic point/small-indel
+# variants for exactly this reason -- see README.md, "DMD CNV/structural-
+# variant scoring (batch 23)" for the full writeup of the separate CNV
+# evidence family and why it isn't folded into this schema.
 
 # CAPN3's specification was upgraded from GENERIC_ACMG to VCEP during the
 # batch-4 curated-set expansion, once the real ClinGen LGMD VCEP CAPN3

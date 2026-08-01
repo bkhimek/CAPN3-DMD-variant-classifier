@@ -199,3 +199,36 @@ ACMG_CRITERION_CODES = frozenset(
 # LIKELY_BENIGN (BS1 alone is only one Strong-Benign criterion; Likely
 # Benign needs 1 Strong + 1 Supporting, or 2 Supporting).
 SUPPORTED_CRITERIA_MILESTONE_1 = frozenset({"PVS1", "PM2", "PP3", "BP4", "BA1", "BS1"})
+
+
+class CnvReadingFrameEffect(str, Enum):
+    """Whether an intragenic (both gene ends intact) deletion is predicted
+    to shift the reading frame, per the Aartsma-Rus DMD reading-frame rule
+    (Aartsma-Rus et al. 2006, PMID 16770791; 2019 update, Human Mutation).
+    Curated explicitly per CnvDeletionEvidence record -- never computed by
+    this project from raw deleted-base counts, the same "state the fact,
+    don't derive it" convention TranscriptConsequence.nmd_predicted and
+    SameResidueEvidence.splice_impact_excluded already use. UNKNOWN is a
+    real, legitimate state (e.g. breakpoints not precisely resolved to the
+    base pair) distinct from simply omitting the field."""
+
+    OUT_OF_FRAME = "OUT_OF_FRAME"
+    IN_FRAME = "IN_FRAME"
+    UNKNOWN = "UNKNOWN"
+
+
+# The Section 2 (loss/deletion, dosage-sensitivity) category codes this
+# project's cnv_scoring.py actually evaluates, per the ACMG/ClinGen
+# Technical Standards for Copy-Number Variants (Riggs et al. 2020), point
+# values as reimplemented by ClassifyCNV (Gurbich & Ilinsky 2020, Sci Rep
+# 10:20375). NONE_APPLICABLE is this project's OWN bookkeeping label (not
+# a Riggs/ClassifyCNV code) for a deletion that is intragenic, established
+# to be in an HI gene, but whose reading-frame effect is IN_FRAME or
+# UNKNOWN -- i.e. none of 2A/2C/2D/2E/2F match. The real Riggs rubric
+# likely has a specific code for this shape (candidates seen in secondary
+# sources include 2B and 2G) but this project has not independently
+# verified either one's exact definition or point value, so rather than
+# guess, it reports zero Section-2 points under this disclosed
+# project-internal label. See cnv_deletion_evidence.py and cnv_scoring.py
+# for the full scope writeup.
+CNV_LOSS_CATEGORY_CODES = frozenset({"2A", "2C", "2D", "2E", "2F", "NONE_APPLICABLE"})

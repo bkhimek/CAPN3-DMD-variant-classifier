@@ -1,0 +1,86 @@
+# CNV deletion golden cases -- curated SEPARATELY from
+# data/curated/cnv_deletion_evidence.json, same discipline as
+# variant_golden_cases.yaml / variant_golden_cases_bayesian.yaml: the
+# expected result is hand-derived from the real/literature source BEFORE
+# running cnv_scoring.py, not copied from the engine's own output. See
+# cnv_deletion_evidence.py and cnv_scoring.py for the full scope/source
+# writeup this file's curator_notes summarize.
+
+golden_cases:
+  - cnv_id: DMD_CNV_del_ex47_50
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_points: 0.9
+    expected_category_code: "2E"
+    source: >
+      ClinVar RCV000813350.9 / VCV000656845 (NC_000023.11:g.(?_31819965)_
+      (31929755_?)del), Labcorp Genetics (formerly Invitae), last evaluated
+      2018-11-08, germline classification Pathogenic (1 star). Deletion of
+      DMD exons 47-50, submitter-confirmed out-of-frame with an expected
+      premature stop / absent-or-disrupted protein product.
+    curator_note: >
+      Hand-derived from the ClassifyCNV-sourced decision rule BEFORE
+      running cnv_scoring.py: this is an intragenic deletion (both gene
+      ends intact) that is out-of-frame and NMD-predicted, which maps
+      directly to category 2E (0.9 points) -- no whole-gene overlap (2A
+      doesn't apply), no benign-region overlap (2F doesn't apply), and no
+      5'/3' end involvement (2C/2D don't apply). 0.9 points falls in the
+      Likely Pathogenic band (0.90-0.98) per ClassifyCNV's published
+      cutoffs. This is intentionally LESS severe than ClinVar's own real
+      Pathogenic call for this variant: ClinVar's classification also
+      relies on case/family observational evidence (Riggs 2020 Sections
+      4/5), which this milestone's Section-2-only scoring does not
+      implement. Not a discrepancy to "fix" -- a disclosed, expected
+      consequence of a deliberately partial first version, the same
+      "documented gap" treatment as CAPN3's PVS1+PM2 Table-5-vs-Bayesian
+      discrepancy in bayesian.py.
+
+  - cnv_id: DMD_CNV_del_whole_gene_Xp21
+    expected_provisional_class: PATHOGENIC
+    expected_points: 1.0
+    expected_category_code: "2A"
+    source: >
+      Literature-grounded on the real Xp21 contiguous gene deletion
+      syndrome (complex glycerol kinase deficiency), in which a deletion
+      spanning the entire DMD gene (and, in the real syndrome, neighboring
+      genes) causes Duchenne muscular dystrophy. Over 100 male patients
+      reported (e.g. PMID 23739620; BMC Endocrine Disorders case report,
+      PMC8543963). No single ClinVar accession pinned during this batch's
+      research -- represented as a composite fixture, disclosed as such in
+      cnv_deletion_evidence.py's notes field.
+    curator_note: >
+      Hand-derived: whole_gene_deleted=true and DMD is recorded as an
+      established (HI=3) ClinGen dosage-sensitive gene in
+      config/dosage_sensitivity.yaml, so category 2A applies unconditionally
+      (whole-gene overlap of an established HI gene always wins over every
+      other category in the decision order, mirroring ClassifyCNV's own
+      control flow). 1.0 points clears the Pathogenic cutoff (>=0.99) on
+      its own -- this is also the real clinical conclusion drawn for the
+      DMD/dystrophinopathy component of this syndrome.
+
+  - cnv_id: DMD_CNV_del_ex45_47_inframe
+    expected_provisional_class: VUS
+    expected_points: 0.0
+    expected_category_code: "NONE_APPLICABLE"
+    source: >
+      Literature-grounded on the classic in-frame DMD exon 45-47 deletion,
+      reported across multiple independent published cohorts as the single
+      most common in-frame deletion causing Becker muscular dystrophy
+      (~25-30% of BMD in-frame deletions). No single ClinVar accession
+      pinned during this batch's research -- represented as a composite
+      fixture, disclosed as such in cnv_deletion_evidence.py's notes field.
+    curator_note: >
+      Hand-derived: this is an intragenic deletion (both gene ends intact)
+      that is IN_FRAME, not OUT_OF_FRAME -- so 2E does not apply -- and it
+      has no 5'/3' end or benign-region involvement, so none of
+      2A/2C/2D/2E/2F apply. This project's cnv_scoring.py reports this as
+      NONE_APPLICABLE (0 points, this project's own disclosed bookkeeping
+      label, not a real Riggs/ClassifyCNV code -- see
+      models/enums.py's CNV_LOSS_CATEGORY_CODES comment), which lands VUS
+      (0 is within the -0.90..0.90 VUS band). This is a DELIBERATE,
+      disclosed gap, not an error: real in-frame Becker deletions of this
+      kind are typically classified Pathogenic/Likely Pathogenic in
+      clinical practice via segregation and case-series evidence (Riggs
+      2020 Sections 4/5), which this milestone's dosage-sensitivity-only
+      slice does not implement. This golden case exists specifically to
+      make that gap visible and testable, not to assert that VUS is the
+      "correct" real-world classification for d45-47 deletions.

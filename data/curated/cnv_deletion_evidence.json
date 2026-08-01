@@ -1,0 +1,48 @@
+{
+  "cases": [
+    {
+      "cnv_id": "DMD_CNV_del_ex47_50",
+      "gene": "DMD",
+      "genome_build": "GRCh38",
+      "chromosome": "X",
+      "start": 31819965,
+      "end": 31929755,
+      "coordinate_verified": true,
+      "whole_gene_deleted": false,
+      "five_prime_end_deleted": false,
+      "three_prime_end_deleted": false,
+      "cds_involved": true,
+      "other_exons_involved": true,
+      "overlaps_benign_region": false,
+      "reading_frame_effect": "OUT_OF_FRAME",
+      "nmd_predicted": true,
+      "exon_description": "exons 47-50 (intragenic, both gene ends intact)",
+      "notes": "REAL, ClinVar RCV000813350.9 / VCV000656845 (NC_000023.11:g.(?_31819965)_(31929755_?)del), submitted by Labcorp Genetics (formerly Invitae), last evaluated 2018-11-08, germline classification Pathogenic, 1-star review status ('criteria provided, single submitter'). Submitter's own description: 'an out-of-frame deletion of the genomic region encompassing exons 47-50 of the DMD gene. This is expected to create a premature translational stop signal and result in an absent or disrupted protein product.' Cites the Leiden DMD mutation database reading-frame-rule review (Aartsma-Rus et al. 2006, PMID 16770791) directly. This project's Section-2-only score (2E, 0.9 points -> LIKELY_PATHOGENIC) is intentionally more conservative than ClinVar's real Pathogenic call, since ClinVar's classification also draws on case/family observational evidence (PMID 23829870, 26081009, 1889805, 9007319) that corresponds to Riggs 2020 Sections 4/5, out of scope for this milestone -- see cnv_deletion_evidence.py's module docstring for the disclosed gap this represents."
+    },
+    {
+      "cnv_id": "DMD_CNV_del_whole_gene_Xp21",
+      "gene": "DMD",
+      "genome_build": "GRCh38",
+      "coordinate_verified": false,
+      "whole_gene_deleted": true,
+      "overlaps_benign_region": false,
+      "exon_description": "entire DMD gene (exons 1-79)",
+      "notes": "LITERATURE-GROUNDED, not a single pinned ClinVar accession: represents the real, well-documented Xp21 contiguous gene deletion syndrome (complex glycerol kinase deficiency), in which a genomic deletion spanning the entire DMD gene (plus, in the real syndrome, neighboring genes GK, NR0B1, and sometimes IL1RAPL1) causes Duchenne muscular dystrophy alongside glycerol kinase deficiency and congenital adrenal hypoplasia. Over 100 male patients reported in the literature (e.g. PMID 23739620; BMC Endocrine Disorders case report, PMC8543963). coordinate_verified is left false and no chromosome/start/end are recorded here because this fixture is a composite of the published phenotype/mechanism, not one specific patient's exact breakpoints -- representing this project's own single-gene DMD scope (the real syndrome's multi-gene extent is Section-3 'gene number' territory, out of scope here, see cnv_deletion_evidence.py). Section-2-only score: category 2A (whole established HI=3 gene deleted, 1.0 points -> PATHOGENIC), which is also the real clinical conclusion for the DMD component of this syndrome."
+    },
+    {
+      "cnv_id": "DMD_CNV_del_ex45_47_inframe",
+      "gene": "DMD",
+      "genome_build": "GRCh38",
+      "coordinate_verified": false,
+      "whole_gene_deleted": false,
+      "five_prime_end_deleted": false,
+      "three_prime_end_deleted": false,
+      "cds_involved": true,
+      "other_exons_involved": false,
+      "overlaps_benign_region": false,
+      "reading_frame_effect": "IN_FRAME",
+      "exon_description": "exons 45-47 (intragenic, both gene ends intact)",
+      "notes": "LITERATURE-GROUNDED, not a single pinned ClinVar accession: represents the classic in-frame DMD exon 45-47 deletion, reported across multiple independent published cohorts as the single most common in-frame deletion causing Becker muscular dystrophy (~25-30% of BMD in-frame deletions; e.g. the phenotype-genotype cohort literature on deletions starting at exon 45, Nature J Hum Genet 2016). Coordinates are not pinned to one patient's exact breakpoints (no single ClinVar accession identified during this batch's research), so coordinate_verified is left false, matching this project's own established convention (see VariantIdentity's coordinate_verified field and its HGVS-only CAPN3 precedent). Section-2-only score: no implemented category matches an in-frame intragenic deletion (NONE_APPLICABLE, 0 points -> VUS) -- an intentional, disclosed gap: real Becker in-frame deletions of this kind are typically classified Pathogenic/Likely Pathogenic in clinical practice via segregation and case-series evidence (Riggs 2020 Sections 4/5), which this milestone's dosage-sensitivity-only slice does not implement. See cnv_scoring.py's NONE_APPLICABLE rationale and README.md for the full writeup."
+    }
+  ]
+}
