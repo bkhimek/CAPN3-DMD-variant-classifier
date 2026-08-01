@@ -1,0 +1,33 @@
+{
+  "cases": [
+    {
+      "cnv_id": "DMD_CNV_dup_ex2",
+      "gene": "DMD",
+      "genome_build": "GRCh38",
+      "chromosome": "X",
+      "start": 33020139,
+      "end": 33020200,
+      "coordinate_verified": true,
+      "whole_gene_duplicated": false,
+      "breakpoint_within_gene": true,
+      "overlaps_benign_region": false,
+      "is_tandem": "TANDEM",
+      "reading_frame_effect": "OUT_OF_FRAME",
+      "exon_description": "exon 2 (dup62, c.32-?_93+?dup62)",
+      "notes": "REAL, ClinVar RCV000240212.2 / VCV000254069 (NM_004006.2(DMD):c.32-?_93+?dup62), Labcorp Genetics (formerly Invitae), last evaluated 2016-12-03, germline classification Pathogenic (1 star, 'criteria provided, single submitter'). Submitter's own description: 'a gross duplication of the genomic region encompassing exon 2 of the DMD gene. The duplicated copy of this region is likely in tandem and results in an absent or disrupted protein product.' Exon 2 duplication is reported in the submitter's own citations (PMID 16917894, 19937601, 25244321) as a commonly occurring single-exon DMD duplication. This project's Section-2-only score (GAIN_2K_EQUIV, 0.45 points -> VUS) is markedly more conservative than ClinVar's real Pathogenic call -- an intentional, disclosed gap, larger than the deletion side's equivalent gap (batch 23's 2E => Likely Pathogenic), because the gain-side point value itself (0.45) is this project's own inference from incomplete secondary-source fragments (2K=0.45, 2J=0), not an independently verified primary-source number. See models/cnv_duplication_evidence.py's module docstring and cnv_scoring.py's GAIN_RULE_SOURCE for the full disclosure."
+    },
+    {
+      "cnv_id": "DMD_CNV_dup_ex42_inframe",
+      "gene": "DMD",
+      "genome_build": "GRCh38",
+      "coordinate_verified": false,
+      "whole_gene_duplicated": false,
+      "breakpoint_within_gene": true,
+      "overlaps_benign_region": false,
+      "is_tandem": "TANDEM",
+      "reading_frame_effect": "IN_FRAME",
+      "exon_description": "exon 42 (in-frame, confirmed tandem by PCR)",
+      "notes": "LITERATURE-GROUNDED, not a single pinned ClinVar accession: represents the real, published in-frame DMD exon 42 duplication, PCR-confirmed to be in tandem (not inverted) rather than assumed. No single ClinVar accession identified during this batch's research, so coordinate_verified is left false, matching this project's own established convention for composite/literature fixtures (see DMD_CNV_del_whole_gene_Xp21 and DMD_CNV_del_ex45_47_inframe in cnv_deletion_evidence.json, batch 23). Section-2-only score: GAIN_2J_EQUIV (0 points -> VUS) -- in-frame tandem duplications are generally associated with the milder Becker phenotype, and this project's disclosed 0-point inference for this category reflects genuine scientific uncertainty about the functional consequence of an in-frame duplication (as opposed to asserting it is definitively benign or definitively pathogenic)."
+    }
+  ]
+}

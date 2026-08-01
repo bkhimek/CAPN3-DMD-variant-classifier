@@ -17,7 +17,14 @@ from typing import List, Optional
 
 from ..errors import SchemaValidationError
 from ._coerce import coerce_enum, require_dict, require_list, require_str
-from .enums import CNV_LOSS_CATEGORY_CODES, CriterionStatus, EvidenceDirection
+from .enums import CNV_GAIN_CATEGORY_CODES, CNV_LOSS_CATEGORY_CODES, CriterionStatus, EvidenceDirection
+
+# A single CnvCategoryResult model is shared by both cnv_scoring.score_cnv_deletion()
+# and score_cnv_duplication() -- the record shape (code/status/direction/points/
+# rationale) is identical for both, only the controlled vocabulary of valid codes
+# differs by CNV type, so the two code sets are combined here rather than forking
+# the model in two.
+_ALL_CNV_CATEGORY_CODES = CNV_LOSS_CATEGORY_CODES | CNV_GAIN_CATEGORY_CODES
 
 
 @dataclass(frozen=True)
@@ -33,10 +40,10 @@ class CnvCategoryResult:
 
     def __post_init__(self) -> None:
         context = f"CnvCategoryResult[{self.code}]"
-        if self.code not in CNV_LOSS_CATEGORY_CODES:
+        if self.code not in _ALL_CNV_CATEGORY_CODES:
             raise SchemaValidationError(
-                f"{context}: '{self.code}' is not a recognised CNV loss category code "
-                f"(expected one of {sorted(CNV_LOSS_CATEGORY_CODES)})"
+                f"{context}: '{self.code}' is not a recognised CNV category code "
+                f"(expected one of {sorted(_ALL_CNV_CATEGORY_CODES)})"
             )
         if self.status == CriterionStatus.MET and self.points == 0.0:
             raise SchemaValidationError(f"{context}: status=MET requires a non-zero points value")

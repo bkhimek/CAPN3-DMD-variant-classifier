@@ -9,8 +9,9 @@
 # deletions/duplications (structural, copy-number variants), which
 # VariantEvidenceBundle/TranscriptConsequence (and therefore this file's
 # GeneDiseaseContext, which every VariantEvidenceBundle references) still
-# do not represent -- CNV deletions are modeled separately, as of batch
-# 23, via CnvDeletionEvidence + cnv_scoring.py (config/dosage_sensitivity.yaml,
+# do not represent -- CNV deletions and duplications are modeled
+# separately, as of batches 23/24, via CnvDeletionEvidence/
+# CnvDuplicationEvidence + cnv_scoring.py (config/dosage_sensitivity.yaml,
 # not this file, holds their gene-level input). The DMD point-mutation
 # fixtures in variant_evidence.json remain real/synthetic point/small-indel
 # variants for exactly this reason -- see README.md, "DMD CNV/structural-

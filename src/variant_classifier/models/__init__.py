@@ -38,12 +38,19 @@ cnv_deletion_evidence.py's docstring for why):
 - CnvDeletionEvidence          (cnv_deletion_evidence.py)
 - CnvCategoryResult            (cnv_category_result.py)
 - CnvProvisionalClassification (cnv_provisional_classification.py)
+
+Plus one batch-24 model for DMD CNV/duplication scoring -- parallel to
+CnvDeletionEvidence, sharing CnvCategoryResult/CnvProvisionalClassification
+rather than forking them (see cnv_duplication_evidence.py's docstring):
+
+- CnvDuplicationEvidence       (cnv_duplication_evidence.py)
 """
 
 from .case_interpretation import CaseInterpretation
 from .clinical_case import ClinicalCase
 from .cnv_category_result import CnvCategoryResult
 from .cnv_deletion_evidence import CnvDeletionEvidence
+from .cnv_duplication_evidence import CnvDuplicationEvidence
 from .cnv_provisional_classification import CnvProvisionalClassification
 from .computational_evidence import ComputationalEvidence
 from .criterion_result import CriterionResult
@@ -61,6 +68,7 @@ __all__ = [
     "ClinicalCase",
     "CnvCategoryResult",
     "CnvDeletionEvidence",
+    "CnvDuplicationEvidence",
     "CnvProvisionalClassification",
     "ComputationalEvidence",
     "CriterionResult",

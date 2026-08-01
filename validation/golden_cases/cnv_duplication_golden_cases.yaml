@@ -1,0 +1,58 @@
+# CNV duplication golden cases -- curated SEPARATELY from
+# data/curated/cnv_duplication_evidence.json, same discipline as every
+# other golden-case file in this project. See
+# models/cnv_duplication_evidence.py and cnv_scoring.py for the full
+# scope/source writeup this file's curator_notes summarize, including the
+# explicit disclosure that the gain-side point-value-to-condition mapping
+# (GAIN_2K_EQUIV=0.45 for out-of-frame, GAIN_2J_EQUIV=0 for in-frame) is
+# this project's own inference from incomplete secondary-source
+# fragments, not an independently verified primary-source fact.
+
+golden_cases:
+  - cnv_id: DMD_CNV_dup_ex2
+    expected_provisional_class: VUS
+    expected_points: 0.45
+    expected_category_code: "GAIN_2K_EQUIV"
+    source: >
+      ClinVar RCV000240212.2 / VCV000254069
+      (NM_004006.2(DMD):c.32-?_93+?dup62), Labcorp Genetics (formerly
+      Invitae), last evaluated 2016-12-03, germline classification
+      Pathogenic (1 star). Duplication of DMD exon 2, submitter-confirmed
+      likely tandem, resulting in an absent or disrupted protein product.
+    curator_note: >
+      Hand-derived BEFORE running cnv_scoring.py: breakpoint_within_gene,
+      is_tandem=TANDEM, reading_frame_effect=OUT_OF_FRAME maps directly to
+      this project's disclosed GAIN_2K_EQUIV label (0.45 points) --
+      whole_gene_duplicated doesn't apply (this is a single-exon
+      duplication) and overlaps_benign_region doesn't apply. 0.45 points
+      falls within the VUS band (-0.90 to 0.90) per ClassifyCNV's
+      published cutoffs -- markedly more conservative than ClinVar's real
+      Pathogenic call. This is intentional and disclosed, not a bug: the
+      0.45 point value itself is this project's own inference (see
+      cnv_duplication_evidence.py's module docstring) from an
+      inter-laboratory concordance study's incomplete fragment (2K=0.45,
+      2J=0), not an independently verified primary-source number, so a
+      correspondingly conservative (VUS, not Pathogenic) result is the
+      honest output of the evidence this project actually has, not a
+      claim about the variant's real-world classification.
+
+  - cnv_id: DMD_CNV_dup_ex42_inframe
+    expected_provisional_class: VUS
+    expected_points: 0.0
+    expected_category_code: "GAIN_2J_EQUIV"
+    source: >
+      Literature-grounded on the real, published in-frame DMD exon 42
+      duplication, PCR-confirmed to be in tandem (not inverted). No single
+      ClinVar accession pinned during this batch's research -- represented
+      as a composite fixture, disclosed as such in
+      cnv_duplication_evidence.py's notes field, matching batch 23's
+      convention for DMD_CNV_del_ex45_47_inframe.
+    curator_note: >
+      Hand-derived: breakpoint_within_gene, is_tandem=TANDEM,
+      reading_frame_effect=IN_FRAME maps to this project's disclosed
+      GAIN_2J_EQUIV label (0 points), landing VUS. In-frame tandem
+      duplications are generally associated with milder (Becker-type)
+      phenotypes in the literature, but this project's 0-point score for
+      this category reflects genuine disclosed uncertainty about the
+      functional consequence of an in-frame duplication -- not an
+      assertion that such duplications are definitively benign.

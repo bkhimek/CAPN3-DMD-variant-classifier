@@ -14,7 +14,7 @@ from typing import Dict, List, Tuple
 import yaml
 
 from .errors import SchemaValidationError
-from .models import CnvDeletionEvidence, ClinicalCase, GeneDiseaseContext, GoldenCase, VariantEvidenceBundle
+from .models import CnvDeletionEvidence, CnvDuplicationEvidence, ClinicalCase, GeneDiseaseContext, GoldenCase, VariantEvidenceBundle
 from .models.enums import CaseInterpretationStatus, ProvisionalClass
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -321,6 +321,74 @@ def load_cnv_deletion_golden_cases(path: Path = None) -> Dict[str, dict]:
     path = path or (GOLDEN_CASES_DIR / "cnv_deletion_golden_cases.yaml")
     if not path.exists():
         raise FileNotFoundError(f"CNV deletion golden case file not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        raw = yaml.safe_load(handle) or {}
+    if not isinstance(raw, dict) or "golden_cases" not in raw:
+        raise SchemaValidationError(f"{path}: expected a top-level 'golden_cases' list")
+    entries = raw["golden_cases"]
+    if not isinstance(entries, list):
+        raise SchemaValidationError(f"{path}: 'golden_cases' must be a list")
+    goldens: Dict[str, dict] = {}
+    for i, entry in enumerate(entries):
+        if not isinstance(entry, dict) or "cnv_id" not in entry or "expected_provisional_class" not in entry:
+            raise SchemaValidationError(
+                f"{path}: golden_cases[{i}] must include 'cnv_id' and 'expected_provisional_class'"
+            )
+        cnv_id = entry["cnv_id"]
+        try:
+            expected_provisional_class = ProvisionalClass(entry["expected_provisional_class"])
+        except ValueError as exc:
+            valid = ", ".join(sorted(v.value for v in ProvisionalClass))
+            raise SchemaValidationError(
+                f"{path}: golden_cases[{i}].expected_provisional_class="
+                f"{entry['expected_provisional_class']!r} invalid; expected one of {valid}"
+            ) from exc
+        if cnv_id in goldens:
+            raise SchemaValidationError(f"{path}: duplicate cnv_id {cnv_id!r}")
+        expected_points = entry.get("expected_points")
+        goldens[cnv_id] = {
+            "expected_provisional_class": expected_provisional_class,
+            "expected_points": float(expected_points) if expected_points is not None else None,
+            "expected_category_code": entry.get("expected_category_code"),
+            "source": entry.get("source", ""),
+            "curator_note": entry.get("curator_note", ""),
+        }
+    return goldens
+
+
+def load_cnv_duplication_evidence(path: Path = None) -> Tuple[List[CnvDuplicationEvidence], List[Tuple[dict, str]]]:
+    """Load data/curated/cnv_duplication_evidence.json into a list of
+    validated CnvDuplicationEvidence instances. Mirrors
+    load_cnv_deletion_evidence() / load_variant_evidence_bundles() -- a
+    separate curated set from both, since CnvDuplicationEvidence is a
+    separate evidence shape (batch 24, see its own module docstring).
+    """
+    path = path or (CURATED_DIR / "cnv_duplication_evidence.json")
+    if not path.exists():
+        raise FileNotFoundError(f"CNV duplication evidence file not found: {path}")
+    with path.open("r", encoding="utf-8") as handle:
+        raw = json.load(handle)
+    if not isinstance(raw, dict) or "cases" not in raw or not isinstance(raw["cases"], list):
+        raise SchemaValidationError(f"{path}: expected a top-level 'cases' list")
+
+    evidence: List[CnvDuplicationEvidence] = []
+    rejected: List[Tuple[dict, str]] = []
+    for i, entry in enumerate(raw["cases"]):
+        try:
+            evidence.append(CnvDuplicationEvidence.from_dict(entry, f"cases[{i}]"))
+        except SchemaValidationError as exc:
+            rejected.append((entry, str(exc)))
+    return evidence, rejected
+
+
+def load_cnv_duplication_golden_cases(path: Path = None) -> Dict[str, dict]:
+    """Load validation/golden_cases/cnv_duplication_golden_cases.yaml.
+    Same shape and rationale as load_cnv_deletion_golden_cases() -- see
+    that function's docstring.
+    """
+    path = path or (GOLDEN_CASES_DIR / "cnv_duplication_golden_cases.yaml")
+    if not path.exists():
+        raise FileNotFoundError(f"CNV duplication golden case file not found: {path}")
     with path.open("r", encoding="utf-8") as handle:
         raw = yaml.safe_load(handle) or {}
     if not isinstance(raw, dict) or "golden_cases" not in raw:

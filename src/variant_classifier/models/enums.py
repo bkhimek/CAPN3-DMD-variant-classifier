@@ -232,3 +232,53 @@ class CnvReadingFrameEffect(str, Enum):
 # project-internal label. See cnv_deletion_evidence.py and cnv_scoring.py
 # for the full scope writeup.
 CNV_LOSS_CATEGORY_CODES = frozenset({"2A", "2C", "2D", "2E", "2F", "NONE_APPLICABLE"})
+
+
+class CnvDuplicationOrientation(str, Enum):
+    """Whether a duplication with a breakpoint inside a gene has been
+    confirmed to be a tandem, direct-orientation insertion adjacent to the
+    original copy -- the configuration needed before ANY functional
+    interpretation (reading-frame effect included) can be applied at all.
+    Riggs et al. 2020 / the CNV-interpretation literature this project
+    found while researching duplications (a breakpoint study of 119 gain
+    CNVs: 83% tandem and direct, with "the majority of the remainder ...
+    interpreted as VUS because the effect could not be determined") treats
+    an unconfirmed or non-tandem/complex insertion as functionally
+    unpredictable -- NOT a synonym for "no evidence," but a real, distinct
+    reason no functional call can be made. Curated explicitly per
+    CnvDuplicationEvidence record, never assumed tandem by default."""
+
+    TANDEM = "TANDEM"
+    NOT_TANDEM_OR_COMPLEX = "NOT_TANDEM_OR_COMPLEX"
+    UNKNOWN = "UNKNOWN"
+
+
+# The Section 2 (gain/duplication) category labels this project's
+# cnv_scoring.py evaluates. Unlike CNV_LOSS_CATEGORY_CODES, NONE of these
+# are asserted to be the real Riggs et al. 2020 letter codes -- research
+# for batch 24 found secondary-source evidence (an inter-laboratory
+# concordance study, PMC8960312, discussing "the use of 2K (0.45 points)
+# or 2J (0 point) when a copy number gain breakpoint was observed for the
+# established HI genes") that the real rubric numbers gain-side
+# haploinsufficiency-breakpoint categories distinctly from the loss side
+# (which occupies 2A-2H) -- almost certainly continuing the letter
+# sequence (2I onward), NOT reusing 2A/2C/2D/2F the way ClassifyCNV's own
+# code does internally (a dict-key-reuse simplification in that tool,
+# confirmed by reading its source directly, not proof of the true Riggs
+# lettering for gains). Rather than assert an unverified real code, this
+# project uses its own disclosed "_EQUIV" labels naming which secondary-
+# sourced point value each maps to:
+#   GAIN_2K_EQUIV (0.45 pts) -- a confirmed-tandem duplication with a
+#     breakpoint inside an established HI gene, predicted out-of-frame.
+#   GAIN_2J_EQUIV (0 pts) -- same, but in-frame or frame effect unknown.
+#   GAIN_BENIGN (-1.0 pts) -- falls completely within an established
+#     benign copy-number region (point value IS confirmed directly from
+#     ClassifyCNV's assign_dup_points_s2()).
+#   NONE_APPLICABLE (0 pts) -- whole-gene duplication (this project does
+#     not implement triplosensitivity scoring, and ClinGen's own DMD
+#     dosage curation states whole-gene DMD duplications are not
+#     clinically reported anyway), or a duplication whose tandem/direct
+#     orientation is not confirmed (per the 83%-tandem literature above).
+# See models/cnv_duplication_evidence.py and cnv_scoring.py for the full
+# writeup and the exact condition-to-value mapping's disclosed uncertainty.
+CNV_GAIN_CATEGORY_CODES = frozenset({"GAIN_2K_EQUIV", "GAIN_2J_EQUIV", "GAIN_BENIGN", "NONE_APPLICABLE"})

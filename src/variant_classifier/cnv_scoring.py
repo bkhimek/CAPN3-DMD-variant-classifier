@@ -48,8 +48,15 @@ sums points across every gene a real multi-gene CNV overlaps.
 
 from typing import Dict
 
-from .models import CnvCategoryResult, CnvDeletionEvidence, CnvProvisionalClassification
-from .models.enums import ClassificationStatus, CnvReadingFrameEffect, CriterionStatus, EvidenceDirection, ProvisionalClass
+from .models import CnvCategoryResult, CnvDeletionEvidence, CnvDuplicationEvidence, CnvProvisionalClassification
+from .models.enums import (
+    ClassificationStatus,
+    CnvDuplicationOrientation,
+    CnvReadingFrameEffect,
+    CriterionStatus,
+    EvidenceDirection,
+    ProvisionalClass,
+)
 
 RULE_SOURCE = (
     "ACMG/ClinGen Technical Standards for Constitutional Copy-Number Variants (Riggs et al. 2020, "
@@ -235,6 +242,172 @@ def score_cnv_deletion(evidence: CnvDeletionEvidence, dosage_config: Dict[str, d
         status=ClassificationStatus.PROVISIONAL_AUTOMATED,
         categories=[category],
         combining_rule_source=RULE_SOURCE,
+        combining_rule_version=RULE_VERSION,
+        rationale=rationale,
+        points=category.points,
+        manual_review_required=False,
+    )
+
+
+# --------------------------------------------------------------------------
+# Batch 24: DMD duplication (gain) scoring.
+#
+# A deliberately narrower slice than the deletion side, per this batch's
+# research and the scope confirmed with the user before writing any of
+# this: no whole-gene triplosensitivity scoring (ClinGen's own DMD dosage
+# curation says whole-gene DMD duplications aren't clinically reported;
+# this project has no verified TS category or config to apply anyway).
+# What IS implemented is the real, clinically-relevant DMD mechanism --
+# an intragenic tandem duplication disrupting the gene via the same
+# Aartsma-Rus reading-frame rule already used for deletions -- with the
+# exact point-value-to-condition mapping explicitly disclosed as this
+# project's own inference, not an independently verified primary-source
+# fact. See models/cnv_duplication_evidence.py's module docstring and
+# models/enums.py's CNV_GAIN_CATEGORY_CODES comment for the full
+# disclosure this rationale text below summarizes.
+
+GAIN_RULE_SOURCE = (
+    "ACMG/ClinGen Technical Standards for Constitutional Copy-Number Variants (Riggs et al. 2020, "
+    "Genetics in Medicine 22:245-257), gain-side Section 2 category existence and point-value "
+    "fragments (2K=0.45, 2J=0, for a gain CNV breakpoint observed within an established HI gene) "
+    "per PMC8960312 (inter-laboratory CNV concordance study); benign-region-overlap point value "
+    "(-1.0) per ClassifyCNV (Gurbich & Ilinsky 2020, Sci Rep 10:20375). The condition-to-value "
+    "mapping (out-of-frame -> 0.45, in-frame/unknown -> 0) is this project's own disclosed "
+    "inference by analogy to the loss side, NOT independently verified against the primary paper."
+)
+
+
+def _duplication_evidence_id(evidence: CnvDuplicationEvidence) -> str:
+    return f"cnv:{evidence.cnv_id}"
+
+
+def _score_duplication_category(evidence: CnvDuplicationEvidence) -> CnvCategoryResult:
+    eid = _duplication_evidence_id(evidence)
+
+    if evidence.overlaps_benign_region:
+        return CnvCategoryResult(
+            code="GAIN_BENIGN",
+            status=CriterionStatus.MET,
+            direction=EvidenceDirection.BENIGN,
+            points=-1.0,
+            rule_source=GAIN_RULE_SOURCE,
+            rule_version=RULE_VERSION,
+            rationale=(
+                f"Duplication falls completely within an established ClinGen benign region for "
+                f"{evidence.gene} -- point value confirmed directly from ClassifyCNV's "
+                "assign_dup_points_s2()."
+            ),
+            evidence_ids=[eid],
+        )
+
+    if evidence.whole_gene_duplicated:
+        return CnvCategoryResult(
+            code="NONE_APPLICABLE",
+            status=CriterionStatus.NOT_MET,
+            direction=EvidenceDirection.PATHOGENIC,
+            points=0.0,
+            rule_source=GAIN_RULE_SOURCE,
+            rule_version=RULE_VERSION,
+            rationale=(
+                f"Whole-gene duplication of {evidence.gene}. This project does not implement "
+                "triplosensitivity (TS) scoring -- ClinGen's own DMD dosage curation states whole-"
+                "gene DMD duplications are not clinically reported, and no real DMD fixture would "
+                "exercise a TS category honestly. Explicit, disclosed gap, not a guess."
+            ),
+            evidence_ids=[eid],
+        )
+
+    if not evidence.breakpoint_within_gene:
+        return CnvCategoryResult(
+            code="NONE_APPLICABLE",
+            status=CriterionStatus.NOT_MET,
+            direction=EvidenceDirection.PATHOGENIC,
+            points=0.0,
+            rule_source=GAIN_RULE_SOURCE,
+            rule_version=RULE_VERSION,
+            rationale=(
+                f"Duplication of {evidence.gene} has no breakpoint inside the gene and does not "
+                "overlap a benign region or the whole gene -- no implemented gain category applies."
+            ),
+            evidence_ids=[eid],
+        )
+
+    if evidence.is_tandem != CnvDuplicationOrientation.TANDEM:
+        return CnvCategoryResult(
+            code="NONE_APPLICABLE",
+            status=CriterionStatus.NOT_MET,
+            direction=EvidenceDirection.PATHOGENIC,
+            points=0.0,
+            rule_source=GAIN_RULE_SOURCE,
+            rule_version=RULE_VERSION,
+            rationale=(
+                f"Breakpoint inside {evidence.gene}, but tandem/direct orientation is "
+                f"{evidence.is_tandem.value if evidence.is_tandem else 'not stated'} -- no functional "
+                "call can be made without confirmed tandem orientation (a breakpoint study of 119 "
+                "gain CNVs found 83% tandem/direct, with the majority of the remainder interpreted "
+                "as VUS because the effect could not be determined)."
+            ),
+            evidence_ids=[eid],
+        )
+
+    if evidence.reading_frame_effect == CnvReadingFrameEffect.OUT_OF_FRAME:
+        return CnvCategoryResult(
+            code="GAIN_2K_EQUIV",
+            status=CriterionStatus.MET,
+            direction=EvidenceDirection.PATHOGENIC,
+            points=0.45,
+            rule_source=GAIN_RULE_SOURCE,
+            rule_version=RULE_VERSION,
+            rationale=(
+                f"Confirmed-tandem duplication with a breakpoint inside {evidence.gene}"
+                + (f" ({evidence.exon_description})" if evidence.exon_description else "")
+                + ", predicted out-of-frame (Aartsma-Rus reading-frame rule) -- this project's "
+                "disclosed GAIN_2K_EQUIV label (0.45 points, the higher of two secondary-sourced "
+                "gain-side breakpoint-in-HI-gene point values; see module docstring for why this "
+                "specific condition-to-value mapping is an inference, not a verified fact)."
+            ),
+            evidence_ids=[eid],
+        )
+
+    return CnvCategoryResult(
+        code="GAIN_2J_EQUIV",
+        status=CriterionStatus.NOT_MET,
+        direction=EvidenceDirection.PATHOGENIC,
+        points=0.0,
+        rule_source=GAIN_RULE_SOURCE,
+        rule_version=RULE_VERSION,
+        rationale=(
+            f"Confirmed-tandem duplication with a breakpoint inside {evidence.gene}"
+            + (f" ({evidence.exon_description})" if evidence.exon_description else "")
+            + f", reading_frame_effect={evidence.reading_frame_effect.value if evidence.reading_frame_effect else 'None'} "
+            "(in-frame or unknown) -- this project's disclosed GAIN_2J_EQUIV label (0 points, the "
+            "lower of two secondary-sourced gain-side breakpoint-in-HI-gene point values)."
+        ),
+        evidence_ids=[eid],
+    )
+
+
+def score_cnv_duplication(evidence: CnvDuplicationEvidence) -> CnvProvisionalClassification:
+    """Score a single DMD duplication against this project's implemented
+    slice of gain-side CNV evidence, and classify via the same
+    ClassifyCNV-published cutoffs used for deletions. Unlike
+    score_cnv_deletion(), no dosage_config is needed -- the implemented
+    categories here don't depend on an established-gene lookup (whole-gene
+    TS scoring, which would need one, is explicitly not implemented).
+    """
+    category = _score_duplication_category(evidence)
+    provisional_class, band_note = _classify_points(category.points)
+
+    rationale = (
+        f"{provisional_class.value} via CNV Section-2 gain scoring: {category.points:.2f} points from "
+        f"category {category.code} ({band_note}). {category.rationale}"
+    )
+
+    return CnvProvisionalClassification(
+        provisional_class=provisional_class,
+        status=ClassificationStatus.PROVISIONAL_AUTOMATED,
+        categories=[category],
+        combining_rule_source=GAIN_RULE_SOURCE,
         combining_rule_version=RULE_VERSION,
         rationale=rationale,
         points=category.points,

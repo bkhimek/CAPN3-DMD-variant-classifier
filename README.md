@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring implemented as a deliberately partial slice (Batch 23), curated variant set at 23 real of ~20-30 (24 point-mutation fixtures total, plus 3 CNV deletion fixtures in a separate curated set), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
+## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, curated variant set at 23 real of ~20-30 (24 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
 
 Milestone 5 (batch 20) added a second combining system -- Bayesian
 point-based combining (Tavtigian et al. 2020), offered alongside, not
@@ -28,9 +28,18 @@ deletion-only implementation of Section 2 (dosage-sensitivity) of the
 Riggs et al. 2020 CNV rubric, grounded in real ClinVar and literature DMD
 deletion examples -- see "DMD CNV/structural-variant scoring (batch 23)"
 below for the full writeup, including exactly what is and isn't
-implemented. See "Milestone 5: Bayesian point-based combining" below for
-what that milestone found and why batch 20 felt like the right place to
-pause before batch 22/23 picked back up.
+implemented. Batch 24 extended this to duplications (`CnvDuplicationEvidence`,
+`score_cnv_duplication()`), but research surfaced a real wrinkle first:
+ClinGen's own DMD dosage curation says whole-gene DMD duplications aren't
+clinically reported, and the exact gain-side point values needed for the
+real, clinically-relevant intragenic-disruption mechanism could only be
+partially confirmed from secondary sources -- see "DMD CNV/structural-
+variant duplication scoring (batch 24)" below for the full writeup,
+including the specific, disclosed inference this project made to proceed
+anyway (confirmed with the user before writing any code). See "Milestone
+5: Bayesian point-based combining" below for what that milestone found
+and why batch 20 felt like the right place to pause before batch 22/23/24
+picked back up.
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -82,10 +91,11 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   deliberately partial — see "PVS1 scope" below. PM4 was added in batch 14
   — see "PM4: a second new criterion" below. PS1 and PM5 were added in
   batch 22 — see "PS1 and PM5: same-residue precedent evidence" below.
-  Batch 23's CNV deletion scoring (`cnv_scoring.py`) is a separate,
-  parallel scoring module over the ACMG/ClinGen CNV rubric (Riggs et al.
-  2020), not one more evaluator feeding this list -- see "DMD CNV/
-  structural-variant scoring (batch 23)" below.
+  Batch 23's CNV deletion scoring and batch 24's CNV duplication scoring
+  (both in `cnv_scoring.py`) are a separate, parallel scoring module over
+  the ACMG/ClinGen CNV rubric (Riggs et al. 2020), not one more evaluator
+  feeding this list -- see "DMD CNV/structural-variant scoring (batch 23)"
+  and "DMD CNV/structural-variant duplication scoring (batch 24)" below.
 - A **combining engine** (`src/variant_classifier/engine.py`) implementing
   the ACMG/AMP combining rules (Richards et al. 2015, Table 5), including
   a genuine conflict path (`conflicting_evidence_flag`) rather than
@@ -114,7 +124,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 180 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 197 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does; also includes two hand-built tests pairing the real DMD
@@ -127,8 +137,8 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   in batch 14, a dedicated `test_bayesian.py` suite (13 tests) added in
   batch 20, a dedicated `test_ps1_pm5_evaluators.py` suite (18 tests)
   added in batch 22, and a dedicated `test_cnv_scoring.py` suite (20
-  tests) added in batch 23 for the separate CNV deletion evidence/scoring
-  family described below.
+  tests in batch 23, growing to 37 in batch 24) for the separate CNV
+  deletion and duplication evidence/scoring families described below.
 
 ## Design notes
 
@@ -1132,6 +1142,111 @@ A full implementation would still need: duplications; Sections 1, 2H,
 the primary paper's exact 2B/2G definitions or a documented decision to
 keep relying on ClassifyCNV's reimplementation.
 
+**DMD CNV/structural-variant duplication scoring: a deliberately
+narrower slice than deletions, with disclosed point-value uncertainty
+(batch 24).** Extending batch 23's deletion-only CNV scoring to
+duplications looked, at first, like a same-shape extension: mirror
+`CnvDeletionEvidence` with a `CnvDuplicationEvidence`, mirror the category
+decision tree. Research before writing any code (per this project's
+standing discipline) found two real complications that changed the scope:
+
+1. **Whole-gene triplosensitivity (TS) scoring doesn't apply to DMD.**
+   ClinGen's own DMD-specific Dosage Sensitivity Curation states plainly:
+   "whole gene duplications have not been reported in association with
+   clinical phenotypes" for DMD. The real, clinically relevant DMD
+   duplication mechanism is not a "triple dose" TS effect at all --
+   ClinGen's curation continues: "intragenic DMD duplications and
+   triplications have been reported in patients with DMD and BMD,
+   presumably by a loss-of-function-type mechanism." So this batch does
+   NOT implement whole-gene TS scoring (no config, no category) --
+   `whole_gene_duplicated` is representable in the model for completeness,
+   but always scores `NONE_APPLICABLE`, an explicit, disclosed gap rather
+   than an invented TS category with no real DMD data to ground it.
+2. **The real, relevant mechanism -- a tandem duplication with a
+   breakpoint inside the gene, disrupting it via the same Aartsma-Rus
+   reading-frame rule already used for deletions -- has a confirmed real
+   category in the Riggs et al. 2020 rubric, but this project could only
+   partially verify its numbers.** An inter-laboratory CNV-classification
+   concordance study (PMC8960312) discusses real disagreement over "the
+   use of 2K (0.45 points) or 2J (0 point) when a copy number gain
+   breakpoint was observed for the established HI genes" -- confirming
+   the category exists, but not which condition (out-of-frame vs
+   in-frame/unknown) maps to which value, nor the real letter code (very
+   likely NOT "2A" the way ClassifyCNV's own gain-side code might
+   suggest -- see below). A breakpoint study of 119 gain CNVs also
+   confirmed a hard prerequisite this project adopted directly: 83% were
+   tandem and direct, "with the majority of the remainder interpreted as
+   VUS because the effect could not be determined" -- so `is_tandem` must
+   be confirmed before any frame-effect call is made at all.
+
+Presented to the user as an explicit choice before writing any scoring
+code (see the batch 24 scoping conversation): implement the real DMD
+mechanism anyway, inferring the higher point value (0.45) for the
+out-of-frame/disruptive case and the lower value (0) for the in-frame/
+uncertain case by direct analogy to the loss side's own pathogenic-vs-
+uncertain split (2E vs `NONE_APPLICABLE`) -- disclosed as an inference,
+not a verified fact, in the model docstring, the scoring rationale text,
+and every golden case that exercises it. The alternative (implementing
+only the fully-confirmed benign-region-overlap category) was available
+and declined in favor of covering DMD's actually-relevant mechanism.
+
+What is implemented, in `models/cnv_duplication_evidence.py` +
+`cnv_scoring.py`'s `score_cnv_duplication()`:
+
+  - **`GAIN_2K_EQUIV`** (0.45 pts, this project's own disclosed label, not
+    a verified Riggs code): a confirmed-tandem duplication with a
+    breakpoint inside the gene, predicted out-of-frame.
+  - **`GAIN_2J_EQUIV`** (0 pts): same, but in-frame or frame effect
+    unknown.
+  - **`GAIN_BENIGN`** (-1.0 pts, point value confirmed directly from
+    ClassifyCNV's `assign_dup_points_s2()`): the duplication falls
+    completely within an established benign copy-number region.
+  - **`NONE_APPLICABLE`** (0 pts): whole-gene duplication (TS scoring not
+    implemented, see above), no breakpoint inside the gene, or a
+    breakpoint inside the gene whose tandem/direct orientation is not
+    confirmed.
+
+One real, striking consequence, visible in the golden cases: because 0.45
+points falls well short of the 0.90 Likely Pathogenic cutoff, NO
+DMD duplication can reach Likely Pathogenic or Pathogenic through this
+project's Section-2-only gain scoring alone, no matter how clearly
+out-of-frame and disruptive it is -- a real ClinVar-Pathogenic exon 2
+duplication (`DMD_CNV_dup_ex2`, see below) scores VUS here. This is a
+substantially larger, more conservative gap than the deletion side's
+equivalent (2E's 0.9 points at least reaches Likely Pathogenic) --
+disclosed rather than smoothed over, because the gain-side point value
+itself is this project's own inference, not an independently verified
+number, and a bigger disclosed gap is more honest than a confident-looking
+score built on an unconfirmed value.
+
+**Curated duplication fixtures**
+(`data/curated/cnv_duplication_evidence.json`, 2 cases) and **golden
+cases** (`validation/golden_cases/cnv_duplication_golden_cases.yaml`):
+
+  - `DMD_CNV_dup_ex2` -- REAL: ClinVar RCV000240212.2 / VCV000254069
+    (`NM_004006.2(DMD):c.32-?_93+?dup62`), Labcorp Genetics (formerly
+    Invitae), germline classification Pathogenic (1 star, evaluated
+    2016-12-03). Submitter-confirmed likely-tandem duplication of DMD
+    exon 2, "results in an absent or disrupted protein product."
+    Scores `GAIN_2K_EQUIV` (0.45 pts) -> **VUS** here.
+  - `DMD_CNV_dup_ex42_inframe` -- literature-grounded (not a single pinned
+    ClinVar accession): the real, published in-frame DMD exon 42
+    duplication, PCR-confirmed tandem (not inverted). Scores
+    `GAIN_2J_EQUIV` (0 pts) -> **VUS**.
+
+**Tests:** `test_cnv_scoring.py` grew by 17 tests (batch 24 additions) --
+golden-case cross-check against both curated duplication fixtures, plus
+hand-built edge cases for every decision branch (benign overlap, whole-
+gene duplication, no breakpoint, not-tandem, tandem-unknown-orientation,
+both frame-effect outcomes) and every `CnvDuplicationEvidence` schema-
+validation rule.
+
+Explicitly deferred, same spirit as batch 23: whole-gene triplosensitivity
+scoring (no real DMD data would exercise it honestly); independent
+verification of the primary Riggs paper's exact gain-side letter codes
+and point-value-to-condition mapping; and everything already deferred on
+the deletion side (Sections 1, 2H, 3, 4, 5).
+
 **PM2 and founder mutations.** PM2 asks whether a variant is absent or at
 extremely low frequency in the general population. A single global allele
 frequency threshold isn't enough to answer that safely: `CAPN3_c.550del` is
@@ -1166,14 +1281,15 @@ src/variant_classifier/
     criterion_result.py        CriterionResult
     provisional_classification.py  ProvisionalClassification
     cnv_deletion_evidence.py    CnvDeletionEvidence — batch 23, see "DMD CNV/structural-variant scoring" above
-    cnv_category_result.py      CnvCategoryResult — batch 23, see above
-    cnv_provisional_classification.py  CnvProvisionalClassification — batch 23, see above
+    cnv_duplication_evidence.py CnvDuplicationEvidence — batch 24, see "DMD CNV/structural-variant duplication scoring" above
+    cnv_category_result.py      CnvCategoryResult — batch 23/24, shared by both deletion and duplication scoring
+    cnv_provisional_classification.py  CnvProvisionalClassification — batch 23/24, shared by both
     evidence_bundle.py         VariantEvidenceBundle (container, this repo only)
     golden_case.py             GoldenCase (container, this repo only)
   loader.py                  loads/validates the curated fixtures below
   engine.py                  evaluate_all() + combine() + classify() — Table 5 combining engine
   bayesian.py                 combine_bayesian() + classify_bayesian() — Milestone 5, see above
-  cnv_scoring.py               score_cnv_deletion() — batch 23, DMD CNV deletion scoring, see above
+  cnv_scoring.py               score_cnv_deletion() (batch 23) + score_cnv_duplication() (batch 24), see above
   clinical.py                 interpret_case() — case-level reasoning, see "Case-level scope" above
   evaluators/
     pvs1.py                   evaluate_pvs1() — see "PVS1 scope" above
@@ -1201,6 +1317,10 @@ data/
     clinical_cases.json         9 curated ClinicalCase fixtures (Milestone 4)
     cnv_deletion_evidence.json  3 curated CNV deletion fixtures (DMD only) -- batch 23,
                                  a separate curated set from variant_evidence.json above
+    cnv_duplication_evidence.json  2 curated CNV duplication fixtures (DMD only) -- batch 24,
+                                 a separate curated set again (see "DMD CNV/structural-variant
+                                 duplication scoring" above for why it isn't folded into the
+                                 deletion set)
   source/
     pipeline_annotate_calls/  real (trimmed) sample of CAPN3-DMD-variant-calling-pipeline's
                               ANNOTATE_CALLS VCF output, used by test_pipeline_adapter.py
@@ -1217,6 +1337,8 @@ validation/golden_cases/
   case_interpretation_golden_cases.yaml expected case-level results (Milestone 4)
   cnv_deletion_golden_cases.yaml        expected CNV deletion results (batch 23), curated
                                         separately from cnv_deletion_evidence.json above
+  cnv_duplication_golden_cases.yaml     expected CNV duplication results (batch 24), curated
+                                        separately from cnv_duplication_evidence.json above
 
 tests/unit/                  pytest tests
 tests/run_tests.py           dependency-free runner (see below)
@@ -1452,6 +1574,31 @@ case with no matching evidence bundle).
   pinned ClinVar accessions, since none was found during this batch's
   research. Duplications remain entirely out of scope, confirmed with the
   user before coding. 20 new tests (`test_cnv_scoring.py`), 180 total.
+- **Batch 24 (DMD CNV duplication scoring)** — done. Extended batch 23's
+  CNV scoring to duplications: `models/cnv_duplication_evidence.py` and
+  `cnv_scoring.py`'s `score_cnv_duplication()`. Research surfaced a real
+  wrinkle before any code was written -- ClinGen's own DMD dosage curation
+  says whole-gene DMD duplications aren't clinically reported (so no
+  triplosensitivity scoring is implemented), and the real mechanism (an
+  intragenic tandem duplication disrupting the gene, LOF-type, via the
+  Aartsma-Rus reading-frame rule again) has a confirmed real category in
+  Riggs et al. 2020 whose exact point values could only be partially
+  verified from secondary sources (2K=0.45, 2J=0, condition-to-value
+  mapping inferred by this project, not confirmed) -- presented to the
+  user as an explicit choice before coding; see "DMD CNV/structural-
+  variant duplication scoring (batch 24)" above for the full writeup. One
+  real, disclosed consequence: since 0.45 points falls short of the 0.90
+  Likely Pathogenic cutoff, no DMD duplication can reach Likely
+  Pathogenic/Pathogenic through this scoring alone, however clearly
+  out-of-frame -- visible directly in `DMD_CNV_dup_ex2`'s golden case (a
+  real ClinVar-Pathogenic exon 2 duplication that scores VUS here). Added
+  2 curated duplication fixtures (`data/curated/cnv_duplication_evidence.json`):
+  one REAL ClinVar-anchored out-of-frame duplication (`DMD_CNV_dup_ex2`,
+  RCV000240212/VCV000254069) and one literature-grounded in-frame
+  composite (`DMD_CNV_dup_ex42_inframe`). Whole-gene TS scoring and
+  independent verification of the primary paper's exact gain-side letter
+  codes remain explicit, disclosed gaps. 17 new tests
+  (`test_cnv_scoring.py` grew to 37 CNV tests total), 197 total.
 - Later, if this project resumes rather than moving to that next one:
   continue expanding curated fixtures toward the full 20-30 ClinVar
   variant set (23 real of ~20-30 done, see "Expanding the curated set"
@@ -1463,16 +1610,18 @@ case with no matching evidence bundle).
   revisit PVS1's partial scope (protein-domain criticality,
   constitutive-exon data — the real CAPN3 VCEP spec includes a
   gene-specific PVS1 flowchart that isn't implemented here either); extend
-  batch 23's DMD CNV deletion scoring to duplications (the ACMG/ClinGen
-  gain-side rubric, entirely unimplemented) and to the remaining Riggs et
-  al. 2020 sections deferred there — Section 1 (genomic content), 2H
-  (predicted-but-not-established HI via DECIPHER/pLI/LOEUF), 3 (gene
-  count), 4 (case/case-control/population evidence), and 5 (inheritance/
-  family history) — plus independent verification of the primary Riggs
-  paper's exact 2B/2G definitions rather than continued reliance on
-  ClassifyCNV's reimplementation; extend X-linked case interpretation
-  beyond the hemizygous-male case once X-inactivation is worth modeling
-  properly; decide whether `clinical.py` (or any other caller) should
-  default to Bayesian rather than Table 5 now that both are real, tested
-  options — deliberately left as an open decision by Milestone 5, not
-  made for the caller.
+  the CNV work (batches 23/24) to whole-gene triplosensitivity scoring for
+  genes where it's real (not DMD, per batch 24's finding), and to the
+  remaining Riggs et al. 2020 sections deferred on both the loss and gain
+  sides — Section 1 (genomic content), 2H (predicted-but-not-established
+  HI via DECIPHER/pLI/LOEUF), 3 (gene count), 4 (case/case-control/
+  population evidence), and 5 (inheritance/family history) — plus
+  independent verification of the primary Riggs paper's exact loss-side
+  2B/2G definitions and gain-side letter codes/point values rather than
+  continued reliance on ClassifyCNV's reimplementation and the
+  batch-24-disclosed secondary-source inference; extend X-linked case
+  interpretation beyond the hemizygous-male case once X-inactivation is
+  worth modeling properly; decide whether `clinical.py` (or any other
+  caller) should default to Bayesian rather than Table 5 now that both
+  are real, tested options — deliberately left as an open decision by
+  Milestone 5, not made for the caller.
