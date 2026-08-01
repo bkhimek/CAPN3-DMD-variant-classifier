@@ -41,7 +41,7 @@ def test_bayesian_matches_hand_derivation_for_all_curated_bundles():
     thresholds = loader.load_frequency_thresholds()
     goldens = loader.load_golden_cases_bayesian()
 
-    assert len(goldens) == 22
+    assert len(goldens) == 24
     for bundle in bundles:
         golden = goldens[bundle.variant.variant_id]
         result = classify_bayesian(bundle, thresholds)

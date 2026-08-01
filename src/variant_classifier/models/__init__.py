@@ -15,6 +15,11 @@ Plus one supporting evidence-domain model added while wiring up fixtures
 
 - ComputationalEvidence       (computational_evidence.py)
 
+Plus one more evidence-domain model added for PS1/PM5 (same-residue
+precedent evidence):
+
+- SameResidueEvidence          (same_residue_evidence.py)
+
 Plus two containers used only by this prototype's fixture/golden-case
 loading, not part of the architecture guides themselves:
 
@@ -36,6 +41,7 @@ from .gene_disease_context import GeneDiseaseContext, Specification
 from .golden_case import GoldenCase
 from .population_evidence import PopulationEvidence
 from .provisional_classification import ProvisionalClassification
+from .same_residue_evidence import SameResidueEvidence
 from .transcript_consequence import TranscriptConsequence
 from .variant_identity import VariantIdentity
 
@@ -48,6 +54,7 @@ __all__ = [
     "GoldenCase",
     "PopulationEvidence",
     "ProvisionalClassification",
+    "SameResidueEvidence",
     "Specification",
     "TranscriptConsequence",
     "VariantEvidenceBundle",

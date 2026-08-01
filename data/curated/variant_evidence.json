@@ -436,7 +436,12 @@
         "variant_id": "CAPN3_c.1343G>A",
         "gene": "CAPN3",
         "genome_build": "GRCh38",
-        "coordinate_verified": false
+        "coordinate_verified": true,
+        "clinvar_variation_id": 217149,
+        "chromosome": "15",
+        "position": 42399641,
+        "reference": "G",
+        "alternate": "A"
       },
       "gene_disease_context": {
         "gene": "CAPN3",
@@ -468,7 +473,15 @@
           "overall_af": 2.6e-06
         }
       ],
-      "notes": "Real CAPN3 missense variant, gnomAD v4.1.0 AF ~0.00000263 -- well below this project's PM2 threshold and reported by ClinVar itself as Uncertain Significance. No computational evidence gathered here (left absent rather than fabricated). Included deliberately as a case where this project's limited 6-criterion engine's VUS call actually agrees with the real-world ClinVar consensus, unlike CAPN3_c.1939G>T and CAPN3_c.946-1G>A (both real Pathogenic variants our engine under-calls due to scope gaps) -- useful to have at least one case in the set that isn't a story about the engine's limitations."
+      "notes": "UPDATED this round: when this fixture was added, ClinVar's aggregate call was Uncertain Significance and no computational evidence had been gathered. Re-checked while researching real PS1/PM5 fixtures (this batch) and found the real ClinGen LGMD VCEP itself reclassified this variant Pathogenic on 2026-01-20 (ClinVar VCV000217149, RCV006646441.1, reviewed by expert panel, 3-star; accession SCV007540248.1), via PM3_Strong (in trans with c.550del, c.1319G>A p.(Arg440Gln), c.2362_2363delinsTCATCT p.(Arg788SerfsTer14), and c.2120A>G p.(Asp707Gly) across multiple case reports), PP4_Strong (a patient with two diagnostic CAPN3 alleles including this one had absent calpain-3 protein on muscle biopsy), PM2_Supporting (Grpmax AF 0.00000263, Admixed American, 1/58530 chromosomes gnomAD v4.1.0 -- matches this fixture's pre-existing overall_af almost exactly), and PP3 (REVEL 0.904, above the VCEP's >=0.70 threshold -- now added here as this fixture's computational_evidence, closing the gap the original notes disclosed). Coordinates (GRCh38 chr15:42399641 G>A) confirmed directly from the primary ClinVar page; coordinate_verified upgraded from false to true. This project's 6-criterion engine only implements PM2 and PP3 of the VCEP's four applied criteria -- PM3 and PP4 are case-level/segregation criteria this project's variant-only design does not reach (see clinical.py's own scope notes on why PM3 in particular cannot be a per-variant evaluator). PM2 Supporting + PP3 Supporting alone does not clear any Table 5 pathogenic-tier rule (no rule for '2 Supporting' without a Moderate or Strong alongside), so this project's engine still lands on VUS -- a fifth independent confirmation of batch 13's structural finding (no real CAPN3 variant reaches Pathogenic/Likely Pathogenic through this engine), now shown even with a criterion (PP3) added after the original VUS call. PS1/PM5 note: a real, different-amino-acid-change precedent now exists at this exact residue (c.1342C>T p.(Arg448Cys), ClinVar VCV000280038, also reclassified Pathogenic by the same LGMD VCEP on the same date -- see that fixture) that could in principle support PM5 for THIS variant too (PM5 is symmetric: each missense change at a residue can cite the other as precedent). The real VCEP's own published rationale for this variant does not list PM5 among its applied criteria, even though it explicitly invoked PM5 in the other direction (citing this exact variant as p.Arg448Cys's precedent). The likely reason, per the VCEP's own general PM5 specification text ('PM5 can potentially be applied to multiple amino acid changes at the same residue as long as the variant classification that determines the strength level does not depend on PM5 application'), is that both variants were curated and classified on the same date (2026-01-20) using PM3_Strong/PP4_Strong alone, sufficient without PM5 -- applying it mutually in both directions from a single joint curation event risks the same kind of circularity this project's own clinical.py docstring already flags for PM3. Rather than invent an answer to that open question, this fixture deliberately leaves same_residue_evidence unset (not pm5_precedent_established=True) -- mirroring the real VCEP's own choice not to invoke it here, an honest 'not curated one way or the other' rather than a guess in either direction.",
+      "computational_evidence": {
+        "tool": "REVEL",
+        "tool_version": "as cited in ClinGen LGMD VCEP curation (SCV007540248.1, evaluated 2026-01-20)",
+        "calibration_source": "ClinGen LGMD VCEP specification for CAPN3: REVEL >=0.70 for PP3 (Supporting)",
+        "retrieval_status": "OBSERVED",
+        "score": 0.904,
+        "calibrated_prediction": "PATHOGENIC"
+      }
     },
     {
       "variant": {
@@ -1017,6 +1030,119 @@
         "calibrated_prediction": "BENIGN"
       },
       "notes": "Real ClinVar entry (Variation ID 455905; dbSNP rs72468630), NM_004006.3(DMD):c.5163G>C (p.Lys1721Asn). This project's first real BP4-MET fixture, closing the last open real-data gap noted after batch 18. REVEL score (0.167) retrieved from dbNSFP via myvariant.info (https://myvariant.info/v1/query?q=dbsnp.rsid:rs72468630) -- ClinVar submitter comments for this variant don't cite a computational score directly (most Benign calls for a variant this rare-but-still-population-observed lean on frequency/segregation rather than REVEL), so unlike DMD_c.10103A>G (batch 16, REVEL cited directly in the source paper), this fixture's REVEL comes from a standard precomputed annotation database rather than a specific paper or ClinVar comment -- disclosed here rather than implied to be VCEP/paper-sourced. \n\n0.167 clears even DMD's real Pejaver Moderate-tier BP4 threshold (<=0.183), not just the Supporting one (<=0.290) -- unambiguously in the benign zone under this calibration. ClinVar itself shows this variant classified Benign or Likely Benign across six independent RCV records (Duchenne muscular dystrophy, Becker muscular dystrophy, X-linked dilated cardiomyopathy, cardiovascular phenotype, 'not specified', 'not provided'), spanning multiple submitters with no conflicting classifications recorded. \n\nPopulation frequency (0.021%, gnomAD-derived per ClinVar Miner's listing) is deliberately in a band that does NOT trigger BA1 or BS1 (below DMD's generic 5% BA1 default and its 0.1% BS1 placeholder) -- chosen specifically so BP4 is the standalone distinguishing benign-direction criterion in this fixture, not overshadowed by frequency-based evidence the way BA1 dominated DMD_c.5234G>A (batch 18). It's also above DMD's own PM2 threshold (0.01%), so PM2 is expected NOT_MET (too common for PM2) rather than contributing pathogenic-direction evidence either. \n\nExpected combining result: BP4 MET (Supporting, this evaluator's hardcoded strength regardless of calibration tier) is the only benign-direction criterion MET -- BS1 is NOT_MET at this frequency, so Table 5's Likely-Benign rule (1 Strong-Benign + 1 Supporting-Benign, or 2 Supporting-Benign) is not satisfied by BP4 alone. Landing on VUS despite BP4 MET is not a bug: it's the same 'one Supporting-tier criterion alone is insufficient' lesson this project has already shown repeatedly on the pathogenic side, now shown from the benign side with real data -- BP4's role here is to be correctly exercised and correctly insufficient alone, mirroring exactly why CAPN3_SYNTH_LIKELY_BENIGN_01 (Milestone 1) was deliberately built with BOTH BS1 and BP4 MET rather than either alone. Verify against the engine before finalizing the golden case rather than assuming."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_c.1342C>T",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "clinvar_variation_id": 280038,
+        "chromosome": "15",
+        "position": 42399640,
+        "reference": "C",
+        "alternate": "T",
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.1342C>T",
+          "hgvs_p": "p.Arg448Cys"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.0",
+          "retrieval_status": "OBSERVED",
+          "locus_coverage_adequate": true,
+          "overall_af": 1e-05,
+          "ancestry_specific_max_af": 3.412e-05
+        }
+      ],
+      "computational_evidence": {
+        "tool": "REVEL",
+        "tool_version": "as cited in ClinGen LGMD VCEP curation (RCV006646441.1, evaluated 2026-01-20)",
+        "calibration_source": "ClinGen LGMD VCEP specification for CAPN3: REVEL >=0.70 for PP3 (Supporting)",
+        "retrieval_status": "OBSERVED",
+        "score": 0.846,
+        "calibrated_prediction": "PATHOGENIC"
+      },
+      "same_residue_evidence": {
+        "pm5_precedent_established": true,
+        "pm5_precedent_classification": "PATHOGENIC",
+        "pm5_precedent_variant": "CAPN3 c.1343G>A p.(Arg448His), ClinVar VCV000217149, ClinGen LGMD VCEP Pathogenic (evaluated 2026-01-20)",
+        "splice_impact_excluded": true
+      },
+      "notes": "Real CAPN3 missense variant (ClinVar VCV000280038.68, RCV006646441.1), classified PATHOGENIC by the ClinGen LGMD VCEP itself (reviewed by expert panel, 3-star, evaluated 2026-01-20), the project's first fixture found specifically while researching real PS1/PM5 precedent pairs. The VCEP's own applied criteria: PM3_Strong (homozygous in one patient, PMID 17236769/15221789/18854869/27447704), PP4_Strong, PM2_Supporting (Grpmax AF 0.00003412, 2/58616 Admixed American chromosomes, gnomAD v4.1.0, below the VCEP's <0.0001 threshold), PP3 (REVEL 0.846, above the >=0.70 threshold), and PM5 -- citing 'another missense variant at the same codon, c.1343G>A p.(Arg448His), has been classified as pathogenic by the ClinGen LGMD VCEP' (this project's own CAPN3_c.1343G>A fixture, also reclassified Pathogenic the same day -- see that fixture's updated notes for the reciprocal-PM5 discussion). This project's engine implements PM2, PP3, and (as of this round) PM5 of the VCEP's five applied criteria -- PM3 and PP4 remain case-level/segregation criteria outside this project's variant-only scope. splice_impact_excluded=True is a disclosed judgment call, not a SpliceAI lookup: across the seven total ClinVar submissions for this residue's two variants (this one and c.1343G>A), none raise a splicing concern for either allele, and both are documented as straightforward missense substitutions well away from any exon boundary language in the submitter comments reviewed. PM2 Supporting (1) + PP3 Supporting (1) + PM5 Moderate (2) does not clear any Table 5 pathogenic-tier rule (needs 3 Moderate, or 2 Moderate + 2 Supporting, or better) -- VUS under this project's engine, continuing batch 13's structural finding (PM3_Strong and PP4_Strong, which is most of what actually drives the real VCEP's Pathogenic call here, are exactly the case-level criteria this project's variant-only design cannot reach) now shown to hold even with PM5 newly implemented."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_SYNTH_PS1_01",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.100G>C",
+          "hgvs_p": "p.Val34Leu"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "synthetic",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true
+        }
+      ],
+      "computational_evidence": {
+        "tool": "REVEL",
+        "tool_version": "synthetic",
+        "calibration_source": "ClinGen LGMD VCEP specification for CAPN3: REVEL >=0.70 for PP3 (Supporting)",
+        "retrieval_status": "OBSERVED",
+        "score": 0.9,
+        "calibrated_prediction": "PATHOGENIC"
+      },
+      "same_residue_evidence": {
+        "ps1_precedent_established": true,
+        "ps1_precedent_classification": "PATHOGENIC",
+        "ps1_precedent_variant": "CAPN3 c.100G>T p.(Val34Leu) (synthetic illustrative precedent, not a real ClinVar entry)",
+        "splice_impact_excluded": true
+      },
+      "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to exercise PS1's MET/Strong path end-to-end, modeled directly on Richards et al. 2015's own PS1 example: 'Val->Leu caused by either G>C or G>T in the same codon.' A real CAPN3 or DMD example of two different nucleotide changes producing the exact same resulting amino acid change, where one is already established pathogenic, was searched for this round (alongside the real PM5 precedent pair found for p.Arg448His/p.Arg448Cys, see CAPN3_c.1342C>T and CAPN3_c.1343G>A) but not found -- disclosed as an open real-data gap for PS1 specifically, the same 'searched, not found, still open' treatment this project has given other real-data gaps (e.g. the long-standing BA1 gap, closed only in batch 18). PS1 Strong (4) + PM2 Supporting (1, ABSENT from gnomAD) + PP3 Supporting (1, synthetic REVEL 0.9) clears Table 5's '1 Strong + >=2 Supporting' Likely Pathogenic rule -- chosen specifically to give PS1 a clean, complete classification-tier demonstration rather than only an isolated MET result."
     }
   ]
 }

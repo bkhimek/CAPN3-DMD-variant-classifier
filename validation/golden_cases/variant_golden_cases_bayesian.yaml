@@ -65,9 +65,15 @@ golden_cases:
 
   - variant_id: CAPN3_c.1343G>A
     expected_provisional_class: VUS
-    expected_points: 1
+    expected_points: 2
     source: "Hand-derived from Tavtigian et al. 2020's point system"
-    curator_note: "PM2 Supporting (1) alone -- same shape as CAPN3_c.1132T>C. VUS either way."
+    curator_note: >
+      UPDATED this round: PP3 (Supporting, 1) was added once a real REVEL
+      score (0.904) turned up during the real 2026-01-20 LGMD VCEP
+      reclassification (see variant_golden_cases.yaml). PM2 Supporting
+      (1) + PP3 Supporting (1) = 2 points, 2 contributing criteria --
+      meets the 2-criterion minimum but well short of the 6-point Likely
+      Pathogenic floor. VUS either way.
 
   - variant_id: CAPN3_c.1401_1403del
     expected_provisional_class: VUS
@@ -246,3 +252,22 @@ golden_cases:
     expected_points: 2
     source: "Hand-derived from Tavtigian et al. 2020's point system"
     curator_note: "PM2 Moderate (2) alone (PVS1 is MANUAL_REVIEW for this splice donor variant, not MET) -- 2 points, 1 contributing criterion, below the 2-criterion minimum regardless. VUS either way."
+
+  - variant_id: CAPN3_c.1342C>T
+    expected_provisional_class: VUS
+    expected_points: 4
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      PM2 Supporting (1) + PP3 Supporting (1) + PM5 Moderate (2) = 4
+      points, 3 contributing criteria -- meets the 2-criterion minimum,
+      but 4 points falls in the 0-5 VUS band, short of the 6-point Likely
+      Pathogenic floor. VUS either way; no divergence from Table 5 here.
+
+  - variant_id: CAPN3_SYNTH_PS1_01
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_points: 6
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      PS1 Strong (4) + PM2 Supporting (1) + PP3 Supporting (1) = 6
+      points, 3 contributing criteria -- Likely Pathogenic band (6-9), no
+      divergence from Table 5 here (both land Likely Pathogenic).

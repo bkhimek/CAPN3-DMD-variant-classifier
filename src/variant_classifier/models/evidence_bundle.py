@@ -14,6 +14,7 @@ from ._coerce import require_dict, require_list, require_str
 from .computational_evidence import ComputationalEvidence
 from .gene_disease_context import GeneDiseaseContext
 from .population_evidence import PopulationEvidence
+from .same_residue_evidence import SameResidueEvidence
 from .transcript_consequence import TranscriptConsequence
 from .variant_identity import VariantIdentity
 
@@ -25,6 +26,7 @@ class VariantEvidenceBundle:
     transcript_consequences: List[TranscriptConsequence]
     population_evidence: List[PopulationEvidence]
     computational_evidence: Optional[ComputationalEvidence] = None
+    same_residue_evidence: Optional[SameResidueEvidence] = None
     notes: Optional[str] = None
 
     def __post_init__(self) -> None:
@@ -67,6 +69,12 @@ class VariantEvidenceBundle:
             if raw_computational is not None
             else None
         )
+        raw_same_residue = data.get("same_residue_evidence")
+        same_residue_evidence = (
+            SameResidueEvidence.from_dict(raw_same_residue, f"{ctx}.same_residue_evidence")
+            if raw_same_residue is not None
+            else None
+        )
         notes = data.get("notes")
         if notes is not None and not isinstance(notes, str):
             raise SchemaValidationError(f"{ctx}: notes must be a string if provided")
@@ -76,5 +84,6 @@ class VariantEvidenceBundle:
             transcript_consequences=transcript_consequences,
             population_evidence=population_evidence,
             computational_evidence=computational_evidence,
+            same_residue_evidence=same_residue_evidence,
             notes=notes,
         )

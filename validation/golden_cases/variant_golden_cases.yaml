@@ -45,6 +45,8 @@ golden_cases:
       PVS1: MET
       PM2: NOT_MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: MANUAL_REVIEW
@@ -81,6 +83,8 @@ golden_cases:
       PVS1: MET
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
@@ -97,6 +101,8 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: NOT_MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
       PP3: NOT_MET
       BP4: MET
       BA1: MET
@@ -128,6 +134,8 @@ golden_cases:
       PVS1: MET
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
@@ -161,6 +169,8 @@ golden_cases:
       PVS1: MET
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -179,6 +189,8 @@ golden_cases:
       PVS1: MET
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -214,6 +226,8 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: NOT_MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
       PP3: NOT_MET
       BP4: NOT_MET
       BA1: NOT_MET
@@ -274,6 +288,8 @@ golden_cases:
       PVS1: MANUAL_REVIEW
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -299,6 +315,8 @@ golden_cases:
       PVS1: MANUAL_REVIEW
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -325,6 +343,8 @@ golden_cases:
       PVS1: MET
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -346,21 +366,35 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: MET
       PM4: NOT_APPLICABLE
-      PP3: NOT_EVALUATED
-      BP4: NOT_EVALUATED
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
+      PP3: MET
+      BP4: NOT_MET
       BA1: NOT_MET
       BS1: NOT_MET
-    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry"
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the real ClinGen LGMD VCEP's 2026-01-20 reclassification (VCV000217149, RCV006646441.1, reviewed by expert panel)"
     curator_note: >
-      Real missense variant, extremely rare in gnomAD (AF ~0.0000026),
-      reported by ClinVar itself as Uncertain Significance. PM2 MET alone
-      never reaches a Table 5 tier, so the engine also lands on VUS --
-      included deliberately as a case where this project's limited
-      criterion set agrees with the real-world consensus, rather than
-      under- or over-calling it. Worth keeping in the set as a reminder
-      that CAPN3_c.1939G>T and CAPN3_c.946-1G>A (both real Pathogenic
-      variants this engine under-calls) are the interesting exceptions,
-      not the typical case.
+      UPDATED this round. When first added, ClinVar's aggregate call was
+      Uncertain Significance and no computational evidence had been
+      gathered, so PP3 was NOT_EVALUATED and this fixture was framed as
+      "the engine agrees with the real-world consensus." Re-checked while
+      researching real PS1/PM5 fixtures this batch: the real ClinGen LGMD
+      VCEP reclassified this variant PATHOGENIC on 2026-01-20, via
+      PM3_Strong, PP4_Strong, PM2_Supporting, and PP3 (REVEL 0.904, now
+      added here as this fixture's computational_evidence). This
+      project's engine implements only PM2 and PP3 of those four --
+      PM3/PP4 are case-level/segregation criteria outside this project's
+      variant-only scope (see clinical.py's own notes on why PM3 in
+      particular cannot be a per-variant evaluator). PM2 Supporting + PP3
+      Supporting alone does not clear any Table 5 pathogenic-tier rule, so
+      the engine still lands on VUS -- no longer "agrees with the
+      real-world consensus" (the real consensus is now Pathogenic), but a
+      fifth independent confirmation of batch 13's structural finding
+      instead. PS1/PM5 stay NOT_EVALUATED here deliberately: see
+      CAPN3_c.1342C>T's curator_note for the reciprocal-PM5 discussion
+      (a real different-amino-acid-change precedent now exists at this
+      residue, but the real VCEP itself did not invoke PM5 for this
+      variant, and this fixture mirrors that choice rather than guessing).
 
   - variant_id: CAPN3_c.2050+1G>A
     expected_provisional_class: VUS
@@ -368,6 +402,8 @@ golden_cases:
       PVS1: MANUAL_REVIEW
       PM2: NOT_MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -397,6 +433,8 @@ golden_cases:
       PVS1: MANUAL_REVIEW
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -428,6 +466,8 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: NOT_MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
@@ -479,6 +519,8 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -500,6 +542,8 @@ golden_cases:
       PVS1: MANUAL_REVIEW
       PM2: MANUAL_REVIEW
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -555,6 +599,8 @@ golden_cases:
       PVS1: MET
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -581,6 +627,8 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: MET
       PM4: MET
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -625,6 +673,8 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: MET
       PM4: MET
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
@@ -669,6 +719,8 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: NOT_MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: MET
@@ -714,6 +766,8 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
@@ -766,6 +820,8 @@ golden_cases:
       PVS1: NOT_APPLICABLE
       PM2: NOT_MET
       PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
       PP3: NOT_MET
       BP4: MET
       BA1: NOT_MET
@@ -812,3 +868,68 @@ golden_cases:
       deliberately built with BOTH BS1 and BP4 MET specifically because
       neither alone is sufficient -- this fixture shows the "alone"
       half of that story with a real variant for the first time.
+
+  - variant_id: CAPN3_c.1342C>T
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: MET
+      PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: MET
+      PP3: MET
+      BP4: NOT_MET
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the real ClinGen LGMD VCEP curation (VCV000280038.68, RCV006646441.1, reviewed by expert panel, evaluated 2026-01-20)"
+    curator_note: >
+      Real CAPN3 missense variant (p.Arg448Cys), found while researching
+      real PS1/PM5 fixtures this batch -- the first real fixture in this
+      project's set to exercise PM5 MET. The real ClinGen LGMD VCEP
+      classifies this variant PATHOGENIC via PM3_Strong, PP4_Strong,
+      PM2_Supporting, PP3, and PM5 (citing this project's own
+      CAPN3_c.1343G>A, p.Arg448His, also reclassified Pathogenic by the
+      same VCEP the same day, as its PM5 precedent). This project's
+      engine implements PM2, PP3, and PM5 of those five -- PM3_Strong and
+      PP4_Strong remain case-level/segregation criteria outside this
+      project's variant-only scope, and they are doing most of the real
+      work in the VCEP's own Pathogenic call. PM2 Supporting (1) + PP3
+      Supporting (1) + PM5 Moderate (2) does not clear any Table 5
+      pathogenic-tier rule (needs 3 Moderate, or 2 Moderate + 2
+      Supporting, or better) -- VUS under this engine, the same
+      structural shortfall batch 13 first documented, now shown to
+      persist even with PM5 newly implemented and MET. See this
+      fixture's own notes in data/curated/variant_evidence.json for the
+      splice_impact_excluded judgment call and the reciprocal-PM5
+      discussion with CAPN3_c.1343G>A.
+
+  - variant_id: CAPN3_SYNTH_PS1_01
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: MET
+      PM4: NOT_APPLICABLE
+      PS1: MET
+      PM5: NOT_EVALUATED
+      PP3: MET
+      BP4: NOT_MET
+      BA1: NOT_MET
+      BS1: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a synthetic fixture built to exercise PS1's MET/Strong path"
+    curator_note: >
+      SYNTHETIC fixture, modeled directly on Richards et al. 2015's own
+      PS1 example ("Val->Leu caused by either G>C or G>T in the same
+      codon"). No real CAPN3 or DMD example of two different nucleotide
+      changes producing the exact same resulting amino acid change, where
+      one is already established pathogenic, was found while researching
+      real PS1/PM5 fixtures this batch -- unlike PM5, which did get a
+      real fixture (CAPN3_c.1342C>T / CAPN3_c.1343G>A). Disclosed as an
+      open real-data gap for PS1 specifically, the same "searched, not
+      found, still open" treatment given to other real-data gaps
+      elsewhere in this project (e.g. BA1, before batch 18 closed it).
+
+      PS1 Strong (4 points) + PM2 Supporting (ABSENT from gnomAD) + PP3
+      Supporting (synthetic REVEL 0.9, PATHOGENIC bucket) clears Table
+      5's "1 Strong + >=2 Supporting" Likely Pathogenic rule -- chosen
+      deliberately to give PS1 a complete classification-tier
+      demonstration, not just an isolated MET result.

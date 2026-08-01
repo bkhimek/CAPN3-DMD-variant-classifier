@@ -5,16 +5,25 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 5 complete, curated variant set at 22 of ~20-30, CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
+## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), curated variant set at 23 real of ~20-30 (24 fixtures total), DMD CNV/structural-variant representation sized but not implemented (Batch 22), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
 
 Milestone 5 (batch 20) added a second combining system -- Bayesian
 point-based combining (Tavtigian et al. 2020), offered alongside, not
-replacing, Milestone 3's classic Table 5 rules -- and is expected to be
-this project's last milestone before development moves to a new,
-complementary project starting one stage earlier in the pipeline (raw
-sequencing reads rather than an already-identified variant). See
-"Milestone 5: Bayesian point-based combining" below for what it found and
-why this felt like the right place to stop.
+replacing, Milestone 3's classic Table 5 rules -- and was expected to be
+this project's last milestone before development moved to a new,
+complementary project starting one stage earlier in the pipeline. That
+move hadn't happened yet by batch 22, which returned to this project for
+one more round: PS1 and PM5, the two criteria the Roadmap had already
+flagged as "most tractable next," are now implemented (see "PS1 and PM5:
+same-residue precedent evidence" below), and DMD's long-disclosed CNV/
+structural-variant representation gap was researched and sized against
+the real ClinGen technical standard for CNV interpretation -- deliberately
+NOT implemented this round, per its own sizing conclusion that it needs a
+new identity representation and a new, parallel scoring system, not an
+incremental extension of the existing evaluator pattern (see "DMD CNV/
+structural-variant representation" below). See "Milestone 5: Bayesian
+point-based combining" below for what that milestone found and why batch
+20 felt like the right place to pause before this round picked back up.
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -32,17 +41,21 @@ now goes from a `ClinicalCase` (what was found in a specific patient) plus
 each variant's own classification to EXPLAINED / INSUFFICIENT /
 MANUAL_REVIEW / NOT_APPLICABLE. What exists:
 
-- Seven typed data models (`src/variant_classifier/models/`) matching the
+- Eight typed data models (`src/variant_classifier/models/`) matching the
   schemas in the *Building an ACMG Engine* and *Clinical Variant Pipeline
   Workflow Architecture* design guides, each validating its own invariants
   and rejecting malformed input with a single `SchemaValidationError`.
-- **Twenty-two curated evidence bundles** (`data/curated/variant_evidence.json`):
-  eighteen real ClinVar-grounded variants (eleven CAPN3, seven DMD) and four
-  synthetic cases (three CAPN3, one DMD) constructed to exercise specific
-  combining-rule and case-level paths. This is eighteen increments toward
-  the ~20-30 ClinVar variant set from the original project plan — see
-  "Expanding the curated set" below for what each real variant adds and
-  where this is headed. Gene/disease context for both CAPN3 and DMD
+  `SameResidueEvidence` (batch 22) is the newest, added for PS1/PM5 -- see
+  "PS1 and PM5: same-residue precedent evidence" below.
+- **Twenty-four curated evidence bundles** (`data/curated/variant_evidence.json`):
+  nineteen real ClinVar/VCEP-grounded variants (twelve CAPN3, seven DMD)
+  and five synthetic cases (four CAPN3, one DMD -- `CAPN3_SYNTH_PS1_01`
+  added batch 22 specifically to exercise PS1's MET path, see "Expanding
+  the curated set" below) constructed to exercise specific combining-rule
+  and case-level paths. This is nineteen increments toward the ~20-30
+  ClinVar variant set from the original project plan — see "Expanding the
+  curated set" below for what each real variant adds and where this is
+  headed. Gene/disease context for both CAPN3 and DMD
   (`data/curated/gene_disease_context.yaml`).
 - Golden cases for every curated fixture, curated *separately* from the
   evidence they judge, per the golden-case philosophy in the Validation
@@ -52,11 +65,12 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   results (see below).
 - Schema-validation tests (`tests/unit/`) covering both valid and
   invalid records for every model.
-- Seven evaluators, one per implemented criterion
+- Nine evaluators, one per implemented criterion
   (`src/variant_classifier/evaluators/`): `pvs1.py`, `pm2.py`, `pm4.py`,
-  `pp3.py`, `bp4.py`, `ba1.py`, `bs1.py`. PVS1 is deliberately partial —
-  see "PVS1 scope" below. PM4 was added in batch 14 — see "PM4: a second
-  new criterion" below.
+  `ps1.py`, `pm5.py`, `pp3.py`, `bp4.py`, `ba1.py`, `bs1.py`. PVS1 is
+  deliberately partial — see "PVS1 scope" below. PM4 was added in batch 14
+  — see "PM4: a second new criterion" below. PS1 and PM5 were added in
+  batch 22 — see "PS1 and PM5: same-residue precedent evidence" below.
 - A **combining engine** (`src/variant_classifier/engine.py`) implementing
   the ACMG/AMP combining rules (Richards et al. 2015, Table 5), including
   a genuine conflict path (`conflicting_evidence_flag`) rather than
@@ -74,7 +88,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Twenty-two curated variants (CAPN3 and DMD) and nine curated
+- Twenty-four curated variants (CAPN3 and DMD) and nine curated
   `ClinicalCase` fixtures covering every branch above — including, as of
   batch 12, a pair built on a real ClinVar-sourced DMD variant rather
   than only the original synthetic ones, and, as of batch 17, the case-
@@ -85,16 +99,19 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 142 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 160 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does; also includes two hand-built tests pairing the real DMD
   male/female cases (batch 12), proving no real CAPN3 variant can
   currently reach Pathogenic/Likely Pathogenic *under Table 5* (batch 13,
   extended in batch 14 to cover PM4 too, and given an explicit Bayesian
-  counterpart in batch 20 rather than left to look contradicted by it), a
-  dedicated `test_pm4_evaluator.py` suite added in batch 14, and a
-  dedicated `test_bayesian.py` suite (13 tests) added in batch 20).
+  counterpart in batch 20 rather than left to look contradicted by it,
+  and now re-verified in batch 22 to still hold with PM5 implemented and
+  MET on a real fixture), a dedicated `test_pm4_evaluator.py` suite added
+  in batch 14, a dedicated `test_bayesian.py` suite (13 tests) added in
+  batch 20, and a dedicated `test_ps1_pm5_evaluators.py` suite (18 tests)
+  added in batch 22.
 
 ## Design notes
 
@@ -647,6 +664,55 @@ Reaching the full ~20-30 variant set is expected to take several more
 rounds of this same process (research a real variant, ground its
 evidence, hand-derive the expected result, verify against the engine).
 
+Batch 22 added one more real fixture, found organically while
+researching real PS1/PM5 precedent pairs rather than through a dedicated
+search:
+
+- `CAPN3_c.1342C>T` (p.Arg448Cys) — a real CAPN3 missense variant
+  (ClinVar VCV000280038.68, RCV006646441.1), classified Pathogenic by the
+  ClinGen LGMD VCEP itself (reviewed by expert panel, evaluated
+  2026-01-20), via PM3_Strong, PP4_Strong, PM2_Supporting, PP3, and PM5 —
+  the PM5 citation points directly at this project's own pre-existing
+  `CAPN3_c.1343G>A` (p.Arg448His) fixture as its precedent. This project's
+  engine implements PM2, PP3, and (as of this batch) PM5 of those five —
+  PM3_Strong and PP4_Strong remain case-level/segregation criteria this
+  project's variant-only design doesn't reach, and they are doing most of
+  the real work in the VCEP's own Pathogenic call. PM2 Supporting + PP3
+  Supporting + PM5 Moderate doesn't clear any Table 5 pathogenic-tier
+  rule — VUS here, a sixth independent confirmation of batch 13's
+  structural finding (no real CAPN3 variant reaches Pathogenic/Likely
+  Pathogenic through this engine), now shown to persist even with PM5
+  newly implemented and MET on real data.
+
+  Finding this pair also surfaced that `CAPN3_c.1343G>A` itself needed
+  updating: when it was added (batch 5), ClinVar's aggregate call was
+  Uncertain Significance and no computational evidence had been gathered.
+  The same 2026-01-20 LGMD VCEP evaluation that classified
+  `CAPN3_c.1342C>T` also reclassified `CAPN3_c.1343G>A` Pathogenic (via
+  PM3_Strong, PP4_Strong, PM2_Supporting, PP3 — notably *not* citing PM5
+  in this direction, even though `CAPN3_c.1342C>T` is a real, established
+  different-amino-acid-change precedent at the same residue). This
+  project's fixture for `CAPN3_c.1343G>A` was updated with the real REVEL
+  score (0.904, now a real `computational_evidence` entry closing the gap
+  the original notes flagged as missing) and verified coordinates, but
+  deliberately does *not* also add reciprocal PM5 evidence citing
+  `CAPN3_c.1342C>T` — mirroring the real VCEP's own choice not to invoke
+  it, rather than second-guessing an unexplained-but-plausibly-principled
+  omission (both variants were curated and reached Pathogenic from the
+  same joint evaluation event without needing PM5, which the VCEP's own
+  PM5 specification text says is fine: "PM5 can potentially be applied to
+  multiple amino acid changes at the same residue as long as the variant
+  classification that determines the strength level does not depend on
+  PM5 application" — applying it mutually from a single joint curation
+  risks the same kind of circularity `clinical.py`'s own docstring already
+  flags for PM3). An honest "not curated one way or the other," not a
+  guess, and disclosed as an open discussion point rather than resolved
+  by fiat. See "PS1 and PM5: same-residue precedent evidence" above for
+  the full criterion-level design story, and `CAPN3_SYNTH_PS1_01`'s notes
+  in `data/curated/variant_evidence.json` for the disclosed synthetic
+  fixture built to cover PS1's MET path, since no real "same amino acid
+  change via a different nucleotide" precedent pair was found this round.
+
 **Milestone 5: Bayesian point-based combining (batch 20).** Every prior
 milestone changed what evidence gets gathered or what criteria get
 evaluated; Milestone 5 changes neither -- it adds a second way to combine
@@ -827,6 +893,199 @@ silent guess — the rationale always states which case applied). See
 "Expanding the curated set" above for `CAPN3_c.1401_1403del`, its real
 fixture.
 
+**PS1 and PM5: same-residue precedent evidence (batch 22).** The
+Roadmap's "Later" bullet had named PS1 and PM5 as the most tractable next
+criteria since Milestone 3 ("same-residue pathogenic/benign lookups, no
+new evidence type needed") -- batch 22 followed through on that. Real
+definitions confirmed against Richards et al. 2015 Table 3 before writing
+any code: **PS1** ("same amino acid change as a previously established
+pathogenic variant, regardless of nucleotide change," Strong) and **PM5**
+("novel missense change at an amino acid residue where a different
+missense change determined to be pathogenic has been seen before,"
+Moderate). Both carry a caveat this project takes seriously rather than
+glossing over: the ClinGen SVI Splicing Subgroup (Walker et al. 2023,
+*Am J Hum Genet*, PMID 37352859) explicitly lists PS1 and PM5 among the
+codes needing care when the nucleotide change under evaluation might
+itself be acting through altered splicing rather than through the amino
+acid substitution -- in which case the whole "same/different amino acid
+change" comparison isn't valid.
+
+Design: a new model, `SameResidueEvidence` (`src/variant_classifier/models/same_residue_evidence.py`),
+added to `VariantEvidenceBundle` as one more optional field alongside
+`computational_evidence` -- not a new evidence-domain the way
+`ComputationalEvidence` was for PP3/BP4, confirming the Roadmap's
+original "no new evidence type needed" framing. Each precedent
+(`ps1_precedent_established`/`pm5_precedent_established`, plus a required
+classification and citation whenever `True`) is a curated fact about a
+**different**, previously classified variant, sourced externally
+(ClinVar/a VCEP curation) -- never this project's own engine output, and
+never computed by scanning this project's other curated fixtures. That
+distinction matters: `clinical.py`'s own docstring explains PM3 ("detected
+in trans with a pathogenic variant") can't be a per-variant evaluator
+because variant A's PM3 would depend on variant B's classification from
+this same engine, a structural circularity. PS1/PM5 reference an external
+authority's already-established classification instead, so no such
+circularity exists here. `splice_impact_excluded` must be stated
+explicitly (`True`/`False`) whenever a precedent is recorded, never left
+unstated -- the same "never silently guess" convention as `nmd_predicted`
+(PVS1) and `repeat_region` (PM4); left unstated or `False`, both
+evaluators return `MANUAL_REVIEW` rather than guessing which way the
+caveat cuts.
+
+Scope, disclosed rather than assumed: only `MISSENSE_VARIANT` is in scope
+(everything else is `NOT_APPLICABLE`), and precedent strength downgrades
+one level when the precedent itself is only Likely Pathogenic rather than
+Pathogenic (PS1 Strong->Moderate, PM5 Moderate->Supporting) -- a
+convention at least one real VCEP (RYR1, Malignant Hyperthermia
+Susceptibility) documents explicitly, though this project has not
+verified it as a universal ClinGen SVI mandate. While researching a real
+fixture, the actual ClinGen LGMD VCEP specification for CAPN3 (v2.0,
+cspec.genome.network/cspec/ui/svi/doc/GN187) turned out to already define
+PS1/PM5 for CAPN3 in far more depth than implemented here: a minimum
+REVEL score and excluded SpliceAI score for the variant under curation,
+no benign missense variation permitted at the residue, exclusion of
+missense changes encoded by the first/last 3 nucleotides of an exon (a
+splice-region proxy), and counting *multiple* precedent variants toward
+Strength (2 Pathogenic or 3 Likely Pathogenic = Strong PS1; similarly for
+PM5). None of that gene-specific machinery is implemented here -- this
+evaluator applies the generic Richards et al. 2015 definition and the
+base splice-vs-protein-level caveat only, the same "deliberately partial"
+treatment PVS1 has had since Milestone 2, disclosed in `ps1.py`/`pm5.py`'s
+own module docstrings rather than silently narrower than it looks.
+
+A real fixture pair fell directly out of this research, not a separate
+search: `CAPN3_c.1342C>T` (p.Arg448Cys) and the pre-existing
+`CAPN3_c.1343G>A` (p.Arg448His) turned out to be the exact same-residue
+pair the real ClinGen LGMD VCEP itself classified Pathogenic on the same
+day (2026-01-20), citing each other reciprocally as PM5 evidence in one
+direction. Re-checking `CAPN3_c.1343G>A` against the primary ClinVar
+record (a routine step, same discipline as batches 8/10) found its own
+classification had changed since this fixture was first added -- it was
+Uncertain Significance at the time, now real-world Pathogenic -- so this
+batch updated that fixture's `computational_evidence` (a REVEL score of
+0.904 the earlier notes had flagged as missing) and notes accordingly,
+rather than leaving stale information next to the new PM5 fixture. See
+"Expanding the curated set" below for the full story, including why this
+project deliberately did *not* also curate reciprocal PM5 evidence for
+`CAPN3_c.1343G>A` itself (the real VCEP didn't either, for a documented
+reason worth preserving rather than second-guessing). No real "same amino
+acid change via a different nucleotide" precedent pair (a PS1 example) was
+found for CAPN3 or DMD this round -- disclosed as an open real-data gap,
+the same "searched, not found, still open" treatment other gaps have had
+in this project (e.g. BA1 across nine rounds before batch 18 closed it).
+PS1's MET/Strong path is instead exercised by a disclosed synthetic
+fixture, `CAPN3_SYNTH_PS1_01`, modeled directly on Richards et al. 2015's
+own PS1 example ("Val->Leu caused by either G>C or G>T in the same
+codon").
+
+Tests: `tests/unit/test_ps1_pm5_evaluators.py` (18 tests) -- golden-case
+cross-check plus hand-built edge cases for every branch (`NOT_APPLICABLE`,
+`NOT_EVALUATED`, `NOT_MET`, `MANUAL_REVIEW`, `MET` at both strength tiers
+for both criteria) and `SameResidueEvidence`'s own schema validation.
+`bayesian.py` needed no changes at all to pick up PS1/PM5 -- it calls
+`engine.evaluate_all()` directly, so the two new evaluators are already
+included in its point totals; `test_bayesian_diverges_from_table5_for_exactly_the_four_documented_fixtures`
+(batch 20's regression lock) still passes unchanged, confirming PS1/PM5
+didn't quietly create or remove a Table-5-vs-Bayesian divergence.
+
+**DMD CNV/structural-variant representation: sized, not implemented
+(batch 22).** `gene_disease_context.yaml` has disclosed since Milestone 4
+that "DMD pathogenic variants are very often multi-exon
+deletions/duplications (structural, copy-number variants), which this
+project's `TranscriptConsequence` model does not represent." Batch 22
+researched this gap properly, as instructed, before writing any code, and
+concluded it does not fit the same "new evaluator on the existing shape"
+pattern PS1/PM5 just used -- it is a materially bigger lift, closer to
+(and arguably beyond) the PS3/BS3 bucket the Roadmap already flagged as
+"needs a new functional-evidence data type."
+
+What the real ClinGen specifications actually say, checked directly
+rather than assumed:
+
+- **No DMD-specific ClinGen VCEP exists.** Re-checked this round against
+  the Criteria Specification Registry (cspec.genome.network) directly --
+  same finding as batch 9's original check. The ClinGen LGMD VCEP whose
+  CAPN3 spec this project already adopted covers seven *other* genes
+  (ANO5, CAPN3, DYSF, SGCA, SGCB, SGCG, SGCD); DMD/dystrophinopathy is
+  out of its scope entirely, and no separate DMD VCEP has since formed.
+- **CNVs are not classified with Richards et al. 2015's criteria at all.**
+  ClinGen and ACMG jointly publish a wholly separate technical standard
+  for this: Riggs et al. 2020, "Technical standards for the interpretation
+  and reporting of constitutional copy-number variants" (*Genetics in
+  Medicine* 22:245-257). It scores a CNV using entirely different evidence
+  categories -- gene-level dosage-sensitivity map overlap
+  (haploinsufficiency/triplosensitivity), the number and identity of
+  protein-coding genes overlapped, detailed genomic-content evaluation,
+  and inheritance/segregation data -- summed into its own quantitative
+  score and mapped to the same five-tier Pathogenic..Benign scale this
+  project already uses, but via a completely different rubric. This is
+  the concrete answer to "how does ClinGen expect CNV evidence to be
+  represented": not as one more `CriterionResult` alongside PVS1/PM2/PP3,
+  but as a parallel scoring system over a different evidence shape --
+  structurally more like how `bayesian.py` sits alongside `engine.py`
+  (a second combining system) than like how PM4 or PS1/PM5 slotted into
+  the existing one.
+- **DMD's own dosage-sensitivity curation already exists and matters
+  directly.** ClinGen's Dosage Sensitivity Curation has DMD at
+  Haploinsufficiency score 3 ("sufficient evidence"), curated
+  2019-11-20 (search.clinicalgenome.org/kb/gene-dosage/HGNC:2928) -- the
+  exact gene-level input Riggs et al. 2020's framework asks for first,
+  and a real, already-established reason a DMD exon deletion would tend
+  to score toward pathogenic once that framework is applied, *provided*
+  the deletion's functional consequence is evaluated correctly.
+- **DMD has its own real, gene-specific way to predict that functional
+  consequence: the reading-frame rule** (Monaco et al.; formalized as a
+  practical clinical tool in Aartsma-Rus et al. 2019, "Phenotype
+  predictions for exon deletions/duplications: A user guide for
+  professionals and clinicians using Becker and Duchenne muscular
+  dystrophy as examples," *Human Mutation* 41(4)). Out-of-frame exon
+  deletions truncate the reading frame (null allele, Duchenne-severity);
+  in-frame deletions preserve it (internally-shortened but partially
+  functional dystrophin, typically Becker-severity) -- over 90% predictive
+  on its own, refined further by combining it with clinical milestone
+  data. This is DMD's direct structural-variant analogue of what PVS1's
+  NMD logic already does for point-mutation nonsense/frameshift variants
+  in this project -- except it operates on exon-range breakpoints, not an
+  HGVS nucleotide position.
+
+Why this is a bigger lift than a same-shape extension, concretely:
+
+1. **Identity representation.** `VariantIdentity`/`TranscriptConsequence`
+   assume a single genomic position (or a single-transcript HGVS
+   consequence) as the unit of identity. An exon deletion needs a
+   genomic-interval or exon-range identity (which exons, or which
+   breakpoints, are deleted/duplicated) -- a new top-level identity shape,
+   not an additional field on the existing one the way PS1/PM5's
+   `SameResidueEvidence` was.
+2. **Scoring framework.** Richards et al. 2015's criteria (and Tavtigian
+   et al. 2020's point system) don't apply to CNVs at all. A real
+   implementation needs its own combining/scoring module implementing (a
+   scoped slice of) Riggs et al. 2020 -- not one more evaluator feeding
+   the existing `evaluate_all()`/`combine()`/`combine_bayesian()`
+   pipeline.
+3. **What a minimal real implementation would actually need:** (a) a new
+   genomic-interval/exon-range identity model; (b) a way to record which
+   exons are deleted/duplicated and the resulting reading-frame
+   prediction (the DMD-specific piece); (c) a small, reusable per-gene
+   dosage-sensitivity config (mirroring `population_thresholds.yaml`'s
+   pattern, not DMD-specific machinery); (d) a new scoring module for
+   (at minimum) the reading-frame + dosage-sensitivity slice of Riggs et
+   al. 2020, deliberately not the full five-category rubric to start;
+   (e) real curated DMD deletion/duplication fixtures from ClinVar (there
+   are many -- unlike CAPN3's long-standing BA1 gap, real examples are
+   not the bottleneck here); (f) new golden cases and tests parallel to
+   the existing variant-level ones, hand-derived the same way as always.
+
+This is a legitimate, well-scoped candidate for a future milestone --
+DMD's own genotype-phenotype correlation is strong enough (the reading-
+frame rule alone) that even a partial implementation could produce real,
+defensible classifications for the most common DMD mutation type. It is
+deliberately not attempted this round: the instruction was to size it
+properly before writing any code, and the sizing conclusion is that it
+needs a new identity representation and a new parallel scoring engine,
+not an incremental evaluator -- exactly the kind of thing that should be
+scoped as its own piece of work rather than squeezed in alongside PS1/PM5.
+
 **PM2 and founder mutations.** PM2 asks whether a variant is absent or at
 extremely low frequency in the general population. A single global allele
 frequency threshold isn't enough to answer that safely: `CAPN3_c.550del` is
@@ -837,12 +1096,12 @@ clears the threshold while the overall frequency doesn't, it returns
 MANUAL_REVIEW rather than guessing, because whether "extremely low" holds
 depends on the tested individual's ancestry, which isn't available here.
 
-**Dataclasses instead of pydantic.** All seven models use the Python
+**Dataclasses instead of pydantic.** All eight models use the Python
 standard library's `dataclasses` module with hand-written `from_dict()`
 validation rather than pydantic. This keeps the dependency footprint to
 just PyYAML for fixture loading. Converting to pydantic later, if its
 validation machinery becomes useful, is a contained, mechanical change
-scoped to these seven files.
+scoped to these eight files.
 
 ## Repository layout
 
@@ -857,6 +1116,7 @@ src/variant_classifier/
     transcript_consequence.py  TranscriptConsequence
     population_evidence.py     PopulationEvidence
     computational_evidence.py  ComputationalEvidence
+    same_residue_evidence.py   SameResidueEvidence — batch 22, see "PS1 and PM5" above
     criterion_result.py        CriterionResult
     provisional_classification.py  ProvisionalClassification
     evidence_bundle.py         VariantEvidenceBundle (container, this repo only)
@@ -869,6 +1129,8 @@ src/variant_classifier/
     pvs1.py                   evaluate_pvs1() — see "PVS1 scope" above
     pm2.py                    evaluate_pm2()
     pm4.py                    evaluate_pm4() — see "PM4: a second new criterion" above
+    ps1.py                    evaluate_ps1() — batch 22, see "PS1 and PM5" above
+    pm5.py                    evaluate_pm5() — batch 22, see "PS1 and PM5" above
     pp3.py                    evaluate_pp3()
     bp4.py                    evaluate_bp4()
     ba1.py                    evaluate_ba1()
@@ -882,7 +1144,7 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       22 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       24 curated variants (CAPN3 + DMD) -- growing toward ~20-30
     clinical_cases.json         9 curated ClinicalCase fixtures (Milestone 4)
   source/
     pipeline_annotate_calls/  real (trimmed) sample of CAPN3-DMD-variant-calling-pipeline's
@@ -918,7 +1180,7 @@ pytest
 ```
 
 `pytest.ini` sets `pythonpath = src`, so this works out of the box with no
-extra environment variables. All 142 tests currently pass.
+extra environment variables. All 160 tests currently pass.
 
 A dependency-free alternative is also included, useful in environments
 without PyPI access:
@@ -1094,20 +1356,45 @@ case with no matching evidence bundle).
   not guessed (see the adapter docstring for why) — neither path is exercised
   by real HG002 data, which is confirmed clinically empty for CAPN3/DMD
   pathogenic variation. 8 new tests (`test_pipeline_adapter.py`), 142 total.
+- **Batch 22 (PS1/PM5, and DMD CNV sizing)** — done. Implemented
+  `evaluate_ps1()`/`evaluate_pm5()` (`src/variant_classifier/evaluators/ps1.py`,
+  `pm5.py`) and the new `SameResidueEvidence` model — the two criteria the
+  Roadmap had named "most tractable next." See "PS1 and PM5: same-residue
+  precedent evidence" above for the full design (why no new evidence-domain
+  model was needed, the splice caveat, the disclosed precedent-strength
+  downgrade, and the real ClinGen LGMD VCEP machinery deliberately left
+  unimplemented). Added a real fixture pair found directly through this
+  research (`CAPN3_c.1342C>T`, and an update to the pre-existing
+  `CAPN3_c.1343G>A` once its real classification turned out to have
+  changed) and a disclosed synthetic fixture (`CAPN3_SYNTH_PS1_01`) for
+  PS1's MET path, since no real PS1 precedent pair was found this round —
+  see "Expanding the curated set" above. Also researched and sized (but
+  deliberately did not implement) DMD's long-disclosed CNV/structural-
+  variant representation gap against the real ClinGen technical standard
+  for CNV interpretation (Riggs et al. 2020) and DMD's own ClinGen dosage-
+  sensitivity curation and reading-frame-rule literature — see "DMD CNV/
+  structural-variant representation" above for the full sizing writeup and
+  why it needs a new identity representation and a new parallel scoring
+  system, not an incremental evaluator. 18 new tests
+  (`test_ps1_pm5_evaluators.py`), 160 total.
 - Later, if this project resumes rather than moving to that next one:
   continue expanding curated fixtures toward the full 20-30 ClinVar
-  variant set (22 of ~20-30 done, see "Expanding the curated set" above;
-  every criterion-level real-data gap identified so far is now closed,
-  so further additions would be for breadth rather than a specific known
-  gap); add PM3/PS1/PM5/PS3/BS3 as real per-variant criteria (distinct
-  from how clinical.py currently handles trans/cis reasoning at the case
-  level); revisit PVS1's partial scope (protein-domain criticality,
+  variant set (23 real of ~20-30 done, see "Expanding the curated set"
+  above; every criterion-level real-data gap identified so far is now
+  closed except a real PS1 precedent pair, so further additions would
+  mostly be for breadth); add PM3/PS3/BS3 as real per-variant/case-level
+  criteria (distinct from how clinical.py currently handles trans/cis
+  reasoning at the case level; PS1/PM5 are now done, see batch 22 above);
+  revisit PVS1's partial scope (protein-domain criticality,
   constitutive-exon data — the real CAPN3 VCEP spec includes a
   gene-specific PVS1 flowchart that isn't implemented here either);
-  revisit DMD's CNV representation gap (see gene_disease_context.yaml)
-  if real DMD variants are ever added; extend X-linked case
-  interpretation beyond the hemizygous-male case once X-inactivation is
-  worth modeling properly; decide whether `clinical.py` (or any other
-  caller) should default to Bayesian rather than Table 5 now that both
-  are real, tested options — deliberately left as an open decision by
-  Milestone 5, not made for the caller.
+  implement DMD's CNV/structural-variant representation now that it's
+  properly sized (batch 22 above) — a new genomic-interval identity model,
+  a reading-frame-prediction field, a per-gene dosage-sensitivity config,
+  and a new scoring module for (a scoped slice of) Riggs et al. 2020,
+  with real DMD deletion/duplication fixtures from ClinVar; extend
+  X-linked case interpretation beyond the hemizygous-male case once
+  X-inactivation is worth modeling properly; decide whether `clinical.py`
+  (or any other caller) should default to Bayesian rather than Table 5
+  now that both are real, tested options — deliberately left as an open
+  decision by Milestone 5, not made for the caller.

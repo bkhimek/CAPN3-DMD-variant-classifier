@@ -2,9 +2,10 @@
 
 Two responsibilities, kept separate on purpose:
 
-- evaluate_all(bundle, thresholds): run all six SUPPORTED_CRITERIA_MILESTONE_1
-  evaluators against one VariantEvidenceBundle and return their six
-  CriterionResults — always six, one per code, even when most are
+- evaluate_all(bundle, thresholds): run all nine currently-supported
+  evaluators (SUPPORTED_CRITERIA_MILESTONE_1's six, plus PM4, PS1, PM5)
+  against one VariantEvidenceBundle and return their nine CriterionResults
+  — always nine, one per code, even when most are
   NOT_MET/NOT_EVALUATED/NOT_APPLICABLE. Nothing is dropped, so a report
   built from this list can show a scientist exactly what was and wasn't
   checked (the "preserved uncertainty" principle from the Workflow
@@ -14,7 +15,7 @@ Two responsibilities, kept separate on purpose:
   2015, Table 5) to a list of CriterionResults and produce one
   ProvisionalClassification. This function does not know or care where
   the CriterionResults came from — it would work identically on results
-  from criteria this project doesn't evaluate yet (PS1, PM3, ...), which
+  from criteria this project doesn't evaluate yet (PM3, PS3, ...), which
   is deliberate: extending criterion coverage later shouldn't require
   touching this function.
 
@@ -35,7 +36,17 @@ Two things this engine does NOT do, both by design for Milestone 3:
 
 from typing import List
 
-from .evaluators import evaluate_ba1, evaluate_bp4, evaluate_bs1, evaluate_pm2, evaluate_pm4, evaluate_pp3, evaluate_pvs1
+from .evaluators import (
+    evaluate_ba1,
+    evaluate_bp4,
+    evaluate_bs1,
+    evaluate_pm2,
+    evaluate_pm4,
+    evaluate_pm5,
+    evaluate_pp3,
+    evaluate_ps1,
+    evaluate_pvs1,
+)
 from .models import CriterionResult, ProvisionalClassification, VariantEvidenceBundle
 from .models.enums import ClassificationStatus, CriterionStatus, CriterionStrength, EvidenceDirection, ProvisionalClass
 
@@ -44,15 +55,18 @@ RULE_VERSION = "2015"
 
 
 def evaluate_all(bundle: VariantEvidenceBundle, thresholds: dict) -> List[CriterionResult]:
-    """Run all seven supported evaluators (six from Milestone 1, plus PM4
-    added batch 14). Always returns exactly seven CriterionResults, one
-    per code in a fixed order — order doesn't matter for combine() but a
-    fixed order makes output diffs/reports readable.
+    """Run all nine supported evaluators (six from Milestone 1, plus PM4
+    added batch 14, plus PS1/PM5 added this round). Always returns
+    exactly nine CriterionResults, one per code in a fixed order — order
+    doesn't matter for combine() but a fixed order makes output
+    diffs/reports readable.
     """
     return [
         evaluate_pvs1(bundle),
         evaluate_pm2(bundle, thresholds),
         evaluate_pm4(bundle),
+        evaluate_ps1(bundle),
+        evaluate_pm5(bundle),
         evaluate_pp3(bundle),
         evaluate_bp4(bundle),
         evaluate_ba1(bundle, thresholds),
