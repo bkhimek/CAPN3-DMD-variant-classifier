@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25), PVS1 extended with a real splice-RNA-evidence branch (Batch 26) and a real start-loss alternative-start-codon branch (Batch 27), PM3 (in-trans-with-a-pathogenic-variant) implemented (Batch 28) via curated per-proband points -- this project's twelfth evaluator and first Strong-strength pathogenic-direction evaluator, and the change that finally moves the real `CAPN3_c.550del` founder-allele fixture to PATHOGENIC, matching its real ClinVar call -- curated variant set at 19 real of ~20-30 (29 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), `clinical.py` extended to handle biallelic XX X-linked case interpretation (Batch 29) -- a real, X-inactivation-independent mechanism, closing the last structural gap in case-level reasoning -- CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
+## Status: COMPLETE (as of Batch 30). Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25), PVS1 extended with a real splice-RNA-evidence branch (Batch 26) and a real start-loss alternative-start-codon branch (Batch 27), PM3 (in-trans-with-a-pathogenic-variant) implemented (Batch 28) via curated per-proband points -- this project's twelfth evaluator and first Strong-strength pathogenic-direction evaluator, and the change that finally moves the real `CAPN3_c.550del` founder-allele fixture to PATHOGENIC, matching its real ClinVar call -- curated variant set at 19 real of ~20-30 (29 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), `clinical.py` extended to handle biallelic XX X-linked case interpretation (Batch 29) -- a real, X-inactivation-independent mechanism, closing the last structural gap in case-level reasoning -- CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21). Batch 30 closed the project out with a documentation-only pass (no code changes) -- see "Final status and scope boundary" at the end of the Roadmap section for the definitive summary of what's built and what's deliberately left out of scope.
 
 Milestone 5 (batch 20) added a second combining system -- Bayesian
 point-based combining (Tavtigian et al. 2020), offered alongside, not
@@ -99,7 +99,10 @@ same real reason as before. See "X-linked female/other-karyotype case
 interpretation (batch 29)" below for the full design and citations. See
 "Milestone 5: Bayesian point-based combining" below for what that
 milestone found and why batch 20 felt like the right place to pause
-before batch 22/23/24/25/26/27/28/29 picked back up.
+before batch 22/23/24/25/26/27/28/29 picked back up. Batch 30 is where
+this project actually stops -- a deliberate, user-decided close rather
+than another pause, documented (not just implied) in "Final status and
+scope boundary" at the end of the Roadmap section.
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -1974,6 +1977,10 @@ case with no matching evidence bundle).
 
 ## Roadmap
 
+Complete historical log, in order, of every milestone and batch that
+built this project — see "Final status and scope boundary" at the end
+of this section for where things stand now.
+
 - **Milestone 2** — done. PM2 and PVS1 evaluators (PVS1 intentionally
   partial).
 - **Milestone 3** — done. BA1/BS1/PP3/BP4 evaluators and the combining
@@ -2318,39 +2325,89 @@ case with no matching evidence bundle).
   (real cases found are all CNV-based, which doesn't fit this project's
   point-mutation-only `ClinicalCase`). 5 new tests (`test_clinical.py`),
   250 total.
-- Later, if this project resumes rather than moving to that next one:
-  continue expanding curated fixtures toward the full 20-30 ClinVar
-  variant set (19 real of ~20-30 done, see "Expanding the curated set"
-  above; every criterion-level real-data gap identified so far is now
-  closed except a real PS1 precedent pair, a real BS3-MET example, a real
-  PVS1 CONFIRMED_NULL_EQUIVALENT example, real PVS1 "no alternative
-  start codon" / "clean automatic-downgrade" start-loss examples, and a
-  real compound-heterozygous-confirmed-trans PM3 example, so further
-  additions would mostly be for breadth); continue PVS1's partial scope
-  beyond batches 26/27 (the real protein-domain-criticality judgment
-  inside both the
-  NMD-escape and start-loss MANUAL_REVIEW branches; the exact
-  percentage-of-transcript and protein-region-criticality thresholds
-  from the full Walker et al. 2023 splicing decision tree, which would
-  require successfully fetching the primary paper or the CAPN3-specific
-  PVS1 flowchart PDF — both blocked every attempt so far); extend
-  the CNV work (batches 23/24) to whole-gene triplosensitivity scoring for
-  genes where it's real (not DMD, per batch 24's finding), and to the
-  remaining Riggs et al. 2020 sections deferred on both the loss and gain
-  sides — Section 1 (genomic content), 2H (predicted-but-not-established
-  HI via DECIPHER/pLI/LOEUF), 3 (gene count), 4 (case/case-control/
-  population evidence), and 5 (inheritance/family history) — plus
-  independent verification of the primary Riggs paper's exact loss-side
-  2B/2G definitions and gain-side letter codes/point values rather than
-  continued reliance on ClassifyCNV's reimplementation and the
-  batch-24-disclosed secondary-source inference; extend
-  `karyotypic_sex=OTHER` beyond a single deferred bucket by splitting out
-  the specific real karyotypes it currently lumps together (X0/Turner as
-  functionally hemizygous, XXY as diploid-X) now that batch 29 has the
-  XY/XX-shaped logic each would actually reuse; source a real
-  point-mutation-only biallelic-XX case if one is ever published, to
-  replace `CASE_DMD_XX_BIALLELIC_TRANS`'s synthetic-case/real-variant
-  construction with an end-to-end real one; decide whether `clinical.py`
-  (or any other caller) should default to Bayesian rather than Table 5
-  now that both are real, tested options — deliberately left as an open
-  decision by Milestone 5, not made for the caller.
+- **Batch 30 (project wrap-up)** — done. Documentation-only, no code
+  changes: rewrote this section's closing bullet into the "Final status
+  and scope boundary" section below, updated the top-of-file Status line
+  to mark the project COMPLETE, and added this entry so the batch-by-
+  batch history stays complete through the actual last batch. The
+  decision to close here rather than keep going was the user's, made
+  explicitly at the start of this batch rather than assumed.
+
+## Final status and scope boundary
+
+This project is complete, not paused. Batch 29 (X-linked female/biallelic
+case interpretation) was the last batch of new functionality; batch 30
+closed out the documentation to reflect that rather than leaving the
+Roadmap reading like an open todo list. Nothing below is a promise of
+future work — it's a disclosed inventory of exactly where the scope
+boundary sits, in the same spirit as every other "researched, sized, and
+deliberately not implemented" decision this project made along the way,
+so a future reader (in this repo or a similar one) knows precisely what
+was checked versus what was left honestly unresolved.
+
+What's here, end to end: two genes (CAPN3 autosomal recessive, DMD
+X-linked), twelve ACMG/AMP point-mutation criterion evaluators (PVS1,
+PM2, PM4, PS1, PM5, PM3, PS3, PP3, BP4, BA1, BS1, BS3), two independent,
+fully tested combining systems (Table 5 and Bayesian point-based),
+DMD CNV deletion and duplication scoring as a separate parallel system,
+case-level interpretation for autosomal recessive and X-linked
+(hemizygous male and biallelic-XX) inheritance, a real pipeline-adapter
+integration, 29 point-mutation fixtures (19 real ClinVar/VCEP-grounded)
+plus 5 CNV fixtures plus 11 case-level fixtures, all checked against
+golden cases curated independently of the code that's judged against
+them, and 250 tests passing under both a pytest suite and a
+dependency-free runner.
+
+What's deliberately out of scope, and why, grouped by area:
+
+- **Curated fixture breadth.** 19 real variants toward the original
+  ~20-30 target. Every criterion-level real-data gap that was searched
+  for is now closed except five specific branch examples (a real PS1
+  precedent pair, a real BS3-MET example, a real PVS1
+  CONFIRMED_NULL_EQUIVALENT example, real PVS1 start-loss "no
+  alternative"/"clean automatic-downgrade" examples, and a real
+  compound-heterozygous-confirmed-trans PM3 example) — each searched for
+  and not found, not simply unconsidered. Further additions beyond these
+  five would mostly add volume, not new logic.
+- **PVS1's full decision tree.** The real protein-domain-criticality
+  judgment inside the NMD-escape and start-loss MANUAL_REVIEW branches,
+  and Walker et al. 2023's exact percentage-of-transcript splicing
+  thresholds, remain open. Both require primary sources (the Walker
+  paper itself, the CAPN3-specific PVS1 flowchart PDF) that were
+  unreachable via this project's tooling on every attempt across three
+  separate batches (26, 27, 28's PM3 research) — a consistent, disclosed
+  tooling limitation, not a research gap.
+- **CNV scoring beyond deletions/duplications.** Whole-gene
+  triplosensitivity scoring for genes where it's real (confirmed not
+  DMD, per batch 24), and Riggs et al. 2020 Sections 1 (genomic
+  content), 2H (predicted-but-not-established HI), 3 (gene count), 4
+  (case/case-control/population evidence), and 5 (inheritance/family
+  history) are all unimplemented. The primary paper's exact loss-side
+  2B/2G definitions and gain-side letter codes/point values also rely on
+  ClassifyCNV's reimplementation and a disclosed secondary-source
+  inference (batch 24) rather than independent primary verification.
+- **X-linked karyotypes beyond XY and biallelic XX.** `karyotypic_sex=OTHER`
+  remains a single deferred bucket (X0/Turner, XXY, and mosaicism all
+  return MANUAL_REVIEW without being distinguished from each other),
+  even though batch 29's research found that X0/Turner is functionally
+  hemizygous (the XY-shaped logic would apply) and XXY is diploid-X (the
+  XX-shaped logic would apply) — splitting `OTHER` into specific real
+  karyotypes was identified but not built, since `KaryotypicSex.OTHER`
+  itself would need to become several distinct values first, a schema
+  change this project stopped short of.
+- **A real point-mutation-only biallelic-XX case.** No real published
+  case pairs two point mutations (rather than CNVs) in one biallelic-XX
+  patient, so `CASE_DMD_XX_BIALLELIC_TRANS`/`_CIS` are synthetic cases
+  built from two real, already-curated variants rather than an
+  end-to-end real fixture.
+- **Table 5 vs. Bayesian default.** `clinical.py` (and any other caller)
+  takes a pre-computed `classifications` dict and is agnostic to which
+  combining system produced it — Milestone 5 built both as equally real,
+  equally tested options and deliberately left the choice of which one a
+  caller should default to unmade, rather than picking a "winner" this
+  project has no authority to declare.
+
+None of the above is silently missing — each is named here, in the
+design note it originated from, and in the code (a docstring, a
+rationale string, or both) that a reader would actually encounter while
+using the affected feature.
