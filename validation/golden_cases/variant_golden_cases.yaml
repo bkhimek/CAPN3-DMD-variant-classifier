@@ -504,22 +504,113 @@ golden_cases:
     curator_note: >
       Real, ClinVar-reported Pathogenic start-loss (initiator codon) variant
       -- the project's first fixture exercising PVS1's third documented
-      scope gap, alongside the two splice-site fixtures. PVS1's decision
-      tree treats start-loss variants as within scope in principle, but
-      correctly resolving one requires checking whether a plausible
-      downstream in-frame alternative start codon exists; this project's
-      evaluator does not model that, so it returns MANUAL_REVIEW rather than
-      guessing, same as it does for splice donor/acceptor variants. With
-      PVS1 unresolved, only PM2 (MET, Supporting under the real VCEP
-      threshold -- this variant's gnomAD AF of 0.00001 easily clears the
-      <0.0001 cutoff) is MET, which alone never reaches a Table 5 tier --
-      VUS. Together with CAPN3_c.946-1G>A and CAPN3_c.2050+1G>A (splice
+      scope gap, alongside the two splice-site fixtures. With PVS1
+      unresolved, only PM2 (MET, Supporting under the real VCEP threshold
+      -- this variant's gnomAD AF of 0.00001 easily clears the <0.0001
+      cutoff) is MET, which alone never reaches a Table 5 tier -- VUS.
+
+      UPDATED in batch 27: PVS1 is still MANUAL_REVIEW, but no longer via a
+      generic "not implemented" rationale -- the alternative-start-codon
+      question is now independently answered from real primary sequence
+      data. NM_000070.3's CDS (fetched directly via Ensembl's REST API,
+      confirmed as the matching transcript by its translation-start genomic
+      coordinate exactly matching this variant's own position) shows the
+      first downstream in-frame ATG at codon 228, i.e. re-initiation there
+      would lose the first 227 of 821 residues -- 27.6% of the protein,
+      independently computed, not estimated. That alone exceeds the ACGS
+      2024 / Abou Tayoun et al. 2018 decision tree's >10%-of-protein
+      threshold for the automatic PVS1_Supporting downgrade. It is also
+      independently corroborated by this project's own curated set:
+      CAPN3_c.550del (p.Thr184fs, real, ClinVar Pathogenic) falls at
+      residue 184, within the very region (1-227) that would be lost --
+      real evidence the region matters, not dispensable padding. Both
+      factors point the same way, so this fixture now demonstrates the
+      real decision tree's "outside the automatic downgrade, needs
+      protein-domain-criticality assessment" branch specifically, rather
+      than an unmodeled gap in general. See
+      CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01 and
+      CAPN3_SYNTH_PVS1_STARTLOSS_SUPPORTING_01 (new, batch 27) for the two
+      branches this real fixture does NOT demonstrate (no alternative start
+      codon at all; a clean automatic-downgrade case).
+
+      Together with CAPN3_c.946-1G>A and CAPN3_c.2050+1G>A (splice
       acceptor and donor), this now gives the fixture set one real,
-      ClinVar-Pathogenic example of each of PVS1's three unresolved
-      branches (NMD-escaping truncations aren't separately represented yet,
-      but both splice-site and start-loss gaps now are) -- the same
-      systematic limitation showing up a third independent way, not a
-      one-off.
+      ClinVar-Pathogenic example of each of PVS1's three originally
+      documented unresolved branches (NMD-escaping truncations aren't
+      separately represented as their own fixture, but both splice-site
+      and start-loss gaps now are, and both have been substantially
+      narrowed by batches 26/27) -- the same systematic limitation showing
+      up a third independent way, not a one-off.
+
+  - variant_id: CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MET
+      PM2: NOT_EVALUATED
+      PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_EVALUATED
+      BS1: NOT_EVALUATED
+      BS3: NOT_EVALUATED
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a synthetic fixture built to exercise batch 27's new PVS1 'no alternative start codon' MET/Very-Strong path"
+    curator_note: >
+      SYNTHETIC fixture (batch 27), built to exercise the
+      alternative_start_codon_identified=False branch end-to-end: a
+      start-loss variant with no downstream in-frame alternative start
+      codon at all, so no re-initiation rescue is possible -- per the ACGS
+      2024 / Abou Tayoun et al. 2018 rule ("If no alternative in-frame
+      start codon is identified, use PVS1 at maximum strength"), PVS1 MET
+      at Very Strong. No real CAPN3/DMD fixture with a confirmed absence of
+      any downstream in-frame start codon was found this batch (the real
+      CAPN3_c.1A>G fixture does have one, just a disqualifying one) --
+      disclosed as an open real-data gap, same treatment as other
+      synthetic-demonstrated branches in this project.
+
+      population_evidence is deliberately NOT_ASSESSED so PVS1 MET stands
+      as this fixture's only contributing criterion, keeping it focused on
+      the new PVS1 branch alone rather than incidentally becoming another
+      Table-5-vs-Bayesian divergence case (see README's Milestone 5 design
+      note).
+
+  - variant_id: CAPN3_SYNTH_PVS1_STARTLOSS_SUPPORTING_01
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MET
+      PM2: MET
+      PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+      BS3: NOT_EVALUATED
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a synthetic fixture built to exercise batch 27's new PVS1 automatic-downgrade MET/Supporting path"
+    curator_note: >
+      SYNTHETIC fixture (batch 27), built to exercise the automatic
+      PVS1_Supporting downgrade end-to-end: a start-loss variant with a
+      downstream in-frame alternative start codon at only 4.0% of the
+      protein (<=10%), not preceded by any known pathogenic variant -- the
+      clean case the ACGS 2024 / Abou Tayoun et al. 2018 rule's automatic
+      downgrade is built for. CAPN3's own real start-loss fixture
+      (CAPN3_c.1A>G) does not qualify for this branch (27.6% lost, and
+      preceded by a real pathogenic variant), so no real CAPN3/DMD fixture
+      was available to demonstrate it -- disclosed as an open real-data
+      gap. This fixture uses ABSENT-from-gnomAD population evidence (same
+      as most other synthetic fixtures in this set), giving PM2 MET
+      Supporting under CAPN3's real VCEP threshold. PVS1 Supporting (1) +
+      PM2 Supporting (1) = 2 Supporting criteria -- Table 5 has no
+      pathogenic-direction combining rule for "2 Supporting alone" (its
+      combining rules require at least one Moderate or Strong alongside
+      Supporting evidence), so this stays VUS despite two independently
+      contributing criteria. Checked directly against Bayesian too: 1+1=2
+      points, within the 0-5 VUS band -- VUS either way, no
+      Table-5-vs-Bayesian divergence.
 
   - variant_id: CAPN3_c.2120A>G
     expected_provisional_class: VUS

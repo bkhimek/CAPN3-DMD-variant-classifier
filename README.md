@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25, PM3 researched and sized but not implemented), PVS1 extended with a real splice-RNA-evidence branch (Batch 26), curated variant set at 23 real of ~20-30 (25 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
+## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25, PM3 researched and sized but not implemented), PVS1 extended with a real splice-RNA-evidence branch (Batch 26) and a real start-loss alternative-start-codon branch (Batch 27), curated variant set at 23 real of ~20-30 (27 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
 
 Milestone 5 (batch 20) added a second combining system -- Bayesian
 point-based combining (Tavtigian et al. 2020), offered alongside, not
@@ -63,9 +63,17 @@ equivalent transcript, or confirmed normal splicing directly contradicting
 the predicted disruption) are implemented; none of the three real curated
 splice fixtures had precise enough primary data to exercise the new
 MET path, which is instead demonstrated on one disclosed synthetic
-fixture. See "Milestone 5: Bayesian point-based combining" below for what
-that milestone found and why batch 20 felt like the right place to pause
-before batch 22/23/24/25/26 picked back up.
+fixture. Batch 27 continued PVS1's start-loss branch: this time the
+governing rule (ACGS 2024 UK Practice Guidelines, quoting Abou Tayoun et
+al. 2018's decision tree for initiation-codon variants) WAS fully
+reachable, and the real alternative-start-codon question for CAPN3's own
+start-loss fixture (`CAPN3_c.1A>G`) was independently answered from
+primary RefSeq/Ensembl CDS sequence data plus this project's own curated
+fixture set -- see "PVS1 start-loss: the alternative-start-codon rule
+(batch 27)" below for the full writeup. See "Milestone 5: Bayesian
+point-based combining" below for what that milestone found and why batch
+20 felt like the right place to pause before batch 22/23/24/25/26/27
+picked back up.
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -96,12 +104,14 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   the point-mutation family alongside `SameResidueEvidence`:
   `FunctionalEvidence`, attached to `VariantEvidenceBundle` for PS3/BS3 --
   see "PS3 and BS3: functional-evidence criteria (batch 25)" below.
-- **Twenty-five curated evidence bundles** (`data/curated/variant_evidence.json`):
+- **Twenty-seven curated evidence bundles** (`data/curated/variant_evidence.json`):
   nineteen real ClinVar/VCEP-grounded variants (twelve CAPN3, seven DMD)
-  and six synthetic cases (five CAPN3, one DMD -- `CAPN3_SYNTH_PS1_01`
+  and eight synthetic cases (seven CAPN3, one DMD -- `CAPN3_SYNTH_PS1_01`
   added batch 22 to exercise PS1's MET path, `CAPN3_SYNTH_PVS1_SPLICE_RNA_01`
-  added batch 26 to exercise the new PVS1 splice-RNA-evidence MET path,
-  see "Expanding the curated set" below) constructed to exercise specific
+  added batch 26 for the PVS1 splice-RNA-evidence MET path,
+  `CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01`/`CAPN3_SYNTH_PVS1_STARTLOSS_SUPPORTING_01`
+  added batch 27 for PVS1's two new start-loss MET branches, see
+  "Expanding the curated set" below) constructed to exercise specific
   combining-rule and case-level paths. This is nineteen increments toward
   the ~20-30 ClinVar variant set from the original project plan — see
   "Expanding the curated set" below for what each real variant adds and
@@ -145,7 +155,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Twenty-five curated variants (CAPN3 and DMD) and nine curated
+- Twenty-seven curated variants (CAPN3 and DMD) and nine curated
   `ClinicalCase` fixtures covering every branch above — including, as of
   batch 12, a pair built on a real ClinVar-sourced DMD variant rather
   than only the original synthetic ones, and, as of batch 17, the case-
@@ -156,7 +166,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 219 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 227 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does; also includes two hand-built tests pairing the real DMD
@@ -172,8 +182,9 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   batch 23, growing to 37 in batch 24) for the separate CNV deletion and
   duplication evidence/scoring families described below, a dedicated
   `test_ps3_bs3_evaluators.py` suite (15 tests) added in batch 25, and
-  `test_pvs1_evaluator.py` grew from 12 to 19 tests in batch 26 for the
-  new splice-RNA-evidence branch.
+  `test_pvs1_evaluator.py` grew from 12 to 19 tests in batch 26 (new
+  splice-RNA-evidence branch) and again to 27 tests in batch 27 (new
+  start-loss alternative-start-codon branch).
 
 ## Design notes
 
@@ -916,28 +927,36 @@ not model.
 
 **PVS1 scope.** The full PVS1 decision tree (Abou Tayoun et al. 2018)
 branches on protein-domain criticality and constitutive-exon-splicing
-information this project doesn't model. This evaluator only ever returns
-MET for the cases it can defend end-to-end: an early frameshift or
-nonsense variant predicted to trigger nonsense-mediated decay, in a gene
-with an established loss-of-function mechanism, or (added batch 26 — see
-"Splice-RNA evidence feeds PVS1 directly (batch 26)" below) a splice
-donor/acceptor variant with a real RNA/splicing assay confirming a
-null-equivalent transcript. Everything harder — truncations that escape
-NMD (typically last-exon), splice donor/acceptor variants without
-threshold-free RNA evidence, and start-loss variants — returns
-MANUAL_REVIEW with a rationale explaining why, rather than a guessed MET
-or NOT_MET. Non-null-variant consequence types (missense, synonymous,
-etc.) return NOT_APPLICABLE. `TranscriptConsequence` requires an explicit
-`nmd_predicted` value for both frameshift and stop-gained variants for
-exactly this reason — this requirement was originally frameshift-only in
-Milestone 1 and widened here once the evaluator needed it for stop-gained
-variants too. All three documented scope gaps (splice donor/acceptor,
-start-loss, NMD-escaping truncations) now have at least one real fixture
-exercising them, as of batch 9's `DMD_c.11041A>T` — see "Expanding the
-curated set" below. Start-loss and the exact percentage/protein-region-
-criticality thresholds within the splice and NMD-escape branches remain
-open — see "Splice-RNA evidence feeds PVS1 directly (batch 26)" below for
-exactly what is and isn't covered by the batch 26 extension.
+information this project doesn't fully model. This evaluator returns MET
+for the cases it can defend end-to-end: an early frameshift or nonsense
+variant predicted to trigger nonsense-mediated decay in a gene with an
+established loss-of-function mechanism; (added batch 26 — see "Splice-RNA
+evidence feeds PVS1 directly (batch 26)" below) a splice donor/acceptor
+variant with a real RNA/splicing assay confirming a null-equivalent
+transcript; or (added batch 27 — see "PVS1 start-loss: the
+alternative-start-codon rule (batch 27)" below) a start-loss variant with
+either no downstream in-frame alternative start codon at all, or one that
+clears the real automatic-downgrade bar. Everything harder — truncations
+that escape NMD (typically last-exon), splice donor/acceptor variants
+without threshold-free RNA evidence, and start-loss variants whose
+alternative start codon doesn't clear that bar (or hasn't been assessed)
+— returns MANUAL_REVIEW with a rationale explaining why, rather than a
+guessed MET or NOT_MET. Non-null-variant consequence types (missense,
+synonymous, etc.) return NOT_APPLICABLE. `TranscriptConsequence` requires
+an explicit `nmd_predicted` value for both frameshift and stop-gained
+variants for exactly this reason — this requirement was originally
+frameshift-only in Milestone 1 and widened here once the evaluator needed
+it for stop-gained variants too. All three documented scope gaps (splice
+donor/acceptor, start-loss, NMD-escaping truncations) now have at least
+one real fixture exercising them, as of batch 9's `DMD_c.11041A>T` — see
+"Expanding the curated set" below, and two of the three (splice-site,
+start-loss) have been substantially narrowed by batches 26/27
+respectively. The exact protein-domain-criticality thresholds within the
+NMD-escape branch, and the remaining percentage-based thresholds Walker
+et al. 2023's full splicing decision tree defines, remain open — see
+"Splice-RNA evidence feeds PVS1 directly (batch 26)" and "PVS1 start-loss:
+the alternative-start-codon rule (batch 27)" below for exactly what is and
+isn't covered by each extension.
 
 **PM4: a second new criterion (batch 14).** This project's first six
 evaluators were all built in Milestones 1-3; PM4 is the first one added
@@ -1502,6 +1521,92 @@ and `bayesian.py` needed no changes at all — same story as every prior
 criterion addition, since both operate generically over whatever
 `evaluate_pvs1()` returns.
 
+**PVS1 start-loss: the alternative-start-codon rule (batch 27).** Where
+batch 26's splice-RNA-evidence research hit blocked primary sources,
+batch 27's start-loss research did not: the exact rule for PVS1's
+initiation-codon branch is quoted directly in the ACGS 2024 UK Practice
+Guidelines for Variant Classification (already a trusted, successfully-
+fetched source in this project), citing Abou Tayoun et al. 2018's
+decision tree verbatim: "If there is a potential in-frame initiation
+codon downstream, the missing N-terminal region of the protein should be
+assessed according to the principles described in the decision tree (i.e.
+is the missing region critical to protein function / is it >10% of the
+entire protein length / are there any reported pathogenic variants
+upstream of the potential initiation codon) and apply PVS1 at either
+reduced strength or n/a, as appropriate. If no alternative in-frame start
+codon is identified, use PVS1 at maximum strength." A second source (a
+web search summary of Abou Tayoun et al. 2018 itself) supplied the exact
+downgrade rule: "the only null variant that should be applied the
+downgraded criteria PVS1_Supporting is a variant of initiation codon when
+a new methionine is not preceded by a pathogenic variant."
+
+Three new optional `TranscriptConsequence` fields, restricted to
+`START_LOST` and validated together the same way `nmd_predicted`/
+`repeat_region`/`splicing_rna_evidence` already are:
+`alternative_start_codon_identified` (bool), and, required together
+whenever that's `True`, `alternative_start_codon_percent_protein_lost`
+(float, 0-100) and `alternative_start_codon_preceded_by_pathogenic_variant`
+(bool). `evaluate_pvs1()`'s new logic follows the quoted rule directly:
+`identified=False` -> MET, Very Strong (no rescue possible); `identified`
+unset -> MANUAL_REVIEW (unchanged default); `identified=True` with
+`percent_protein_lost>10` or `preceded_by_pathogenic_variant=True` ->
+MANUAL_REVIEW (falls outside the automatic downgrade, needs a
+protein-domain-criticality judgment this evaluator still doesn't make);
+`identified=True` with neither disqualifying factor -> MET, Supporting.
+
+Unlike batch 26, this batch's real fixture (`CAPN3_c.1A>G`) could be
+fully, independently resolved -- not to MET, but to a far more specific
+MANUAL_REVIEW than before. NM_000070.3's real CDS sequence was fetched
+directly from Ensembl's REST API (matched to the correct canonical
+transcript, ENST00000397163, by confirming its translation-start genomic
+coordinate, 42359806, is exactly this variant's own position) and scanned
+programmatically for the first downstream in-frame ATG: codon 228,
+meaning re-initiation there would lose the protein's first 227 of 821
+residues -- 27.6%, independently computed from primary sequence data, not
+estimated or guessed. That alone exceeds the >10% threshold. It is also
+independently corroborated by this project's own curated fixture set,
+without needing any new external lookup: `CAPN3_c.550del` (p.Thr184fs,
+real, ClinVar Pathogenic) sits at residue 184, within the very region
+(1-227) that would be lost -- direct, real evidence that region is not
+dispensable padding. Both factors agree, so `CAPN3_c.1A>G` now
+demonstrates the "outside the automatic downgrade" branch specifically,
+with a rationale that names exactly which factors triggered it, rather
+than a generic "not implemented" message.
+
+Neither of the other two new branches had a real fixture available:
+`CAPN3_c.1A>G`'s own alternative start codon is disqualified, and no
+other real CAPN3/DMD start-loss variant is currently curated. Both are
+instead demonstrated on new disclosed synthetic fixtures --
+`CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01` (no alternative start codon at
+all -> MET Very Strong) and `CAPN3_SYNTH_PVS1_STARTLOSS_SUPPORTING_01`
+(a clean, small, unencumbered alternative start codon -> MET Supporting)
+-- the same "searched, not found, still open, demonstrate on a labeled
+synthetic instead" treatment used throughout this project. The first is
+deliberately built with `population_evidence` `NOT_ASSESSED` so its PVS1
+MET stands alone, avoiding another incidental Table-5-vs-Bayesian
+divergence (same discipline as `CAPN3_SYNTH_PVS1_SPLICE_RNA_01`, batch
+26); the second uses ordinary ABSENT population evidence and lands on
+"PVS1 Supporting + PM2 Supporting = 2 Supporting alone," a combination
+neither Table 5 nor the Bayesian point system has a pathogenic rule for,
+so it stays VUS under both without needing special construction.
+
+What remains open, disclosed rather than silently narrower than it looks:
+the real protein-domain-criticality judgment inside the MANUAL_REVIEW
+branch (is the lost region *actually* functionally critical, not just
+">10%" or "a pathogenic variant happens to be there") is still not
+modeled -- the same boundary the NMD-escape and in-frame-splice branches
+already have. The >10% cutoff's interpretation (`>10.0` triggers review,
+`<=10.0` is eligible for the automatic path) is this project's own
+disclosed reading of the quoted threshold, not verbatim from a source
+that specifies which side of exactly 10% falls where.
+
+Tests: `tests/unit/test_pvs1_evaluator.py` grew again, from 19 to 27
+tests -- three new golden-case-covered fixtures plus eight hand-built
+edge cases (all four start-loss outcomes, including that a pathogenic
+variant upstream disqualifies the downgrade even when the percentage
+alone would not, and three new `TranscriptConsequence` validation rules).
+`engine.py`/`bayesian.py` again needed zero changes.
+
 **PM2 and founder mutations.** PM2 asks whether a variant is absent or at
 extremely low frequency in the general population. A single global allele
 frequency threshold isn't enough to answer that safely: `CAPN3_c.550del` is
@@ -1529,7 +1634,8 @@ src/variant_classifier/
     _coerce.py                shared from_dict() validation helpers
     variant_identity.py        VariantIdentity
     gene_disease_context.py    GeneDiseaseContext, Specification
-    transcript_consequence.py  TranscriptConsequence — splicing_rna_evidence field added batch 26, see "PVS1 scope" above
+    transcript_consequence.py  TranscriptConsequence — splicing_rna_evidence field added batch 26,
+                                alternative_start_codon_* fields added batch 27, see "PVS1 scope" above
     population_evidence.py     PopulationEvidence
     computational_evidence.py  ComputationalEvidence
     same_residue_evidence.py   SameResidueEvidence — batch 22, see "PS1 and PM5" above
@@ -1571,9 +1677,11 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       25 curated variants (CAPN3 + DMD) -- growing toward ~20-30;
+    variant_evidence.json       27 curated variants (CAPN3 + DMD) -- growing toward ~20-30;
                                  two enriched with functional_evidence in batch 25 (see "PS3 and BS3" above);
-                                 one new synthetic PVS1 splice-RNA-evidence fixture added batch 26
+                                 one new synthetic PVS1 splice-RNA-evidence fixture added batch 26;
+                                 CAPN3_c.1A>G enriched, plus two new synthetic PVS1 start-loss fixtures,
+                                 added batch 27
     clinical_cases.json         9 curated ClinicalCase fixtures (Milestone 4)
     cnv_deletion_evidence.json  3 curated CNV deletion fixtures (DMD only) -- batch 23,
                                  a separate curated set from variant_evidence.json above
@@ -1907,22 +2015,51 @@ case with no matching evidence bundle).
   also becoming a sixth Table-5-vs-Bayesian divergence case. `engine.py`/
   `bayesian.py` needed zero changes. 7 new tests (`test_pvs1_evaluator.py`
   grew from 12 to 19), 219 total.
+- **Batch 27 (PVS1 start-loss alternative-start-codon branch)** — done.
+  Continued PVS1's scope completion: unlike batch 26, this rule's exact
+  text WAS reachable (ACGS 2024 UK Practice Guidelines, quoting Abou
+  Tayoun et al. 2018's initiation-codon decision tree verbatim) — see
+  "PVS1 start-loss: the alternative-start-codon rule (batch 27)" above
+  for the full design and exact quotes. Three new `TranscriptConsequence`
+  fields (`alternative_start_codon_identified`,
+  `alternative_start_codon_percent_protein_lost`,
+  `alternative_start_codon_preceded_by_pathogenic_variant`), and a new
+  four-way `evaluate_pvs1()` start-loss branch: no alternative found ->
+  MET Very Strong; a clean alternative (<=10% of protein, no pathogenic
+  variant in the lost region) -> MET Supporting; a disqualified
+  alternative (>10%, or a pathogenic variant present) -> MANUAL_REVIEW
+  with a rationale naming exactly why; unassessed -> unchanged
+  MANUAL_REVIEW default. `CAPN3_c.1A>G`, previously an unresolved
+  generic-MANUAL_REVIEW real fixture, is now independently and fully
+  resolved: its downstream alternative start codon (found by fetching
+  NM_000070.3's real CDS sequence directly from Ensembl's REST API and
+  scanning it programmatically) sits at codon 228, losing 27.6% of the
+  protein -- doubly disqualified, since this project's own
+  `CAPN3_c.550del` fixture (a real, ClinVar-Pathogenic variant at residue
+  184) independently confirms the lost region isn't dispensable. Two new
+  disclosed synthetic fixtures (`CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01`,
+  `CAPN3_SYNTH_PVS1_STARTLOSS_SUPPORTING_01`) demonstrate the two MET
+  branches no real fixture could reach. `engine.py`/`bayesian.py` again
+  needed zero changes. 8 new tests (`test_pvs1_evaluator.py` grew from
+  19 to 27), 227 total.
 - Later, if this project resumes rather than moving to that next one:
   continue expanding curated fixtures toward the full 20-30 ClinVar
   variant set (23 real of ~20-30 done, see "Expanding the curated set"
   above; every criterion-level real-data gap identified so far is now
-  closed except a real PS1 precedent pair, a real BS3-MET example, and a
-  real PVS1 CONFIRMED_NULL_EQUIVALENT example, so further additions would
-  mostly be for breadth); implement PM3 as a real case-level, multi-
-  proband points-aggregation system per its batch 25 sizing (distinct
-  from how clinical.py currently handles trans/cis reasoning at the case
-  level; PS1/PM5/PS3/BS3 are now done, see batches 22 and 25 above);
-  continue PVS1's partial scope beyond batch 26 (start-loss/alternative-
-  start-codon checking; the exact percentage-of-transcript and protein-
-  region-criticality thresholds from the full Abou Tayoun et al. 2018 /
-  Walker et al. 2023 decision trees, which would require successfully
-  fetching the primary paper or the CAPN3-specific PVS1 flowchart PDF —
-  both blocked every attempt so far); extend
+  closed except a real PS1 precedent pair, a real BS3-MET example, a real
+  PVS1 CONFIRMED_NULL_EQUIVALENT example, and real PVS1 "no alternative
+  start codon" / "clean automatic-downgrade" start-loss examples, so
+  further additions would mostly be for breadth); implement PM3 as a
+  real case-level, multi-proband points-aggregation system per its batch
+  25 sizing (distinct from how clinical.py currently handles trans/cis
+  reasoning at the case level; PS1/PM5/PS3/BS3 are now done, see batches
+  22 and 25 above); continue PVS1's partial scope beyond batches 26/27
+  (the real protein-domain-criticality judgment inside both the
+  NMD-escape and start-loss MANUAL_REVIEW branches; the exact
+  percentage-of-transcript and protein-region-criticality thresholds
+  from the full Walker et al. 2023 splicing decision tree, which would
+  require successfully fetching the primary paper or the CAPN3-specific
+  PVS1 flowchart PDF — both blocked every attempt so far); extend
   the CNV work (batches 23/24) to whole-gene triplosensitivity scoring for
   genes where it's real (not DMD, per batch 24's finding), and to the
   remaining Riggs et al. 2020 sections deferred on both the loss and gain

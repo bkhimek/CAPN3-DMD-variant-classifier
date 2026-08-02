@@ -51,20 +51,45 @@ yet (see README.md, "PVS1 scope"). What's implemented:
    affected, protein-region criticality) remains unimplemented, since the
    primary Walker et al. 2023 paper and the CAPN3-specific PVS1 flowchart
    PDF were both unreachable during this batch's research (see README).
-4. Start-loss variants remain within PVS1's scope in principle, but
-   resolving them needs an alternative-start-codon check this project
-   does not implement — MANUAL_REVIEW, explaining why (unchanged from
-   before batch 26; not addressed this round).
+4. Start-loss variants (batch 27 update — see README's "PVS1 start-loss:
+   the alternative-start-codon rule (batch 27)" design note): the real
+   rule (ACGS 2024 UK Practice Guidelines, quoting Abou Tayoun et al.
+   2018's decision tree) hinges on whether a downstream in-frame
+   alternative start codon exists (`TranscriptConsequence.alternative_start_codon_identified`):
+   - Not assessed (unset, the default): MANUAL_REVIEW, unchanged from
+     before batch 27.
+   - False (no alternative start codon found — no rescue possible):
+     "use PVS1 at maximum strength" — MET, Very Strong.
+   - True: assessed further against the same two curated facts the real
+     rule names (`alternative_start_codon_percent_protein_lost`,
+     `alternative_start_codon_preceded_by_pathogenic_variant`, both
+     required whenever identified=True):
+     - >10% of the protein lost, OR a known pathogenic variant falls
+       within the lost region: falls outside the automatic downgrade —
+       needs a protein-domain-criticality assessment this evaluator
+       does not model — MANUAL_REVIEW, with a rationale naming exactly
+       which factor(s) triggered it.
+     - Otherwise (<=10% of the protein, no known pathogenic variant in
+       the lost region): "the only null variant that should be applied
+       the downgraded criteria PVS1_Supporting is a variant of
+       initiation codon when a new methionine is not preceded by a
+       pathogenic variant" — MET, Supporting.
+   The exact protein-domain-criticality judgment call within the
+   MANUAL_REVIEW branch (is the lost region actually functionally
+   critical, beyond just ">10%" and "a pathogenic variant is known
+   there") remains unimplemented — same "deliberately partial" boundary
+   as the rest of this evaluator.
 5. Every other consequence type isn't a null-variant class PVS1 applies
    to — NOT_APPLICABLE.
 
 Deliberately conservative: this evaluator only ever returns MET for the
 cases it can defend end-to-end (early truncation with NMD predicted or
-confirmed via RNA evidence, in a gene with an established loss-of-function
-mechanism). Everything harder is MANUAL_REVIEW, never a guessed MET or
-NOT_MET — except CONFIRMED_NORMAL_SPLICING, where "not met" is itself the
-defensible, non-guessed conclusion a direct experimental contradiction
-supports.
+confirmed via RNA evidence, no-rescue-possible start-loss, or a start-loss
+rescue meeting the automatic-downgrade bar, all in a gene with an
+established loss-of-function mechanism). Everything harder is
+MANUAL_REVIEW, never a guessed MET or NOT_MET — except
+CONFIRMED_NORMAL_SPLICING, where "not met" is itself the defensible,
+non-guessed conclusion a direct experimental contradiction supports.
 """
 
 from ..models import CriterionResult, VariantEvidenceBundle
@@ -77,8 +102,13 @@ from ..models.enums import (
     SplicingRnaEvidence,
 )
 
-RULE_SOURCE = "ACMG/AMP (Richards et al. 2015); splice-RNA-evidence branch per the ClinGen LGMD VCEP CAPN3 specification and Walker et al. 2023 (PMID 37352859)"
-RULE_VERSION = "2015 / 2023"
+RULE_SOURCE = (
+    "ACMG/AMP (Richards et al. 2015); splice-RNA-evidence branch per the ClinGen LGMD VCEP CAPN3 "
+    "specification and Walker et al. 2023 (PMID 37352859); start-loss alternative-start-codon branch "
+    "per Abou Tayoun et al. 2018 as quoted in the ACGS 2024 UK Practice Guidelines for Variant "
+    "Classification"
+)
+RULE_VERSION = "2015 / 2018 / 2023 / 2024"
 
 _NMD_RELEVANT_CONSEQUENCES = (Consequence.FRAMESHIFT_VARIANT, Consequence.STOP_GAINED)
 _SPLICE_CONSEQUENCES = (Consequence.SPLICE_DONOR_VARIANT, Consequence.SPLICE_ACCEPTOR_VARIANT)
@@ -226,16 +256,82 @@ def evaluate_pvs1(bundle: VariantEvidenceBundle) -> CriterionResult:
         )
 
     if consequence == Consequence.START_LOST:
+        identified = transcript.alternative_start_codon_identified
+
+        if identified is None:
+            return CriterionResult(
+                code="PVS1",
+                status=CriterionStatus.MANUAL_REVIEW,
+                direction=EvidenceDirection.PATHOGENIC,
+                rule_source=RULE_SOURCE,
+                rule_version=RULE_VERSION,
+                rationale=(
+                    f"{consequence.value} in {transcript.transcript_id} falls within PVS1's scope in "
+                    "principle, but whether a downstream in-frame alternative start codon exists has "
+                    "not been assessed (transcript_consequences.alternative_start_codon_identified is "
+                    "unset) — flagged for manual review rather than guessed."
+                ),
+                evidence_ids=[evidence_id],
+            )
+
+        if identified is False:
+            return CriterionResult(
+                code="PVS1",
+                status=CriterionStatus.MET,
+                strength=CriterionStrength.VERY_STRONG,
+                direction=EvidenceDirection.PATHOGENIC,
+                rule_source=RULE_SOURCE,
+                rule_version=RULE_VERSION,
+                rationale=(
+                    f"{consequence.value} in {transcript.transcript_id}: no downstream in-frame "
+                    "alternative start codon was identified, so no re-initiation rescue is possible — "
+                    "per the ACGS 2024 / Abou Tayoun et al. 2018 rule ('If no alternative in-frame "
+                    "start codon is identified, use PVS1 at maximum strength'), applied at maximum "
+                    "strength."
+                ),
+                evidence_ids=[evidence_id],
+            )
+
+        # identified is True.
+        percent_lost = transcript.alternative_start_codon_percent_protein_lost
+        preceded_by_pathogenic = transcript.alternative_start_codon_preceded_by_pathogenic_variant
+
+        if preceded_by_pathogenic is True or percent_lost > 10.0:
+            reasons = []
+            if preceded_by_pathogenic is True:
+                reasons.append("a known pathogenic variant falls within the region that would be lost")
+            if percent_lost > 10.0:
+                reasons.append(f"the missing N-terminal region is {percent_lost:.1f}% of the protein (>10%)")
+            return CriterionResult(
+                code="PVS1",
+                status=CriterionStatus.MANUAL_REVIEW,
+                direction=EvidenceDirection.PATHOGENIC,
+                rule_source=RULE_SOURCE,
+                rule_version=RULE_VERSION,
+                rationale=(
+                    f"{consequence.value} in {transcript.transcript_id}: a downstream in-frame "
+                    f"alternative start codon exists, but {' and '.join(reasons)} — per the ACGS 2024 "
+                    "/ Abou Tayoun et al. 2018 rule this falls outside the automatic reduced-strength "
+                    "path and requires a protein-domain-criticality assessment this evaluator does not "
+                    "model — flagged for manual review rather than guessed."
+                ),
+                evidence_ids=[evidence_id],
+            )
+
         return CriterionResult(
             code="PVS1",
-            status=CriterionStatus.MANUAL_REVIEW,
+            status=CriterionStatus.MET,
+            strength=CriterionStrength.SUPPORTING,
             direction=EvidenceDirection.PATHOGENIC,
             rule_source=RULE_SOURCE,
             rule_version=RULE_VERSION,
             rationale=(
-                f"{consequence.value} in {transcript.transcript_id} falls within PVS1's scope in "
-                "principle, but resolving it requires an alternative-start-codon check that this "
-                "evaluator does not yet implement — flagged for manual review rather than guessed."
+                f"{consequence.value} in {transcript.transcript_id}: a downstream in-frame "
+                f"alternative start codon exists ({percent_lost:.1f}% of the protein, <=10%), is not "
+                "preceded by any known pathogenic variant — per the ACGS 2024 / Abou Tayoun et al. "
+                "2018 rule ('the only null variant that should be applied the downgraded criteria "
+                "PVS1_Supporting is a variant of initiation codon when a new methionine is not "
+                "preceded by a pathogenic variant'), applied at Supporting strength."
             ),
             evidence_ids=[evidence_id],
         )

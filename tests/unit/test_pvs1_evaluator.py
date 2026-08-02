@@ -251,7 +251,7 @@ def test_pvs1_splice_rna_evidence_does_not_apply_to_start_lost():
     bundle = _bundle(transcript)
     result = evaluate_pvs1(bundle)
     assert result.status == CriterionStatus.MANUAL_REVIEW
-    assert "alternative-start-codon" in result.rationale
+    assert "alternative start codon" in result.rationale
 
 
 # ------------------------------------------------------- batch 26: SplicingRnaEvidence model validation
@@ -262,6 +262,112 @@ def test_transcript_consequence_rejects_splicing_rna_evidence_on_non_splice_cons
         TranscriptConsequence(
             transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.MISSENSE_VARIANT,
             splicing_rna_evidence=SplicingRnaEvidence.CONFIRMED_NULL_EQUIVALENT,
+        )
+    except SchemaValidationError:
+        return
+    raise AssertionError("expected SchemaValidationError, none was raised")
+
+
+# ------------------------------------------------------- batch 27: start-loss alternative-start-codon branches
+
+def test_pvs1_start_lost_no_alternative_identified_is_met_very_strong():
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.START_LOST,
+        alternative_start_codon_identified=False,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MET
+    assert result.strength == CriterionStrength.VERY_STRONG
+
+
+def test_pvs1_start_lost_alternative_within_ten_percent_not_preceded_by_pathogenic_is_met_supporting():
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.START_LOST,
+        alternative_start_codon_identified=True,
+        alternative_start_codon_percent_protein_lost=4.0,
+        alternative_start_codon_preceded_by_pathogenic_variant=False,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MET
+    assert result.strength == CriterionStrength.SUPPORTING
+
+
+def test_pvs1_start_lost_alternative_over_ten_percent_is_manual_review():
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.START_LOST,
+        alternative_start_codon_identified=True,
+        alternative_start_codon_percent_protein_lost=27.6,
+        alternative_start_codon_preceded_by_pathogenic_variant=False,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MANUAL_REVIEW
+    assert "27.6%" in result.rationale
+    assert ">10%" in result.rationale
+
+
+def test_pvs1_start_lost_alternative_preceded_by_pathogenic_variant_is_manual_review_even_under_ten_percent():
+    # The percentage alone isn't the only disqualifying factor -- a known
+    # pathogenic variant in the lost region disqualifies the automatic
+    # downgrade on its own, even when the percentage itself is small.
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.START_LOST,
+        alternative_start_codon_identified=True,
+        alternative_start_codon_percent_protein_lost=4.0,
+        alternative_start_codon_preceded_by_pathogenic_variant=True,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MANUAL_REVIEW
+    assert "pathogenic variant" in result.rationale
+
+
+def test_pvs1_start_lost_unassessed_alternative_is_unchanged_manual_review():
+    # alternative_start_codon_identified left unset -- the default, pre-batch-27 path.
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.START_LOST,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MANUAL_REVIEW
+    assert "not been assessed" in result.rationale
+
+
+# ------------------------------------------------------- batch 27: alternative-start-codon model validation
+
+def test_transcript_consequence_rejects_alternative_start_codon_fields_on_non_start_lost():
+    from variant_classifier.errors import SchemaValidationError
+    try:
+        TranscriptConsequence(
+            transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.MISSENSE_VARIANT,
+            alternative_start_codon_identified=False,
+        )
+    except SchemaValidationError:
+        return
+    raise AssertionError("expected SchemaValidationError, none was raised")
+
+
+def test_transcript_consequence_requires_percent_and_pathogenic_flag_when_alternative_identified():
+    from variant_classifier.errors import SchemaValidationError
+    try:
+        TranscriptConsequence(
+            transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.START_LOST,
+            alternative_start_codon_identified=True,
+        )
+    except SchemaValidationError:
+        return
+    raise AssertionError("expected SchemaValidationError, none was raised")
+
+
+def test_transcript_consequence_rejects_percent_and_pathogenic_flag_when_alternative_not_identified():
+    from variant_classifier.errors import SchemaValidationError
+    try:
+        TranscriptConsequence(
+            transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.START_LOST,
+            alternative_start_codon_identified=False,
+            alternative_start_codon_percent_protein_lost=5.0,
         )
     except SchemaValidationError:
         return

@@ -606,7 +606,10 @@
           "mane_select": true,
           "hgvs_c": "c.1A>G",
           "hgvs_p": "p.Met1Val",
-          "exon": "1"
+          "exon": "1",
+          "alternative_start_codon_identified": true,
+          "alternative_start_codon_percent_protein_lost": 27.6,
+          "alternative_start_codon_preceded_by_pathogenic_variant": true
         }
       ],
       "population_evidence": [
@@ -618,7 +621,7 @@
           "overall_af": 1e-05
         }
       ],
-      "notes": "Real ClinVar entry (VCV001453744 / RCV002002571), reported Pathogenic (last evaluated 2023-10-06, criteria provided/single submitter). GRCh38 chr15:42359806 A>G, NM_000070.3:c.1A>G, disrupting CAPN3's initiator Met codon directly (ClinVar molecular consequence: missense_variant + initiator_codon_variant). Coordinates independently confirmed via NCBI eutils esummary (canonical_spdi NC_000015.10:42359805:A:G), not just taken from a search snippet. gnomAD reported two slightly different exome AF figures in the ClinVar record (0.00001 and 0.00000, likely different gnomAD releases/subsets aggregated by ClinVar); the higher, more conservative value is used here. No ancestry-specific breakdown was available from this summary, so ancestry_specific_max_af is left unset (not the same as 'checked and found absent'). This is the project's first real start-loss (initiator codon) fixture -- PVS1's third documented scope gap, alongside the two splice-site fixtures (CAPN3_c.946-1G>A, CAPN3_c.2050+1G>A): the evaluator declines to auto-resolve start-loss variants because doing so correctly requires checking for a plausible downstream alternative in-frame start codon, which this project does not model (see pvs1.py, 'PVS1 scope'). Real ClinGen LGMD VCEP CAPN3 PVS1 flowchart likely does resolve this branch; this project's PVS1 evaluator does not implement that flowchart."
+      "notes": "Real ClinVar entry (VCV001453744 / RCV002002571), reported Pathogenic (last evaluated 2023-10-06, criteria provided/single submitter). GRCh38 chr15:42359806 A>G, NM_000070.3:c.1A>G, disrupting CAPN3's initiator Met codon directly (ClinVar molecular consequence: missense_variant + initiator_codon_variant). Coordinates independently confirmed via NCBI eutils esummary (canonical_spdi NC_000015.10:42359805:A:G), not just taken from a search snippet. gnomAD reported two slightly different exome AF figures in the ClinVar record (0.00001 and 0.00000, likely different gnomAD releases/subsets aggregated by ClinVar); the higher, more conservative value is used here. No ancestry-specific breakdown was available from this summary, so ancestry_specific_max_af is left unset (not the same as 'checked and found absent'). This is the project's first real start-loss (initiator codon) fixture -- PVS1's third documented scope gap, alongside the two splice-site fixtures (CAPN3_c.946-1G>A, CAPN3_c.2050+1G>A): the evaluator declines to auto-resolve start-loss variants because doing so correctly requires checking for a plausible downstream alternative in-frame start codon, which this project does not model (see pvs1.py, 'PVS1 scope'). Real ClinGen LGMD VCEP CAPN3 PVS1 flowchart likely does resolve this branch; this project's PVS1 evaluator does not implement that flowchart. UPDATED in batch 27: the alternative-start-codon question this fixture's original notes flagged as unresolved is now independently answered from real, primary sequence data. NM_000070.3's CDS (fetched directly from Ensembl's REST API for the matching canonical transcript ENST00000397163 -- confirmed as the same transcript by its CDS translation-start genomic coordinate, 42359806, matching this variant's own position exactly) is 2466 nt / 821 codons; scanning downstream in-frame codons finds the first alternative ATG at codon 228 (p.Met228), meaning re-initiation there would lose the first 227 residues -- 227/821 = 27.6% of the full-length protein, independently computed from the primary sequence, not estimated. That exceeds the ACGS 2024 / Abou Tayoun et al. 2018 decision tree's >10%-of-protein threshold for the automatic PVS1_Supporting downgrade on its own. It is also independently corroborated by this project's own curated fixture set: CAPN3_c.550del (p.Thr184fs, real, ClinVar Pathogenic) falls at residue 184, squarely within the region (residues 1-227) that would be lost if translation restarted at Met228 -- direct, real evidence that this N-terminal region is not merely dispensable padding, satisfying the rule's other disqualifying factor ('are there any reported pathogenic variants upstream of the potential initiation codon') independently of the percentage figure. Both factors point the same way, so PVS1 now returns MANUAL_REVIEW with a rationale citing exactly why (not the old generic 'not implemented' message) -- still not resolved to MET or NOT_MET, since the real protein-domain-criticality judgment call this evaluator declines to model would be needed to go further, but now grounded in real, independently-derived, dual-corroborated evidence rather than an unmodeled gap."
     },
     {
       "variant": {
@@ -1194,6 +1197,89 @@
         }
       ],
       "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to exercise batch 26's new PVS1 splice-RNA-evidence MET/Very-Strong path end-to-end, modeled on a minigene/RT-PCR splicing assay: splicing_rna_evidence=CONFIRMED_NULL_EQUIVALENT represents a hypothetical assay result showing complete loss of the normal transcript and exclusive production of an out-of-frame exon-skipped product predicted to trigger nonsense-mediated decay -- the clean, unambiguous case this branch is built for. population_evidence is deliberately NOT_ASSESSED (not ABSENT) so this fixture's PVS1 MET result stands alone as a single contributing criterion (both Table 5 and the Bayesian point system cap a single criterion at VUS regardless of its own strength) -- keeping this fixture focused purely on demonstrating the new PVS1 branch, without also becoming an incidental new Table-5-vs-Bayesian divergence case (already well covered by real fixtures elsewhere, see README's Milestone 5 design note). A real CAPN3/DMD splice variant with this level of experimental precision (a stated frame/NMD outcome, not just 'disrupts splicing') was searched for during this batch's research but not found in the available (non-blocked) sources -- the three real curated splice fixtures (CAPN3_c.946-1G>A, CAPN3_c.2050+1G>A, DMD_c.93+1G>A) all remain at PVS1 MANUAL_REVIEW; see their own notes for exactly what evidence each has and why it falls short of this bar. Disclosed as an open real-data gap, same 'searched, not found, still open' treatment given to other gaps in this project (e.g. PS1's same-nucleotide precedent pair, BS3's clean MET example)."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "start_lost",
+          "mane_select": true,
+          "hgvs_c": "c.2T>C",
+          "hgvs_p": "p.Met1?",
+          "exon": "1",
+          "alternative_start_codon_identified": false
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "synthetic",
+          "retrieval_status": "NOT_ASSESSED"
+        }
+      ],
+      "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to exercise batch 27's new 'no alternative start codon identified' PVS1 MET/Very-Strong path end-to-end: alternative_start_codon_identified=False represents a hypothetical case where no downstream in-frame ATG exists at all (unlike the real CAPN3_c.1A>G fixture, which does have one, at codon 228) -- per the ACGS 2024 / Abou Tayoun et al. 2018 rule, 'If no alternative in-frame start codon is identified, use PVS1 at maximum strength.' No real CAPN3/DMD start-loss variant with a CONFIRMED absence of any downstream in-frame start codon was identified during this batch's research (CAPN3's own real fixture does have one); constructing this case synthetically instead, same 'searched, not found, still open, demonstrate on a labeled synthetic instead' treatment used for PS1's MET path (batch 22) and the PVS1 splice-RNA-evidence MET path (batch 26). population_evidence is deliberately NOT_ASSESSED (not ABSENT) so PVS1 MET stands as this fixture's only contributing criterion -- both Table 5 and the Bayesian point system cap a single criterion at VUS regardless of its own strength (the 2-criterion minimum rule), keeping this fixture focused on demonstrating the new PVS1 branch alone rather than incidentally becoming another Table-5-vs-Bayesian divergence case, same discipline as CAPN3_SYNTH_PVS1_SPLICE_RNA_01 (batch 26)."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_SYNTH_PVS1_STARTLOSS_SUPPORTING_01",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "start_lost",
+          "mane_select": true,
+          "hgvs_c": "c.3G>A",
+          "hgvs_p": "p.Met1?",
+          "exon": "1",
+          "alternative_start_codon_identified": true,
+          "alternative_start_codon_percent_protein_lost": 4.0,
+          "alternative_start_codon_preceded_by_pathogenic_variant": false
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "synthetic",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true
+        }
+      ],
+      "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to exercise batch 27's new automatic-downgrade PVS1 MET/Supporting path end-to-end: alternative_start_codon_identified=True, alternative_start_codon_percent_protein_lost=4.0 (<=10%), alternative_start_codon_preceded_by_pathogenic_variant=False -- the clean case the ACGS 2024 / Abou Tayoun et al. 2018 rule's automatic downgrade is built for ('the only null variant that should be applied the downgraded criteria PVS1_Supporting is a variant of initiation codon when a new methionine is not preceded by a pathogenic variant'). CAPN3's own real start-loss fixture (CAPN3_c.1A>G) does not qualify for this branch -- its alternative start codon is at 27.6% of the protein, well above the 10% threshold, and is preceded by a real pathogenic variant (CAPN3_c.550del) -- so no real CAPN3/DMD fixture was available to demonstrate this specific branch; constructing it synthetically instead, same treatment as CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01 above."
     }
   ]
 }
