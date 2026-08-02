@@ -388,7 +388,8 @@
           "consequence": "splice_acceptor_variant",
           "mane_select": true,
           "hgvs_c": "c.946-1G>A",
-          "exon": "intron 6 (acceptor)"
+          "exon": "intron 6 (acceptor)",
+          "splicing_rna_evidence": "INCONCLUSIVE"
         }
       ],
       "population_evidence": [
@@ -399,7 +400,7 @@
           "locus_coverage_adequate": true
         }
       ],
-      "notes": "Real ClinVar entry (Variation ID 21036, RCV000020097), reported Pathogenic, canonical splice acceptor variant in intron 6. Reported absent from ExAC/gnomAD. Experimental splicing studies (per ClinVar submitter evidence) confirm this variant disrupts mRNA splicing -- real, strong evidence for pathogenicity that this project's PVS1 evaluator cannot use, since it only auto-resolves frameshift/nonsense NMD cases; splice variants are deliberately routed to MANUAL_REVIEW (see pvs1.py). This fixture exists specifically to show that limitation on a real, well-documented pathogenic variant, not just a hypothetical one: our 6-criterion engine lands on VUS here (PM2 MET alone is insufficient per Table 5) despite this being a confidently Pathogenic variant in ClinVar with experimental support."
+      "notes": "Real ClinVar entry (Variation ID 21036, RCV000020097), reported Pathogenic, canonical splice acceptor variant in intron 6. Reported absent from ExAC/gnomAD. Experimental splicing studies (per ClinVar submitter evidence) confirm this variant disrupts mRNA splicing -- real, strong evidence for pathogenicity that this project's PVS1 evaluator cannot use, since it only auto-resolves frameshift/nonsense NMD cases; splice variants are deliberately routed to MANUAL_REVIEW (see pvs1.py). This fixture exists specifically to show that limitation on a real, well-documented pathogenic variant, not just a hypothetical one: our 6-criterion engine lands on VUS here (PM2 MET alone is insufficient per Table 5) despite this being a confidently Pathogenic variant in ClinVar with experimental support. UPDATED in batch 26: the real ClinVar submitter comment cites 'Experimental studies have shown that this variant disrupts mRNA splicing (PMID: 7720071)' -- a real RNA-level study exists for this variant, not just a computational canonical-splice-site prediction. But the available secondary source (the ClinVar submission comment) does not state the resulting transcript's frame or NMD status -- whether the confirmed splicing disruption produces an out-of-frame, NMD-triggering product (which would clear the new CONFIRMED_NULL_EQUIVALENT bar) or something milder is not stated precisely enough to curate safely. splicing_rna_evidence is therefore curated as INCONCLUSIVE, not left unset -- an honest, distinct curation from 'no experimental data at all,' and PVS1 remains MANUAL_REVIEW either way (INCONCLUSIVE routes to the same status as unset), but now with a rationale that correctly reflects a real study exists rather than implying none was ever performed. The original 1995 CAPN3 discovery paper (Richard et al., Cell, PMID 7720071) is the cited source and was not independently re-fetched this batch (paywalled/not readily accessible); the frame/NMD detail may exist in that primary text but couldn't be confirmed from the available secondary source."
     },
     {
       "variant": {
@@ -532,7 +533,7 @@
           "overall_af": 0.0001
         }
       ],
-      "notes": "Real ClinVar entry (Variation ID 553754), reported Pathogenic, canonical splice donor variant in intron 18, observed in homozygous and compound heterozygous LGMD patients. gnomAD AF ~0.01%. Complements CAPN3_c.946-1G>A (a splice ACCEPTOR variant) -- together they show the PVS1-splice-scope gap (see pvs1.py, 'PVS1 scope') isn't a one-off on a single variant: two independent real, confidently-Pathogenic splice variants both land on VUS here because PVS1 correctly declines to auto-resolve splice-site consequences."
+      "notes": "Real ClinVar entry (Variation ID 553754), reported Pathogenic, canonical splice donor variant in intron 18, observed in homozygous and compound heterozygous LGMD patients. gnomAD AF ~0.01%. Complements CAPN3_c.946-1G>A (a splice ACCEPTOR variant) -- together they show the PVS1-splice-scope gap (see pvs1.py, 'PVS1 scope') isn't a one-off on a single variant: two independent real, confidently-Pathogenic splice variants both land on VUS here because PVS1 correctly declines to auto-resolve splice-site consequences. UPDATED in batch 26: no experimental RNA/splicing assay is mentioned in this variant's available ClinVar record (only the canonical splice-donor dinucleotide change itself and clinical observation in affected patients) -- splicing_rna_evidence deliberately left unset (not INCONCLUSIVE, which would imply an assay was performed) and PVS1 remains MANUAL_REVIEW via the original predicted-only path. Contrast with CAPN3_c.946-1G>A, which does have a real cited experimental study, just not one precise enough to resolve further."
     },
     {
       "variant": {
@@ -715,7 +716,7 @@
           "locus_coverage_adequate": true
         }
       ],
-      "notes": "Real ClinVar entry (RCV000379611.3, current record 299395779), reported Pathogenic by Invitae (Sherloc method, 1-star 'criteria provided, single submitter' review status, last evaluated 2017-07-31), canonical splice donor variant disrupting intron 2 of DMD. Coordinates independently confirmed directly from the ClinVar RCV page (GRCh38 chrX:33020138 C>T; DMD is on the minus strand, so this genomic C>T is the transcript-level c.93+1G>A). Reported absent from population databases (ExAC) in the submitter's own description; no gnomAD-specific frequency was stated in the available record, so ExAC is recorded as the source here rather than assumed to be gnomAD. This is the project's second real (non-synthetic) DMD variant, and the first real DMD fixture exercising PVS1's splice-site scope gap (previously only demonstrated on CAPN3, via CAPN3_c.946-1G>A and CAPN3_c.2050+1G>A) -- showing the same evaluator limitation applies identically regardless of gene, since pvs1.py's splice-donor/acceptor handling has no gene-specific logic. With PVS1 returning MANUAL_REVIEW and only PM2 (Moderate, absent from ExAC) MET, the engine lands on VUS, the same story as the CAPN3 splice fixtures, now confirmed on the X-linked gene too."
+      "notes": "Real ClinVar entry (RCV000379611.3, current record 299395779), reported Pathogenic by Invitae (Sherloc method, 1-star 'criteria provided, single submitter' review status, last evaluated 2017-07-31), canonical splice donor variant disrupting intron 2 of DMD. Coordinates independently confirmed directly from the ClinVar RCV page (GRCh38 chrX:33020138 C>T; DMD is on the minus strand, so this genomic C>T is the transcript-level c.93+1G>A). Reported absent from population databases (ExAC) in the submitter's own description; no gnomAD-specific frequency was stated in the available record, so ExAC is recorded as the source here rather than assumed to be gnomAD. This is the project's second real (non-synthetic) DMD variant, and the first real DMD fixture exercising PVS1's splice-site scope gap (previously only demonstrated on CAPN3, via CAPN3_c.946-1G>A and CAPN3_c.2050+1G>A) -- showing the same evaluator limitation applies identically regardless of gene, since pvs1.py's splice-donor/acceptor handling has no gene-specific logic. With PVS1 returning MANUAL_REVIEW and only PM2 (Moderate, absent from ExAC) MET, the engine lands on VUS, the same story as the CAPN3 splice fixtures, now confirmed on the X-linked gene too. UPDATED in batch 26: no experimental RNA/splicing assay is mentioned in this variant's available ClinVar record either (Invitae's Sherloc-method comment describes only the canonical splice-donor prediction) -- splicing_rna_evidence deliberately left unset, PVS1 remains MANUAL_REVIEW via the original predicted-only path, same as CAPN3_c.2050+1G>A."
     },
     {
       "variant": {
@@ -1154,6 +1155,45 @@
         "splice_impact_excluded": true
       },
       "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to exercise PS1's MET/Strong path end-to-end, modeled directly on Richards et al. 2015's own PS1 example: 'Val->Leu caused by either G>C or G>T in the same codon.' A real CAPN3 or DMD example of two different nucleotide changes producing the exact same resulting amino acid change, where one is already established pathogenic, was searched for this round (alongside the real PM5 precedent pair found for p.Arg448His/p.Arg448Cys, see CAPN3_c.1342C>T and CAPN3_c.1343G>A) but not found -- disclosed as an open real-data gap for PS1 specifically, the same 'searched, not found, still open' treatment this project has given other real-data gaps (e.g. the long-standing BA1 gap, closed only in batch 18). PS1 Strong (4) + PM2 Supporting (1, ABSENT from gnomAD) + PP3 Supporting (1, synthetic REVEL 0.9) clears Table 5's '1 Strong + >=2 Supporting' Likely Pathogenic rule -- chosen specifically to give PS1 a clean, complete classification-tier demonstration rather than only an isolated MET result."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_SYNTH_PVS1_SPLICE_RNA_01",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "splice_acceptor_variant",
+          "mane_select": true,
+          "hgvs_c": "c.1500-1G>A",
+          "exon": "synthetic, modeled on a mid-gene canonical splice acceptor",
+          "splicing_rna_evidence": "CONFIRMED_NULL_EQUIVALENT"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "synthetic",
+          "retrieval_status": "NOT_ASSESSED"
+        }
+      ],
+      "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to exercise batch 26's new PVS1 splice-RNA-evidence MET/Very-Strong path end-to-end, modeled on a minigene/RT-PCR splicing assay: splicing_rna_evidence=CONFIRMED_NULL_EQUIVALENT represents a hypothetical assay result showing complete loss of the normal transcript and exclusive production of an out-of-frame exon-skipped product predicted to trigger nonsense-mediated decay -- the clean, unambiguous case this branch is built for. population_evidence is deliberately NOT_ASSESSED (not ABSENT) so this fixture's PVS1 MET result stands alone as a single contributing criterion (both Table 5 and the Bayesian point system cap a single criterion at VUS regardless of its own strength) -- keeping this fixture focused purely on demonstrating the new PVS1 branch, without also becoming an incidental new Table-5-vs-Bayesian divergence case (already well covered by real fixtures elsewhere, see README's Milestone 5 design note). A real CAPN3/DMD splice variant with this level of experimental precision (a stated frame/NMD outcome, not just 'disrupts splicing') was searched for during this batch's research but not found in the available (non-blocked) sources -- the three real curated splice fixtures (CAPN3_c.946-1G>A, CAPN3_c.2050+1G>A, DMD_c.93+1G>A) all remain at PVS1 MANUAL_REVIEW; see their own notes for exactly what evidence each has and why it falls short of this bar. Disclosed as an open real-data gap, same 'searched, not found, still open' treatment given to other gaps in this project (e.g. PS1's same-nucleotide precedent pair, BS3's clean MET example)."
     }
   ]
 }

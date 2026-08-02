@@ -285,3 +285,16 @@ golden_cases:
       PS1 Strong (4) + PM2 Supporting (1) + PP3 Supporting (1) = 6
       points, 3 contributing criteria -- Likely Pathogenic band (6-9), no
       divergence from Table 5 here (both land Likely Pathogenic).
+
+  - variant_id: CAPN3_SYNTH_PVS1_SPLICE_RNA_01
+    expected_provisional_class: VUS
+    expected_points: 8
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      PVS1 Very Strong (8) alone -- 1 contributing criterion, below the
+      2-criterion minimum, so VUS despite 8 points nominally sitting
+      inside the 6-9 Likely Pathogenic band. Deliberately constructed
+      this way (population_evidence NOT_ASSESSED, so PM2 contributes
+      nothing) to keep this batch-26 fixture focused on demonstrating the
+      new PVS1 splice-RNA-evidence branch alone, without incidentally
+      creating a sixth Table-5-vs-Bayesian divergence case.

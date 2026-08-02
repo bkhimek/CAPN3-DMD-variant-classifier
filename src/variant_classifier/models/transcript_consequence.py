@@ -10,7 +10,7 @@ from typing import Optional
 
 from ..errors import SchemaValidationError
 from ._coerce import coerce_enum, optional_bool, optional_int, optional_str, require_bool, require_dict, require_str
-from .enums import Consequence
+from .enums import Consequence, SplicingRnaEvidence
 
 
 @dataclass(frozen=True)
@@ -25,9 +25,11 @@ class TranscriptConsequence:
     nmd_predicted: Optional[bool] = None
     repeat_region: Optional[bool] = None
     protein_length_change_aa: Optional[int] = None
+    splicing_rna_evidence: Optional[SplicingRnaEvidence] = None
 
     NMD_RELEVANT_CONSEQUENCES = (Consequence.FRAMESHIFT_VARIANT, Consequence.STOP_GAINED)
     PM4_RELEVANT_CONSEQUENCES = (Consequence.INFRAME_DELETION, Consequence.INFRAME_INSERTION, Consequence.STOP_LOST)
+    SPLICE_RELEVANT_CONSEQUENCES = (Consequence.SPLICE_DONOR_VARIANT, Consequence.SPLICE_ACCEPTOR_VARIANT)
 
     def __post_init__(self) -> None:
         context = f"TranscriptConsequence[{self.transcript_id}]"
@@ -46,6 +48,16 @@ class TranscriptConsequence:
                 "definition (Richards et al. 2015), so this cannot be evaluated safely from an "
                 "unstated repeat-region status. Same 'never silently guess' convention as "
                 "nmd_predicted for frameshift/stop_gained."
+            )
+        if (
+            self.consequence not in TranscriptConsequence.SPLICE_RELEVANT_CONSEQUENCES
+            and self.splicing_rna_evidence is not None
+        ):
+            raise SchemaValidationError(
+                f"{context}: splicing_rna_evidence is only meaningful for "
+                f"{'/'.join(c.value for c in TranscriptConsequence.SPLICE_RELEVANT_CONSEQUENCES)}, "
+                f"not {self.consequence.value} — batch 26's PVS1 splice-RNA-evidence branch does not "
+                "apply to this consequence class."
             )
 
     @classmethod
@@ -69,4 +81,9 @@ class TranscriptConsequence:
             nmd_predicted=nmd_value,
             repeat_region=optional_bool(data, "repeat_region", ctx),
             protein_length_change_aa=optional_int(data, "protein_length_change_aa", ctx, minimum=1),
+            splicing_rna_evidence=(
+                coerce_enum(SplicingRnaEvidence, data.get("splicing_rna_evidence"), "splicing_rna_evidence", ctx)
+                if data.get("splicing_rna_evidence") is not None
+                else None
+            ),
         )

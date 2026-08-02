@@ -1,11 +1,13 @@
 """Tests for the PVS1 evaluator.
 
-Same two-part structure as the PM2 tests: (1) run it against the three
-real curated CAPN3 fixtures and check the result matches the golden case
-exactly — these golden-case PVS1 expectations were written in Milestone 1,
-before this evaluator existed, so this is a genuine check; (2) hand-built
-edge cases for branches the three curated fixtures don't happen to cover
-(non-LOF mechanism, no-NMD truncation, splice/start-loss variants).
+Same two-part structure as the PM2 tests: (1) run it against the real
+curated fixtures and check the result matches the golden case exactly --
+these golden-case PVS1 expectations were written in Milestone 1, before
+this evaluator existed, so this is a genuine check; (2) hand-built edge
+cases for branches the curated fixtures don't happen to cover (non-LOF
+mechanism, no-NMD truncation, splice/start-loss variants, and, added
+batch 26, all four SplicingRnaEvidence branches for the new splice-RNA-
+evidence path -- see evaluators/pvs1.py's module docstring).
 """
 
 from variant_classifier import loader
@@ -27,6 +29,7 @@ from variant_classifier.models.enums import (
     Inheritance,
     PopulationRetrievalStatus,
     SpecificationType,
+    SplicingRnaEvidence,
 )
 
 
@@ -178,3 +181,88 @@ def test_pvs1_inframe_deletion_is_not_applicable():
     bundle = _bundle(transcript)
     result = evaluate_pvs1(bundle)
     assert result.status == CriterionStatus.NOT_APPLICABLE
+
+
+# ------------------------------------------------------- batch 26: splice-RNA-evidence branches
+
+def test_pvs1_splice_with_no_rna_evidence_is_unchanged_manual_review():
+    # splicing_rna_evidence left unset -- the original, pre-batch-26 path.
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.SPLICE_DONOR_VARIANT,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MANUAL_REVIEW
+    assert "no real RNA/splicing assay evidence" in result.rationale
+
+
+def test_pvs1_splice_with_confirmed_null_equivalent_rna_evidence_is_met_very_strong():
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.SPLICE_ACCEPTOR_VARIANT,
+        splicing_rna_evidence=SplicingRnaEvidence.CONFIRMED_NULL_EQUIVALENT,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MET
+    assert result.strength == CriterionStrength.VERY_STRONG
+
+
+def test_pvs1_splice_with_confirmed_normal_splicing_is_not_met():
+    # A real, informative outcome: the predicted disruption is directly
+    # contradicted by experimental evidence -- NOT_MET, not a guess.
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.SPLICE_DONOR_VARIANT,
+        splicing_rna_evidence=SplicingRnaEvidence.CONFIRMED_NORMAL_SPLICING,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.NOT_MET
+    assert result.strength is None
+
+
+def test_pvs1_splice_with_confirmed_in_frame_rna_evidence_is_manual_review():
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.SPLICE_ACCEPTOR_VARIANT,
+        splicing_rna_evidence=SplicingRnaEvidence.CONFIRMED_IN_FRAME_OR_PARTIAL_FUNCTION,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MANUAL_REVIEW
+    assert "in-frame" in result.rationale
+
+
+def test_pvs1_splice_with_inconclusive_rna_evidence_is_manual_review():
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.SPLICE_DONOR_VARIANT,
+        splicing_rna_evidence=SplicingRnaEvidence.INCONCLUSIVE,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MANUAL_REVIEW
+    assert "did not clearly establish" in result.rationale
+
+
+def test_pvs1_splice_rna_evidence_does_not_apply_to_start_lost():
+    # START_LOST is not a SPLICE_RELEVANT_CONSEQUENCE -- unaffected by batch 26,
+    # still the original alternative-start-codon MANUAL_REVIEW path.
+    transcript = TranscriptConsequence(
+        transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.START_LOST,
+    )
+    bundle = _bundle(transcript)
+    result = evaluate_pvs1(bundle)
+    assert result.status == CriterionStatus.MANUAL_REVIEW
+    assert "alternative-start-codon" in result.rationale
+
+
+# ------------------------------------------------------- batch 26: SplicingRnaEvidence model validation
+
+def test_transcript_consequence_rejects_splicing_rna_evidence_on_non_splice_consequence():
+    from variant_classifier.errors import SchemaValidationError
+    try:
+        TranscriptConsequence(
+            transcript_id="NM_1", clinically_relevant=True, consequence=Consequence.MISSENSE_VARIANT,
+            splicing_rna_evidence=SplicingRnaEvidence.CONFIRMED_NULL_EQUIVALENT,
+        )
+    except SchemaValidationError:
+        return
+    raise AssertionError("expected SchemaValidationError, none was raised")

@@ -300,3 +300,62 @@ class FunctionalAssayResult(str, Enum):
     ABNORMAL = "ABNORMAL"
     NORMAL = "NORMAL"
     INDETERMINATE = "INDETERMINATE"
+
+
+class SplicingRnaEvidence(str, Enum):
+    """Batch 26 -- what a real RNA/splicing assay (RT-PCR, minigene,
+    patient-derived mRNA sequencing, etc.) established about a splice
+    donor/acceptor variant's actual transcript outcome, feeding PVS1
+    directly rather than PS3. This project's real ClinGen LGMD VCEP
+    CAPN3 specification (v2.0, cspec.genome.network/cspec/ui/svi/doc/GN187)
+    states explicitly that PS3 is "not applicable at this time" for CAPN3
+    in vitro assays, and that "for any variant type, experimental evidence
+    for altered splicing should be scored under PVS1 in accordance with
+    the decision tree for RNA splicing assay results outlined in Walker
+    et al. 2023 (PMID: 37352859)" -- i.e. real RNA evidence sets PVS1's
+    own strength, it is not a separate PS3 criterion for this gene. See
+    evaluators/pvs1.py's module docstring for exactly which branch of
+    that real decision tree this project implements (a narrow,
+    conservative slice) and which parts remain open (exact percentage-
+    of-transcript and protein-region-criticality thresholds, which the
+    primary Walker et al. 2023 paper and the CAPN3-specific PVS1
+    flowchart PDF were both unreachable to verify during this batch --
+    PMC/ScienceDirect/Cell.com reCAPTCHA-blocked or JS-rendered, the
+    flowchart itself a binary PDF this project's fetch tooling cannot
+    parse as text).
+
+    CONFIRMED_NULL_EQUIVALENT: the RNA assay confirms the aberrant
+      transcript is functionally equivalent to a null allele -- e.g. an
+      out-of-frame exon skip, intron retention producing a frameshift, or
+      a confirmed premature termination codon with no normal transcript
+      detected. Treated identically to a confirmed NMD-triggering
+      frameshift/nonsense variant (PVS1 MET, Very Strong) -- the same
+      end state, reached via RNA evidence instead of a computational NMD
+      prediction.
+    CONFIRMED_IN_FRAME_OR_PARTIAL_FUNCTION: the RNA assay confirms
+      aberrant splicing, but the resulting transcript stays in-frame
+      (e.g. a clean single in-frame exon skip). Whether the truncated/
+      altered protein still functions depends on protein-domain
+      criticality this project does not model (same open gap as the
+      NMD-escape branch) -- MANUAL_REVIEW, not a guessed MET or NOT_MET.
+    CONFIRMED_NORMAL_SPLICING: the RNA assay shows splicing is NOT
+      disrupted, directly contradicting the predicted consequence type.
+      A real, informative, distinct outcome -- the null-variant mechanism
+      this consequence class assumes is refuted by direct evidence, so
+      PVS1 does not apply on that basis. NOT_MET, not NOT_APPLICABLE:
+      the variant might still act through some other mechanism this
+      evaluator doesn't check.
+    INCONCLUSIVE: an RNA assay was performed but did not clearly
+      establish any of the above -- a real, distinct third state (same
+      pattern as FunctionalAssayResult.INDETERMINATE for PS3/BS3),
+      explicitly curated rather than left as "no experimental data."
+
+    Leaving this field unset (None) is the common, default case -- no RNA
+    assay was performed at all -- and falls through to the existing,
+    unchanged predicted-only MANUAL_REVIEW path.
+    """
+
+    CONFIRMED_NULL_EQUIVALENT = "CONFIRMED_NULL_EQUIVALENT"
+    CONFIRMED_IN_FRAME_OR_PARTIAL_FUNCTION = "CONFIRMED_IN_FRAME_OR_PARTIAL_FUNCTION"
+    CONFIRMED_NORMAL_SPLICING = "CONFIRMED_NORMAL_SPLICING"
+    INCONCLUSIVE = "INCONCLUSIVE"

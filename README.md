@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25, PM3 researched and sized but not implemented), curated variant set at 23 real of ~20-30 (24 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
+## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25, PM3 researched and sized but not implemented), PVS1 extended with a real splice-RNA-evidence branch (Batch 26), curated variant set at 23 real of ~20-30 (25 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
 
 Milestone 5 (batch 20) added a second combining system -- Bayesian
 point-based combining (Tavtigian et al. 2020), offered alongside, not
@@ -48,10 +48,24 @@ see "PS3 and BS3: functional-evidence criteria (batch 25)" below. Batch
 25 also researched PM3 (in trans with a second pathogenic variant) and
 explicitly sized it as a real, larger architectural change requiring
 multi-proband evidence aggregation, deliberately not implemented this
-round -- see "PM3: sized, not implemented (batch 25)" below. See "Milestone
-5: Bayesian point-based combining" below for what that milestone found
-and why batch 20 felt like the right place to pause before batch 22/23/24/25
-picked back up.
+round -- see "PM3: sized, not implemented (batch 25)" below. Batch 26
+extended PVS1 (see "PVS1 scope" and "Splice-RNA evidence feeds PVS1
+directly (batch 26)" below): a new `splicing_rna_evidence` field on
+`TranscriptConsequence` lets a real RNA/splicing assay result resolve
+splice donor/acceptor variants directly, mirroring the real ClinGen LGMD
+VCEP CAPN3 specification's own instruction that experimental splicing
+evidence should be scored under PVS1, not PS3. The exact percentage-based
+thresholds from the full Abou Tayoun et al. 2018 / Walker et al. 2023
+decision trees remain unimplemented -- both the primary paper and the
+CAPN3-specific PVS1 flowchart PDF were unreachable during this batch's
+research -- so only the two threshold-free branches (a confirmed null-
+equivalent transcript, or confirmed normal splicing directly contradicting
+the predicted disruption) are implemented; none of the three real curated
+splice fixtures had precise enough primary data to exercise the new
+MET path, which is instead demonstrated on one disclosed synthetic
+fixture. See "Milestone 5: Bayesian point-based combining" below for what
+that milestone found and why batch 20 felt like the right place to pause
+before batch 22/23/24/25/26 picked back up.
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -82,15 +96,16 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   the point-mutation family alongside `SameResidueEvidence`:
   `FunctionalEvidence`, attached to `VariantEvidenceBundle` for PS3/BS3 --
   see "PS3 and BS3: functional-evidence criteria (batch 25)" below.
-- **Twenty-four curated evidence bundles** (`data/curated/variant_evidence.json`):
+- **Twenty-five curated evidence bundles** (`data/curated/variant_evidence.json`):
   nineteen real ClinVar/VCEP-grounded variants (twelve CAPN3, seven DMD)
-  and five synthetic cases (four CAPN3, one DMD -- `CAPN3_SYNTH_PS1_01`
-  added batch 22 specifically to exercise PS1's MET path, see "Expanding
-  the curated set" below) constructed to exercise specific combining-rule
-  and case-level paths. This is nineteen increments toward the ~20-30
-  ClinVar variant set from the original project plan — see "Expanding the
-  curated set" below for what each real variant adds and where this is
-  headed. Gene/disease context for both CAPN3 and DMD
+  and six synthetic cases (five CAPN3, one DMD -- `CAPN3_SYNTH_PS1_01`
+  added batch 22 to exercise PS1's MET path, `CAPN3_SYNTH_PVS1_SPLICE_RNA_01`
+  added batch 26 to exercise the new PVS1 splice-RNA-evidence MET path,
+  see "Expanding the curated set" below) constructed to exercise specific
+  combining-rule and case-level paths. This is nineteen increments toward
+  the ~20-30 ClinVar variant set from the original project plan — see
+  "Expanding the curated set" below for what each real variant adds and
+  where this is headed. Gene/disease context for both CAPN3 and DMD
   (`data/curated/gene_disease_context.yaml`).
 - Golden cases for every curated fixture, curated *separately* from the
   evidence they judge, per the golden-case philosophy in the Validation
@@ -130,7 +145,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
   and X-linked cases (hemizygous male vs everything else) separately. See
   "Case-level scope" below for exactly what is and isn't covered.
-- Twenty-four curated variants (CAPN3 and DMD) and nine curated
+- Twenty-five curated variants (CAPN3 and DMD) and nine curated
   `ClinicalCase` fixtures covering every branch above — including, as of
   batch 12, a pair built on a real ClinVar-sourced DMD variant rather
   than only the original synthetic ones, and, as of batch 17, the case-
@@ -141,7 +156,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 212 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 219 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does; also includes two hand-built tests pairing the real DMD
@@ -155,8 +170,10 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   batch 20, a dedicated `test_ps1_pm5_evaluators.py` suite (18 tests)
   added in batch 22, a dedicated `test_cnv_scoring.py` suite (20 tests in
   batch 23, growing to 37 in batch 24) for the separate CNV deletion and
-  duplication evidence/scoring families described below, and a dedicated
-  `test_ps3_bs3_evaluators.py` suite (15 tests) added in batch 25.
+  duplication evidence/scoring families described below, a dedicated
+  `test_ps3_bs3_evaluators.py` suite (15 tests) added in batch 25, and
+  `test_pvs1_evaluator.py` grew from 12 to 19 tests in batch 26 for the
+  new splice-RNA-evidence branch.
 
 ## Design notes
 
@@ -900,20 +917,27 @@ not model.
 **PVS1 scope.** The full PVS1 decision tree (Abou Tayoun et al. 2018)
 branches on protein-domain criticality and constitutive-exon-splicing
 information this project doesn't model. This evaluator only ever returns
-MET for the one case it can defend end-to-end: an early frameshift or
+MET for the cases it can defend end-to-end: an early frameshift or
 nonsense variant predicted to trigger nonsense-mediated decay, in a gene
-with an established loss-of-function mechanism. Everything harder —
-truncations that escape NMD (typically last-exon), splice donor/acceptor
-variants, and start-loss variants — returns MANUAL_REVIEW with a rationale
-explaining why, rather than a guessed MET or NOT_MET. Non-null-variant
-consequence types (missense, synonymous, etc.) return NOT_APPLICABLE.
-`TranscriptConsequence` requires an explicit `nmd_predicted` value for
-both frameshift and stop-gained variants for exactly this reason — this
-requirement was originally frameshift-only in Milestone 1 and widened here
-once the evaluator needed it for stop-gained variants too. All three
-documented scope gaps (splice donor/acceptor, start-loss, NMD-escaping
-truncations) now have at least one real fixture exercising them, as of
-batch 9's `DMD_c.11041A>T` — see "Expanding the curated set" below.
+with an established loss-of-function mechanism, or (added batch 26 — see
+"Splice-RNA evidence feeds PVS1 directly (batch 26)" below) a splice
+donor/acceptor variant with a real RNA/splicing assay confirming a
+null-equivalent transcript. Everything harder — truncations that escape
+NMD (typically last-exon), splice donor/acceptor variants without
+threshold-free RNA evidence, and start-loss variants — returns
+MANUAL_REVIEW with a rationale explaining why, rather than a guessed MET
+or NOT_MET. Non-null-variant consequence types (missense, synonymous,
+etc.) return NOT_APPLICABLE. `TranscriptConsequence` requires an explicit
+`nmd_predicted` value for both frameshift and stop-gained variants for
+exactly this reason — this requirement was originally frameshift-only in
+Milestone 1 and widened here once the evaluator needed it for stop-gained
+variants too. All three documented scope gaps (splice donor/acceptor,
+start-loss, NMD-escaping truncations) now have at least one real fixture
+exercising them, as of batch 9's `DMD_c.11041A>T` — see "Expanding the
+curated set" below. Start-loss and the exact percentage/protein-region-
+criticality thresholds within the splice and NMD-escape branches remain
+open — see "Splice-RNA evidence feeds PVS1 directly (batch 26)" below for
+exactly what is and isn't covered by the batch 26 extension.
 
 **PM4: a second new criterion (batch 14).** This project's first six
 evaluators were all built in Milestones 1-3; PM4 is the first one added
@@ -1392,6 +1416,92 @@ case-level work than to a same-shape evaluator addition. Deliberately
 left unimplemented and disclosed here rather than either faked with a
 simplified two-variant version or silently dropped from the Roadmap.
 
+**Splice-RNA evidence feeds PVS1 directly (batch 26).** Batch 26's
+research into extending PVS1 (Abou Tayoun et al. 2018's full decision
+tree branches on protein-domain criticality and constitutive-exon-
+splicing information this project has never modeled — see "PVS1 scope"
+above) turned up a real, useful, previously-unknown-to-this-project fact:
+the ClinGen LGMD VCEP's own CAPN3 specification (v2.0,
+cspec.genome.network/cspec/ui/svi/doc/GN187, fetched directly) states
+that PS3 is "not applicable at this time" for CAPN3 in vitro functional
+assays, and that "for any variant type, experimental evidence for altered
+splicing should be scored under PVS1 in accordance with the decision tree
+for RNA splicing assay results outlined in Walker et al. 2023 (PMID:
+37352859)" — i.e. real RNA/splicing assay evidence sets PVS1's own
+strength directly for this gene, it does not feed a separate PS3
+criterion the way batch 25 might have suggested. This reframes
+"experimental splicing evidence" as PVS1-domain evidence, not
+functional-evidence-domain evidence, and this batch implements it that
+way rather than folding it into `FunctionalEvidence`.
+
+Both the primary Walker et al. 2023 paper (PMC, ScienceDirect, and
+Cell.com all reCAPTCHA-blocked or JS-rendered-empty) and the CAPN3-
+specific PVS1 flowchart PDF the VCEP spec attaches (a binary file this
+project's fetch tooling cannot parse as text, and which this project's
+rules do not permit downloading via a bash-level workaround) were
+unreachable during this batch's research. So the exact percentage-of-
+transcript and protein-region-criticality thresholds that govern most of
+Walker et al. 2023's decision tree remain unimplemented — this is
+NOT a full implementation of that tree. What is implemented is narrower
+and threshold-free by construction: a new `SplicingRnaEvidence` enum
+(`src/variant_classifier/models/enums.py`) and a new optional
+`TranscriptConsequence.splicing_rna_evidence` field (restricted to
+`SPLICE_DONOR_VARIANT`/`SPLICE_ACCEPTOR_VARIANT`, unlike `nmd_predicted`/
+`repeat_region` this field is NOT required whenever its consequence class
+applies — most splice fixtures simply have no RNA assay at all, the
+common, unset default case, which falls through to the original,
+unchanged predicted-only `MANUAL_REVIEW` path):
+
+- `CONFIRMED_NULL_EQUIVALENT`: a real assay confirms the aberrant
+  transcript is functionally equivalent to a null allele (out-of-frame
+  exon skip, intron retention producing a frameshift, or a confirmed PTC
+  with no normal transcript detected) — treated identically to a
+  confirmed-NMD frameshift/nonsense variant — `evaluate_pvs1()` returns
+  MET, Very Strong. No percentage threshold needed: the assay directly
+  establishes the null-equivalent outcome.
+- `CONFIRMED_NORMAL_SPLICING`: a real assay directly contradicts the
+  predicted splice disruption — NOT_MET, not a guess in either remaining
+  direction, since the null-variant mechanism this consequence class
+  assumes is refuted by direct evidence. Also threshold-free.
+- `CONFIRMED_IN_FRAME_OR_PARTIAL_FUNCTION` and `INCONCLUSIVE` both
+  return MANUAL_REVIEW — the same open protein-domain-criticality
+  question (for the in-frame case) or genuine ambiguity (for the
+  inconclusive case) that the rest of this evaluator already declines to
+  guess through.
+
+Real fixture research surfaced a specific, honest limitation: none of the
+three real curated splice fixtures (`CAPN3_c.946-1G>A`,
+`CAPN3_c.2050+1G>A`, `DMD_c.93+1G>A`) has experimental data precise
+enough to populate `CONFIRMED_NULL_EQUIVALENT`. `CAPN3_c.946-1G>A` came
+closest — its real ClinVar submitter comment cites "Experimental studies
+have shown that this variant disrupts mRNA splicing (PMID: 7720071)," a
+genuine RNA-level study, not just a computational canonical-splice-site
+prediction — but the available secondary source doesn't state the
+resulting transcript's frame or NMD status, so it's now curated as
+`INCONCLUSIVE` (a real, honest distinction from "no experimental data at
+all," even though both currently route to the same MANUAL_REVIEW status).
+The other two fixtures' records mention only the predicted consequence,
+so `splicing_rna_evidence` is left unset for them, unchanged. The new
+MET/Very-Strong path is instead demonstrated end-to-end on one disclosed
+synthetic fixture, `CAPN3_SYNTH_PVS1_SPLICE_RNA_01` — modeled on a
+hypothetical minigene/RT-PCR assay — the same "searched, not found, still
+open, demonstrate on a labeled synthetic instead" treatment PS1's MET
+path got in batch 22. Its `population_evidence` is deliberately
+`NOT_ASSESSED` so PVS1 MET stands as its only contributing criterion,
+keeping the fixture focused on the new branch alone rather than
+incidentally becoming a sixth Table-5-vs-Bayesian divergence case (that
+pattern is already well covered by real fixtures — see "Milestone 5"
+above).
+
+Tests: `tests/unit/test_pvs1_evaluator.py` grew from 12 to 19 tests --
+one new golden-case-covered fixture plus six hand-built edge cases (all
+four `SplicingRnaEvidence` branches, confirmation that `START_LOST` is
+unaffected, and `TranscriptConsequence`'s new validation rule rejecting
+`splicing_rna_evidence` on non-splice consequence types). `engine.py`
+and `bayesian.py` needed no changes at all — same story as every prior
+criterion addition, since both operate generically over whatever
+`evaluate_pvs1()` returns.
+
 **PM2 and founder mutations.** PM2 asks whether a variant is absent or at
 extremely low frequency in the general population. A single global allele
 frequency threshold isn't enough to answer that safely: `CAPN3_c.550del` is
@@ -1419,7 +1529,7 @@ src/variant_classifier/
     _coerce.py                shared from_dict() validation helpers
     variant_identity.py        VariantIdentity
     gene_disease_context.py    GeneDiseaseContext, Specification
-    transcript_consequence.py  TranscriptConsequence
+    transcript_consequence.py  TranscriptConsequence — splicing_rna_evidence field added batch 26, see "PVS1 scope" above
     population_evidence.py     PopulationEvidence
     computational_evidence.py  ComputationalEvidence
     same_residue_evidence.py   SameResidueEvidence — batch 22, see "PS1 and PM5" above
@@ -1438,7 +1548,7 @@ src/variant_classifier/
   cnv_scoring.py               score_cnv_deletion() (batch 23) + score_cnv_duplication() (batch 24), see above
   clinical.py                 interpret_case() — case-level reasoning, see "Case-level scope" above
   evaluators/
-    pvs1.py                   evaluate_pvs1() — see "PVS1 scope" above
+    pvs1.py                   evaluate_pvs1() — see "PVS1 scope" above; splice-RNA-evidence branch added batch 26
     pm2.py                    evaluate_pm2()
     pm4.py                    evaluate_pm4() — see "PM4: a second new criterion" above
     ps1.py                    evaluate_ps1() — batch 22, see "PS1 and PM5" above
@@ -1461,8 +1571,9 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       24 curated variants (CAPN3 + DMD) -- growing toward ~20-30;
-                                 two enriched with functional_evidence in batch 25 (see "PS3 and BS3" above)
+    variant_evidence.json       25 curated variants (CAPN3 + DMD) -- growing toward ~20-30;
+                                 two enriched with functional_evidence in batch 25 (see "PS3 and BS3" above);
+                                 one new synthetic PVS1 splice-RNA-evidence fixture added batch 26
     clinical_cases.json         9 curated ClinicalCase fixtures (Milestone 4)
     cnv_deletion_evidence.json  3 curated CNV deletion fixtures (DMD only) -- batch 23,
                                  a separate curated set from variant_evidence.json above
@@ -1772,18 +1883,46 @@ case with no matching evidence bundle).
   architectural change than this batch's other criteria needed — sized
   and disclosed, not implemented, see "PM3: sized, not implemented (batch
   25)" above. 15 new tests (`test_ps3_bs3_evaluators.py`), 212 total.
+- **Batch 26 (PVS1 splice-RNA-evidence branch)** — done. Extended PVS1
+  (`evaluators/pvs1.py`) with a new `SplicingRnaEvidence`-driven branch
+  for splice donor/acceptor variants, grounded in a real fact found this
+  batch: the ClinGen LGMD VCEP's own CAPN3 specification states
+  experimental splicing evidence should be scored under PVS1, not PS3,
+  per the ClinGen SVI Splicing Subgroup (Walker et al. 2023) — see
+  "Splice-RNA evidence feeds PVS1 directly (batch 26)" above for the full
+  design, including exactly which two branches are threshold-free and
+  implemented (`CONFIRMED_NULL_EQUIVALENT` -> MET Very Strong,
+  `CONFIRMED_NORMAL_SPLICING` -> NOT_MET) versus which remain open (the
+  full decision tree's percentage/protein-region-criticality thresholds
+  — both the primary paper and the CAPN3-specific PVS1 flowchart PDF were
+  unreachable this batch). New field `TranscriptConsequence.splicing_rna_evidence`,
+  optional and unset by default. Enriched `CAPN3_c.946-1G>A`'s curated
+  notes with `INCONCLUSIVE` (a real cited experimental study exists, but
+  doesn't state frame/NMD outcome precisely enough) rather than leaving
+  it silently unset; the other two real splice fixtures remain unset
+  (genuinely no experimental data in their records) — none of the three
+  had data precise enough to reach `CONFIRMED_NULL_EQUIVALENT`, so that
+  MET path is demonstrated on one new disclosed synthetic fixture,
+  `CAPN3_SYNTH_PVS1_SPLICE_RNA_01`, deliberately constructed to avoid
+  also becoming a sixth Table-5-vs-Bayesian divergence case. `engine.py`/
+  `bayesian.py` needed zero changes. 7 new tests (`test_pvs1_evaluator.py`
+  grew from 12 to 19), 219 total.
 - Later, if this project resumes rather than moving to that next one:
   continue expanding curated fixtures toward the full 20-30 ClinVar
   variant set (23 real of ~20-30 done, see "Expanding the curated set"
   above; every criterion-level real-data gap identified so far is now
-  closed except a real PS1 precedent pair and a real BS3-MET example, so
-  further additions would mostly be for breadth); implement PM3 as a
-  real case-level, multi-proband points-aggregation system per its batch
-  25 sizing (distinct from how clinical.py currently handles trans/cis
-  reasoning at the case level; PS1/PM5/PS3/BS3 are now done, see batches
-  22 and 25 above); revisit PVS1's partial scope (protein-domain
-  criticality, constitutive-exon data — the real CAPN3 VCEP spec includes a
-  gene-specific PVS1 flowchart that isn't implemented here either); extend
+  closed except a real PS1 precedent pair, a real BS3-MET example, and a
+  real PVS1 CONFIRMED_NULL_EQUIVALENT example, so further additions would
+  mostly be for breadth); implement PM3 as a real case-level, multi-
+  proband points-aggregation system per its batch 25 sizing (distinct
+  from how clinical.py currently handles trans/cis reasoning at the case
+  level; PS1/PM5/PS3/BS3 are now done, see batches 22 and 25 above);
+  continue PVS1's partial scope beyond batch 26 (start-loss/alternative-
+  start-codon checking; the exact percentage-of-transcript and protein-
+  region-criticality thresholds from the full Abou Tayoun et al. 2018 /
+  Walker et al. 2023 decision trees, which would require successfully
+  fetching the primary paper or the CAPN3-specific PVS1 flowchart PDF —
+  both blocked every attempt so far); extend
   the CNV work (batches 23/24) to whole-gene triplosensitivity scoring for
   genes where it's real (not DMD, per batch 24's finding), and to the
   remaining Riggs et al. 2020 sections deferred on both the loss and gain

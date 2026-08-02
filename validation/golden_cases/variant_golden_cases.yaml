@@ -1016,3 +1016,45 @@ golden_cases:
       5's "1 Strong + >=2 Supporting" Likely Pathogenic rule -- chosen
       deliberately to give PS1 a complete classification-tier
       demonstration, not just an isolated MET result.
+
+  - variant_id: CAPN3_SYNTH_PVS1_SPLICE_RNA_01
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MET
+      PM2: NOT_EVALUATED
+      PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_EVALUATED
+      BS1: NOT_EVALUATED
+      BS3: NOT_EVALUATED
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a synthetic fixture built to exercise batch 26's new PVS1 splice-RNA-evidence MET/Very-Strong path"
+    curator_note: >
+      SYNTHETIC fixture (batch 26), built to exercise the new
+      splicing_rna_evidence=CONFIRMED_NULL_EQUIVALENT branch end-to-end:
+      a splice acceptor variant with a (hypothetical) minigene/RT-PCR
+      assay confirming complete loss of the normal transcript and an
+      out-of-frame, NMD-triggering exon-skip product -- the clean case
+      this branch is built for, treated identically to a confirmed-NMD
+      frameshift/nonsense variant (PVS1 MET, Very Strong). See
+      evaluators/pvs1.py and README's "Splice-RNA evidence feeds PVS1
+      directly (batch 26)" design note for the full writeup, including
+      why no real CAPN3/DMD fixture in this project's curated set has
+      experimental data precise enough (a stated frame/NMD outcome, not
+      just "disrupts splicing") to demonstrate this branch on real data
+      -- the three real curated splice fixtures all remain at PVS1
+      MANUAL_REVIEW.
+
+      population_evidence is deliberately NOT_ASSESSED so PVS1 MET
+      stands as this fixture's only contributing criterion: both Table 5
+      and the Bayesian point system cap a single criterion at VUS
+      regardless of its own strength (the 2-criterion minimum rule), so
+      this fixture stays VUS under both systems and deliberately does
+      NOT become a new Table-5-vs-Bayesian divergence case -- kept
+      narrowly focused on demonstrating the PVS1 branch alone, since that
+      divergence pattern is already well covered by real fixtures
+      elsewhere (CAPN3_c.1939G>T, CAPN3_c.550del; see README's Milestone
+      5 design note).
