@@ -124,13 +124,16 @@ def test_capn3_c1939_reaches_likely_pathogenic_under_bayesian_combining():
     assert bayesian_result.points == 9
 
 
-def test_evaluate_all_returns_exactly_nine_criteria_in_fixed_order():
-    # Was "exactly six" through Milestone 3; PM4 added batch 14; PS1/PM5 added this round.
+def test_evaluate_all_returns_exactly_eleven_criteria_in_fixed_order():
+    # Was "exactly six" through Milestone 3; PM4 added batch 14; PS1/PM5 added
+    # batch 22; PS3/BS3 added batch 25.
     bundles, _ = loader.load_variant_evidence_bundles()
     thresholds = loader.load_frequency_thresholds()
     bundle = bundles[0]
     results = evaluate_all(bundle, thresholds)
-    assert [r.code for r in results] == ["PVS1", "PM2", "PM4", "PS1", "PM5", "PP3", "BP4", "BA1", "BS1"]
+    assert [r.code for r in results] == [
+        "PVS1", "PM2", "PM4", "PS1", "PM5", "PS3", "PP3", "BP4", "BA1", "BS1", "BS3",
+    ]
 
 
 def test_pathogenic_case_has_no_manual_review_and_no_conflict():

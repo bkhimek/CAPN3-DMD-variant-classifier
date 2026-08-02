@@ -44,6 +44,12 @@ CnvDeletionEvidence, sharing CnvCategoryResult/CnvProvisionalClassification
 rather than forking them (see cnv_duplication_evidence.py's docstring):
 
 - CnvDuplicationEvidence       (cnv_duplication_evidence.py)
+
+Plus one batch-25 model for PS3/BS3 functional-assay evidence, attached
+to VariantEvidenceBundle alongside ComputationalEvidence and
+SameResidueEvidence (see functional_evidence.py's docstring):
+
+- FunctionalEvidence           (functional_evidence.py)
 """
 
 from .case_interpretation import CaseInterpretation
@@ -55,6 +61,7 @@ from .cnv_provisional_classification import CnvProvisionalClassification
 from .computational_evidence import ComputationalEvidence
 from .criterion_result import CriterionResult
 from .evidence_bundle import VariantEvidenceBundle
+from .functional_evidence import FunctionalEvidence
 from .gene_disease_context import GeneDiseaseContext, Specification
 from .golden_case import GoldenCase
 from .population_evidence import PopulationEvidence
@@ -72,6 +79,7 @@ __all__ = [
     "CnvProvisionalClassification",
     "ComputationalEvidence",
     "CriterionResult",
+    "FunctionalEvidence",
     "GeneDiseaseContext",
     "GoldenCase",
     "PopulationEvidence",

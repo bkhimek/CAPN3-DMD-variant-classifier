@@ -47,10 +47,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: MET
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: MANUAL_REVIEW
       BS1: MANUAL_REVIEW
+      BS3: NOT_MET
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the curated evidence in data/curated/variant_evidence.json, using the real ClinGen LGMD VCEP CAPN3 PM2/BA1/BS1 thresholds (batch 4)"
     curator_note: >
       Deliberately NOT auto-classified as Likely Pathogenic despite the real
@@ -76,6 +78,23 @@ golden_cases:
       The real-world Pathogenic classification for this variant also draws
       on segregation/case-count evidence (PM3, PS4-adjacent) that is
       entirely out of scope for this project's 6-criterion engine.
+      UPDATED in batch 25: PS3 is now MET (Supporting) via a real curated
+      functional_evidence record -- a Czech LGMD2A cohort Western blot
+      study (Chrobakova et al. 2004 / Hermanova et al. 2006) reporting
+      total absence of calpain-3 protein in patients carrying this exact
+      founder allele. Supporting strength was chosen as a disclosed
+      conservative floor since the primary papers' exact validation-control
+      counts were not independently verifiable during curation (see the
+      functional_evidence.notes field in data/curated/variant_evidence.json
+      for the full writeup). Even with PS3 added, Table 5 still lands this
+      on VUS: "1 Very Strong + 1 Supporting" (PVS1 + PS3) has no Table 5
+      combining rule of its own -- the same shape as CAPN3_c.1939G>T's PVS1
+      + PM2(Supporting) case, now joined by this fixture as a second real
+      example. See variant_golden_cases_bayesian.yaml: under Tavtigian et
+      al. 2020's point system this same evidence (8 + 1 = 9 points, 2
+      contributing criteria) reaches Likely Pathogenic -- this fixture is
+      now also a genuine Table-5-vs-Bayesian divergence case, not just a
+      VUS.
 
   - variant_id: CAPN3_SYNTH_PATHOGENIC_01
     expected_provisional_class: PATHOGENIC
@@ -85,10 +104,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Synthetic fixture constructed to exercise Table 5 combining-rule path (iii): 1 Very Strong + 1 Moderate + ≥1 Supporting"
     curator_note: >
       Confirms the combination engine can reach PATHOGENIC through the
@@ -103,10 +124,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PS3: NOT_EVALUATED
       PP3: NOT_MET
       BP4: MET
       BA1: MET
       BS1: MET
+      BS3: NOT_EVALUATED
     source: "Synthetic fixture constructed to exercise Table 5's Strong-Benign + Supporting-Benign combining path; re-evaluated in batch 4 against the real ClinGen LGMD VCEP CAPN3 BA1 threshold"
     curator_note: >
       Originally built (Milestone 3) to exercise the BS1 (Strong) + BP4
@@ -136,10 +159,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5)"
     curator_note: >
       Synthetic, built in Milestone 4 as CAPN3_SYNTH_PATHOGENIC_01's trans
@@ -171,10 +196,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5)"
     curator_note: >
       Synthetic, the project's first DMD fixture, built in Milestone 4 for
@@ -191,10 +218,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 217153), using the real ClinGen LGMD VCEP CAPN3 PM2 threshold/strength (batch 4)"
     curator_note: >
       Real, ClinVar-reported Pathogenic nonsense variant, gnomAD AF
@@ -228,10 +257,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PS3: NOT_MET
       PP3: NOT_MET
       BP4: NOT_MET
       BA1: NOT_MET
       BS1: MET
+      BS3: NOT_MET
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real, recurrent CAPN3 variant (p.Asp753Asn, ClinVar VCV000281081.42), using the real ClinGen LGMD VCEP CAPN3 thresholds (batch 4) and a real REVEL score (batch 8), coordinates and VCEP details primary-source-confirmed and a real dominant-calpainopathy paper added in batch 10"
     curator_note: >
       Real and genuinely contested in the literature -- not a clean
@@ -281,6 +312,24 @@ golden_cases:
       because it commits to neither disease model -- a fortunate
       byproduct of missing criteria, not a designed strength, and worth
       being honest about which it is.
+      UPDATED in batch 25: PS3/BS3 are both NOT_MET, via a real curated
+      functional_evidence record from the SAME Bruno et al. 2025 paper
+      already cited above. That paper's own Table 1 reports Western blot
+      calpain-3 expression for this variant's 8 heterozygous carriers as
+      genuinely mixed (Normal in 3 of 5 tested, variably Reduced in the
+      other 2), and the paper explicitly cautions that even a Normal
+      result cannot be trusted as benign for this gene ("approximately
+      20% of individuals with pathogenic CAPN3 variants may have normal
+      protein levels despite functional impairment"). assay_result is
+      curated as INDETERMINATE rather than forcing a NORMAL or ABNORMAL
+      call either direction would misrepresent the source -- a real-world
+      case that concretely motivates FunctionalEvidence's three-way
+      assay_result design (see models/functional_evidence.py) rather than
+      a boolean damaging/non-damaging flag. Net effect on this fixture's
+      classification: none -- still VUS, for the same schema-level
+      single-inheritance-pattern reason as before; PS3/BS3 simply confirm
+      that functional evidence, like everything else in this contested
+      variant's record, does not resolve the ambiguity either.
 
   - variant_id: CAPN3_c.946-1G>A
     expected_provisional_class: VUS
@@ -290,10 +339,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 21036)"
     curator_note: >
       Real, ClinVar-reported Pathogenic canonical splice acceptor variant
@@ -317,10 +368,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (RCV000379611.3)"
     curator_note: >
       Real, ClinVar-reported Pathogenic canonical splice donor variant in
@@ -345,10 +398,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 11222)"
     curator_note: >
       The project's first real (non-synthetic) DMD variant, replacing
@@ -368,10 +423,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the real ClinGen LGMD VCEP's 2026-01-20 reclassification (VCV000217149, RCV006646441.1, reviewed by expert panel)"
     curator_note: >
       UPDATED this round. When first added, ClinVar's aggregate call was
@@ -404,10 +461,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 553754), using the real ClinGen LGMD VCEP CAPN3 PM2 threshold (batch 4)"
     curator_note: >
       Real, ClinVar-reported Pathogenic canonical splice DONOR variant
@@ -435,10 +494,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV001453744), using the real ClinGen LGMD VCEP CAPN3 PM2 threshold"
     curator_note: >
       Real, ClinVar-reported Pathogenic start-loss (initiator codon) variant
@@ -468,10 +529,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
       BS1: MANUAL_REVIEW
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinGen LGMD VCEP Evidence Repository curation (VCV000468648 / CA7511744 / erepo record 7f534c0d-0dbe-4d2e-88e2-88c804cde635, approved 2025-04-22), using the real ClinGen LGMD VCEP CAPN3 PM2/BA1/BS1 thresholds and REVEL threshold"
     curator_note: >
       Real, exceptionally well-documented variant -- the project's first
@@ -521,10 +584,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry"
     curator_note: >
       Real missense variant, absent from gnomAD, reported by ClinVar as
@@ -544,10 +609,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the real ClinVar entry VCV000641807.15 (rs1477369230), coordinates independently derived via the Ensembl REST API before being confirmed against the primary ClinVar record"
     curator_note: >
       Real ClinVar entry (VCV000641807.15, Variation ID 641807; Uncertain
@@ -601,10 +668,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV000011211.24), Pathogenic since 1992"
     curator_note: >
       Real, cleanly-sourced DMD nonsense variant (p.Arg2982Ter, exon 60 of
@@ -629,10 +698,12 @@ golden_cases:
       PM4: MET
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV000553852.19, reviewed by the ClinGen LGMD VCEP, Pathogenic since 2025-06-24)"
     curator_note: >
       Batch 14's fixture for the newly-implemented PM4 evaluator (see
@@ -675,10 +746,12 @@ golden_cases:
       PM4: MET
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV000166786.66, reviewed by the ClinGen LGMD VCEP, Pathogenic, evaluated 2025-03-18)"
     curator_note: >
       A second, complementary real PM4 fixture, added in the same round as
@@ -721,10 +794,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
       BA1: MET
       BS1: MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV000094657.45, Benign, criteria provided/multiple submitters/no conflicts)"
     curator_note: >
       This project's first real BA1-MET fixture, closing a gap searched
@@ -768,10 +843,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (VCV001504148.11) and its source publication (d'Apolito et al. 2024, Int J Mol Sci 25(5):2787, PMID 38474032)"
     curator_note: >
       This project's first DMD missense fixture and first DMD fixture
@@ -822,10 +899,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PS3: NOT_EVALUATED
       PP3: NOT_MET
       BP4: MET
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a real ClinVar entry (Variation ID 455905, rs72468630) with REVEL retrieved from dbNSFP via myvariant.info, calibrated per Pejaver et al. 2022's generic REVEL-to-ACMG thresholds"
     curator_note: >
       This project's first real BP4-MET fixture, closing the real-data
@@ -877,10 +956,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: MET
+      PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the real ClinGen LGMD VCEP curation (VCV000280038.68, RCV006646441.1, reviewed by expert panel, evaluated 2026-01-20)"
     curator_note: >
       Real CAPN3 missense variant (p.Arg448Cys), found while researching
@@ -911,10 +992,12 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: MET
       PM5: NOT_EVALUATED
+      PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
       BA1: NOT_MET
       BS1: NOT_MET
+      BS3: NOT_EVALUATED
     source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a synthetic fixture built to exercise PS1's MET/Strong path"
     curator_note: >
       SYNTHETIC fixture, modeled directly on Richards et al. 2015's own

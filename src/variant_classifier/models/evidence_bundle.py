@@ -12,6 +12,7 @@ from typing import List, Optional
 from ..errors import SchemaValidationError
 from ._coerce import require_dict, require_list, require_str
 from .computational_evidence import ComputationalEvidence
+from .functional_evidence import FunctionalEvidence
 from .gene_disease_context import GeneDiseaseContext
 from .population_evidence import PopulationEvidence
 from .same_residue_evidence import SameResidueEvidence
@@ -27,6 +28,7 @@ class VariantEvidenceBundle:
     population_evidence: List[PopulationEvidence]
     computational_evidence: Optional[ComputationalEvidence] = None
     same_residue_evidence: Optional[SameResidueEvidence] = None
+    functional_evidence: Optional[FunctionalEvidence] = None
     notes: Optional[str] = None
 
     def __post_init__(self) -> None:
@@ -75,6 +77,12 @@ class VariantEvidenceBundle:
             if raw_same_residue is not None
             else None
         )
+        raw_functional = data.get("functional_evidence")
+        functional_evidence = (
+            FunctionalEvidence.from_dict(raw_functional, f"{ctx}.functional_evidence")
+            if raw_functional is not None
+            else None
+        )
         notes = data.get("notes")
         if notes is not None and not isinstance(notes, str):
             raise SchemaValidationError(f"{ctx}: notes must be a string if provided")
@@ -85,5 +93,6 @@ class VariantEvidenceBundle:
             population_evidence=population_evidence,
             computational_evidence=computational_evidence,
             same_residue_evidence=same_residue_evidence,
+            functional_evidence=functional_evidence,
             notes=notes,
         )

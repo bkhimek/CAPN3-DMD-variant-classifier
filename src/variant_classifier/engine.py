@@ -2,10 +2,11 @@
 
 Two responsibilities, kept separate on purpose:
 
-- evaluate_all(bundle, thresholds): run all nine currently-supported
-  evaluators (SUPPORTED_CRITERIA_MILESTONE_1's six, plus PM4, PS1, PM5)
-  against one VariantEvidenceBundle and return their nine CriterionResults
-  — always nine, one per code, even when most are
+- evaluate_all(bundle, thresholds): run all eleven currently-supported
+  evaluators (SUPPORTED_CRITERIA_MILESTONE_1's six, plus PM4, PS1, PM5
+  added batch 22, plus PS3/BS3 added batch 25) against one
+  VariantEvidenceBundle and return their eleven CriterionResults —
+  always eleven, one per code, even when most are
   NOT_MET/NOT_EVALUATED/NOT_APPLICABLE. Nothing is dropped, so a report
   built from this list can show a scientist exactly what was and wasn't
   checked (the "preserved uncertainty" principle from the Workflow
@@ -15,15 +16,23 @@ Two responsibilities, kept separate on purpose:
   2015, Table 5) to a list of CriterionResults and produce one
   ProvisionalClassification. This function does not know or care where
   the CriterionResults came from — it would work identically on results
-  from criteria this project doesn't evaluate yet (PM3, PS3, ...), which
+  from criteria this project doesn't evaluate yet (PM3, PS4, ...), which
   is deliberate: extending criterion coverage later shouldn't require
-  touching this function.
+  touching this function. PS3/BS3 (added batch 25) is a direct
+  demonstration of this: both evaluators slot into the existing
+  strength-tier counting in _pathogenic_tier()/_benign_tier() with zero
+  changes to combine() itself.
 
 classify(bundle, thresholds) chains the two for convenience.
 
-Two things this engine does NOT do, both by design for Milestone 3:
-- It does not attempt PM3/PS4/other recessive-specific evidence (a second
-  variant in trans, segregation, case-control counts) — that's Milestone 4,
+Two things this engine does NOT do, both by design:
+- It does not attempt PM3/PS4/other recessive- or case-level evidence (a
+  second variant in trans, segregation, case-control counts) — PM3
+  specifically was researched and explicitly sized-but-not-implemented in
+  batch 25 (see README's Design notes) because the real ClinGen SVI PM3
+  points system requires aggregating evidence across multiple probands,
+  a genuinely bigger architectural change than this variant-level engine
+  currently supports. Case-level reasoning generally is Milestone 4,
   "clinical interpretation," which needs case-level information (parental
   testing, other observed alleles) this project's variant-level evidence
   bundle doesn't carry.
@@ -40,11 +49,13 @@ from .evaluators import (
     evaluate_ba1,
     evaluate_bp4,
     evaluate_bs1,
+    evaluate_bs3,
     evaluate_pm2,
     evaluate_pm4,
     evaluate_pm5,
     evaluate_pp3,
     evaluate_ps1,
+    evaluate_ps3,
     evaluate_pvs1,
 )
 from .models import CriterionResult, ProvisionalClassification, VariantEvidenceBundle
@@ -55,11 +66,11 @@ RULE_VERSION = "2015"
 
 
 def evaluate_all(bundle: VariantEvidenceBundle, thresholds: dict) -> List[CriterionResult]:
-    """Run all nine supported evaluators (six from Milestone 1, plus PM4
-    added batch 14, plus PS1/PM5 added this round). Always returns
-    exactly nine CriterionResults, one per code in a fixed order — order
-    doesn't matter for combine() but a fixed order makes output
-    diffs/reports readable.
+    """Run all eleven supported evaluators (six from Milestone 1, plus
+    PM4 added batch 14, plus PS1/PM5 added batch 22, plus PS3/BS3 added
+    batch 25). Always returns exactly eleven CriterionResults, one per
+    code in a fixed order — order doesn't matter for combine() but a
+    fixed order makes output diffs/reports readable.
     """
     return [
         evaluate_pvs1(bundle),
@@ -67,10 +78,12 @@ def evaluate_all(bundle: VariantEvidenceBundle, thresholds: dict) -> List[Criter
         evaluate_pm4(bundle),
         evaluate_ps1(bundle),
         evaluate_pm5(bundle),
+        evaluate_ps3(bundle),
         evaluate_pp3(bundle),
         evaluate_bp4(bundle),
         evaluate_ba1(bundle, thresholds),
         evaluate_bs1(bundle, thresholds),
+        evaluate_bs3(bundle),
     ]
 
 

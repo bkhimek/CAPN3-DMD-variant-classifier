@@ -56,15 +56,16 @@ def test_bayesian_matches_hand_derivation_for_all_curated_bundles():
             )
 
 
-def test_bayesian_diverges_from_table5_for_exactly_the_four_documented_fixtures():
+def test_bayesian_diverges_from_table5_for_exactly_the_five_documented_fixtures():
     """Locks in the full set of divergences found while building this
     milestone, so a future evaluator/threshold change that silently
     creates (or removes) a divergence gets noticed rather than passing
-    quietly. Four fixtures, two distinct shapes:
+    quietly. Five fixtures, two distinct shapes:
 
-    - CAPN3_c.1939G>T: PVS1 Very Strong + PM2 Supporting = 9 points
-      (Likely Pathogenic), but no Table 5 rule for "1 Very Strong + 1
-      Supporting" alone -> VUS. The flagship case, real data.
+    - CAPN3_c.1939G>T, CAPN3_c.550del: PVS1 Very Strong + one Supporting
+      criterion (PM2 for the former, PS3 for the latter, added batch 25)
+      = 9 points (Likely Pathogenic), but no Table 5 rule for "1 Very
+      Strong + 1 Supporting" alone -> VUS. Both real fixtures, real data.
     - DMD_SYNTH_PATHOGENIC_01, DMD_c.2302C>T, DMD_c.8944C>T: PVS1 Very
       Strong + PM2 Moderate = 10 points (Pathogenic), but Table 5's flat
       PATHOGENIC tier needs "1 Very Strong + >=2 Moderate", so "1 Very
@@ -78,6 +79,7 @@ def test_bayesian_diverges_from_table5_for_exactly_the_four_documented_fixtures(
 
     expected_divergent_ids = {
         "CAPN3_c.1939G>T",
+        "CAPN3_c.550del",
         "DMD_SYNTH_PATHOGENIC_01",
         "DMD_c.2302C>T",
         "DMD_c.8944C>T",

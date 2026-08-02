@@ -282,3 +282,21 @@ class CnvDuplicationOrientation(str, Enum):
 # See models/cnv_duplication_evidence.py and cnv_scoring.py for the full
 # writeup and the exact condition-to-value mapping's disclosed uncertainty.
 CNV_GAIN_CATEGORY_CODES = frozenset({"GAIN_2K_EQUIV", "GAIN_2J_EQUIV", "GAIN_BENIGN", "NONE_APPLICABLE"})
+
+
+class FunctionalAssayResult(str, Enum):
+    """The three real outcomes a curated functional assay (PS3/BS3, see
+    models/functional_evidence.py) can report. ABNORMAL and NORMAL are
+    self-explanatory; INDETERMINATE is a distinct, real third state --
+    an assay that was performed but did not clearly discriminate
+    pathogenic from benign for this specific variant (e.g. a Western
+    blot showing "variably reduced" or ambiguous protein expression).
+    INDETERMINATE is NOT the same as having no functional evidence at
+    all (functional_evidence absent from the bundle) -- it is curated
+    explicitly, same "never silently guess" convention used throughout
+    this project, and results in NOT_MET for both PS3 and BS3 rather
+    than NOT_EVALUATED."""
+
+    ABNORMAL = "ABNORMAL"
+    NORMAL = "NORMAL"
+    INDETERMINATE = "INDETERMINATE"

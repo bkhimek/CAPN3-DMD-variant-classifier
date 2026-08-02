@@ -146,18 +146,32 @@ golden_cases:
       independent mechanisms.
 
   - variant_id: CAPN3_c.550del
-    expected_provisional_class: VUS
-    expected_points: 8
+    expected_provisional_class: LIKELY_PATHOGENIC
+    expected_points: 9
     source: "Hand-derived from Tavtigian et al. 2020's point system"
     curator_note: >
-      PVS1 Very Strong (8) alone -- 1 contributing criterion, below the
-      2-criterion minimum, so VUS despite 8 points nominally sitting
-      inside the 6-9 Likely Pathogenic band. This is the literal example
-      ACGS's 2024 guidelines use to illustrate the 2-criterion minimum
-      rule ("PVS1_vstr (8 points) ... classified as a VUS pending a
-      second corroborating piece of evidence") -- a fortunate, unplanned
-      match between this project's own real fixture and the example the
-      real guidelines chose.
+      UPDATED in batch 25: PVS1 Very Strong (8) + PS3 Supporting (1) = 9
+      points, 2 contributing criteria -- squarely in the 6-9 Likely
+      Pathogenic band. Through batch 24 this fixture was PVS1 alone (8
+      points, 1 criterion, VUS via the 2-criterion minimum) -- the literal
+      example ACGS's 2024 guidelines use to illustrate that rule
+      ("PVS1_vstr (8 points) ... classified as a VUS pending a second
+      corroborating piece of evidence"). That specific illustration is no
+      longer shown by a real fixture in this set as of batch 25 (PS3 now
+      gives this variant its second criterion), but the underlying rule
+      it demonstrated is still directly covered by a hand-built unit test
+      (test_single_very_strong_criterion_alone_is_vus_not_likely_pathogenic
+      in test_bayesian.py), so no coverage is actually lost. This fixture
+      now instead joins CAPN3_c.1939G>T as a second real example of the
+      "1 Very Strong + 1 Supporting" divergence pattern: Table 5 has no
+      combining rule for that exact shape (see
+      variant_golden_cases.yaml's curator_note for this same variant_id),
+      so Table 5 still lands this real, ClinVar-Pathogenic variant on VUS
+      even with PS3 now MET, while the Bayesian point system reaches
+      Likely Pathogenic on the identical evidence. See
+      test_bayesian_diverges_from_table5_for_exactly_the_four_documented_fixtures
+      in test_bayesian.py, renamed/expanded this batch to cover five
+      fixtures rather than four.
 
   - variant_id: CAPN3_c.598_612del
     expected_provisional_class: VUS

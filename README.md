@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, curated variant set at 23 real of ~20-30 (24 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
+## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25, PM3 researched and sized but not implemented), curated variant set at 23 real of ~20-30 (24 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
 
 Milestone 5 (batch 20) added a second combining system -- Bayesian
 point-based combining (Tavtigian et al. 2020), offered alongside, not
@@ -36,9 +36,21 @@ real, clinically-relevant intragenic-disruption mechanism could only be
 partially confirmed from secondary sources -- see "DMD CNV/structural-
 variant duplication scoring (batch 24)" below for the full writeup,
 including the specific, disclosed inference this project made to proceed
-anyway (confirmed with the user before writing any code). See "Milestone
+anyway (confirmed with the user before writing any code). Batch 25 added
+two more point-mutation criteria, PS3 and BS3 (well-established functional
+studies supportive of, or showing no, damaging effect) -- a new
+`FunctionalEvidence` model, `evaluate_ps3()`/`evaluate_bs3()`, and two
+real curated fixture enrichments, one showing PS3's MET path (a founder
+CAPN3 allele with real Western-blot protein-absence data) and one showing
+the framework's INDETERMINATE assay-result path (a real, genuinely mixed
+Western-blot result for a separately-contested CAPN3 missense variant) --
+see "PS3 and BS3: functional-evidence criteria (batch 25)" below. Batch
+25 also researched PM3 (in trans with a second pathogenic variant) and
+explicitly sized it as a real, larger architectural change requiring
+multi-proband evidence aggregation, deliberately not implemented this
+round -- see "PM3: sized, not implemented (batch 25)" below. See "Milestone
 5: Bayesian point-based combining" below for what that milestone found
-and why batch 20 felt like the right place to pause before batch 22/23/24
+and why batch 20 felt like the right place to pause before batch 22/23/24/25
 picked back up.
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
@@ -66,7 +78,10 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   in a deliberately separate family for CNV evidence rather than an
   extension of the point-mutation models above: `CnvDeletionEvidence`,
   `CnvCategoryResult`, `CnvProvisionalClassification` -- see "DMD CNV/
-  structural-variant scoring (batch 23)" below.
+  structural-variant scoring (batch 23)" below. Batch 25 adds one more to
+  the point-mutation family alongside `SameResidueEvidence`:
+  `FunctionalEvidence`, attached to `VariantEvidenceBundle` for PS3/BS3 --
+  see "PS3 and BS3: functional-evidence criteria (batch 25)" below.
 - **Twenty-four curated evidence bundles** (`data/curated/variant_evidence.json`):
   nineteen real ClinVar/VCEP-grounded variants (twelve CAPN3, seven DMD)
   and five synthetic cases (four CAPN3, one DMD -- `CAPN3_SYNTH_PS1_01`
@@ -85,17 +100,19 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   results (see below).
 - Schema-validation tests (`tests/unit/`) covering both valid and
   invalid records for every model.
-- Nine evaluators, one per implemented ACMG/AMP point-mutation criterion
+- Eleven evaluators, one per implemented ACMG/AMP point-mutation criterion
   (`src/variant_classifier/evaluators/`): `pvs1.py`, `pm2.py`, `pm4.py`,
-  `ps1.py`, `pm5.py`, `pp3.py`, `bp4.py`, `ba1.py`, `bs1.py`. PVS1 is
-  deliberately partial — see "PVS1 scope" below. PM4 was added in batch 14
-  — see "PM4: a second new criterion" below. PS1 and PM5 were added in
-  batch 22 — see "PS1 and PM5: same-residue precedent evidence" below.
-  Batch 23's CNV deletion scoring and batch 24's CNV duplication scoring
-  (both in `cnv_scoring.py`) are a separate, parallel scoring module over
-  the ACMG/ClinGen CNV rubric (Riggs et al. 2020), not one more evaluator
-  feeding this list -- see "DMD CNV/structural-variant scoring (batch 23)"
-  and "DMD CNV/structural-variant duplication scoring (batch 24)" below.
+  `ps1.py`, `pm5.py`, `ps3.py`, `pp3.py`, `bp4.py`, `ba1.py`, `bs1.py`,
+  `bs3.py`. PVS1 is deliberately partial — see "PVS1 scope" below. PM4 was
+  added in batch 14 — see "PM4: a second new criterion" below. PS1 and
+  PM5 were added in batch 22 — see "PS1 and PM5: same-residue precedent
+  evidence" below. PS3 and BS3 were added in batch 25 — see "PS3 and BS3:
+  functional-evidence criteria (batch 25)" below. Batch 23's CNV deletion
+  scoring and batch 24's CNV duplication scoring (both in `cnv_scoring.py`)
+  are a separate, parallel scoring module over the ACMG/ClinGen CNV rubric
+  (Riggs et al. 2020), not one more evaluator feeding this list -- see
+  "DMD CNV/structural-variant scoring (batch 23)" and "DMD CNV/structural-
+  variant duplication scoring (batch 24)" below.
 - A **combining engine** (`src/variant_classifier/engine.py`) implementing
   the ACMG/AMP combining rules (Richards et al. 2015, Table 5), including
   a genuine conflict path (`conflicting_evidence_flag`) rather than
@@ -124,7 +141,7 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 197 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 212 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does; also includes two hand-built tests pairing the real DMD
@@ -136,9 +153,10 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   MET on a real fixture), a dedicated `test_pm4_evaluator.py` suite added
   in batch 14, a dedicated `test_bayesian.py` suite (13 tests) added in
   batch 20, a dedicated `test_ps1_pm5_evaluators.py` suite (18 tests)
-  added in batch 22, and a dedicated `test_cnv_scoring.py` suite (20
-  tests in batch 23, growing to 37 in batch 24) for the separate CNV
-  deletion and duplication evidence/scoring families described below.
+  added in batch 22, a dedicated `test_cnv_scoring.py` suite (20 tests in
+  batch 23, growing to 37 in batch 24) for the separate CNV deletion and
+  duplication evidence/scoring families described below, and a dedicated
+  `test_ps3_bs3_evaluators.py` suite (15 tests) added in batch 25.
 
 ## Design notes
 
@@ -784,6 +802,15 @@ already anticipated:
   shape found only by checking every fixture rather than just the one
   already suspected — two of these three are real fixtures.
 
+UPDATED in batch 25: adding real PS3 evidence to `CAPN3_c.550del` (see
+"PS3 and BS3: functional-evidence criteria (batch 25)" above) turned it
+into a fifth real divergence, the same shape as `CAPN3_c.1939G>T`'s —
+PVS1 Very Strong + PS3 Supporting = 9 points, VUS under Table 5, LIKELY_PATHOGENIC
+under Bayesian. Not a new divergence *shape*, but a second independent
+real-data example of the first one, found as a direct side effect of
+adding unrelated evidence rather than a targeted search for more
+divergences.
+
 Both shapes share the same root cause: Table 5's combining rules were
 built as a discrete, hand-enumerated list (Table 5 in Richards et al.
 2015), not derived from the point values later fit to approximate it, so
@@ -833,14 +860,18 @@ fixture's Bayesian point total and resulting class, with a curator_note
 explaining any divergence from the Table 5 result. `test_bayesian.py` is
 the dedicated test suite (13 tests): the headline
 `test_bayesian_matches_hand_derivation_for_all_curated_bundles` check, a
-`test_bayesian_diverges_from_table5_for_exactly_the_four_documented_fixtures`
+`test_bayesian_diverges_from_table5_for_exactly_the_five_documented_fixtures`
 regression lock (so a future evaluator or threshold change that silently
 creates or removes a divergence gets noticed), point-value spot checks
 against the Tavtigian 2020 values quoted above, and hand-built edge cases
 for the 2-criterion minimum rule (including the two exact examples ACGS's
-2024 guidelines themselves use: `PVS1_vstr` alone and `BP4_sup` alone,
-both of which this project already happens to have as real fixtures —
-`CAPN3_c.550del` and `DMD_c.5163G>C` respectively).
+2024 guidelines themselves use: `PVS1_vstr` alone and `BP4_sup` alone —
+`DMD_c.5163G>C` is a real fixture for the `BP4_sup`-alone case, and
+`PVS1_vstr` alone was illustrated by the real fixture `CAPN3_c.550del`
+through batch 24; as of batch 25 that fixture has real PS3 evidence too
+(see above), so `PVS1_vstr` alone is now covered only by the hand-built
+`test_single_very_strong_criterion_alone_is_vus_not_likely_pathogenic`,
+not a real fixture — disclosed here rather than left silently inaccurate).
 
 What Milestone 5 deliberately does not do: it does not change
 `engine.classify()`'s behavior, does not change which combining system
@@ -1247,6 +1278,120 @@ verification of the primary Riggs paper's exact gain-side letter codes
 and point-value-to-condition mapping; and everything already deferred on
 the deletion side (Sections 1, 2H, 3, 4, 5).
 
+**PS3 and BS3: functional-evidence criteria (batch 25).** Richards et al.
+2015 (Table 3) defines **PS3** ("well-established in vitro or in vivo
+functional studies supportive of a damaging effect on the gene or gene
+product," Strong) and **BS3** ("well-established in vitro or in vivo
+functional studies show no damaging effect on protein function or
+splicing," Strong) but leaves "well-established" entirely to curator
+judgment -- no further structure. The ClinGen SVI Working Group's own
+refinement, Brnich et al. 2019 (*Genome Medicine* 11:98, "Recommendations
+for application of the functional evidence PS3/BS3 criterion"), replaces
+that judgment call with an explicit validation-tier ladder based on how
+many pathogenic/benign control variants an assay was validated against,
+and whether a formal OddsPath statistic was computed: Supporting (few or
+undocumented controls), Moderate (>=11 mixed controls, no formal
+statistics), up to Strong (a calculated OddsPath). This project does not
+compute OddsPath itself -- `validation_strength` on the new
+`FunctionalEvidence` model (`src/variant_classifier/models/functional_evidence.py`)
+is a curated fact, the calibrated tier a curator already assigned, exactly
+like `ComputationalEvidence`'s "one calibrated call per variant" and
+`SameResidueEvidence`'s externally-sourced precedent classification.
+Only Supporting/Moderate/Strong are accepted -- Richards et al. 2015
+defines no Very-Strong or Stand-Alone tier for PS3/BS3, so `__post_init__`
+rejects those values rather than silently overclaiming a strength the
+base framework doesn't offer.
+
+`assay_result` is a three-way `FunctionalAssayResult` enum
+(`ABNORMAL`/`NORMAL`/`INDETERMINATE`), not a boolean. `INDETERMINATE` is a
+real, distinct, and — per this batch's own fixture research — common
+state: an assay that was performed but did not clearly discriminate
+pathogenic from benign for this specific variant. It is curated
+explicitly (never left absent, which instead means "no functional data at
+all," yielding `NOT_EVALUATED`), and results in `NOT_MET` for *both* PS3
+and BS3 rather than guessing a direction. `evaluate_ps3()`/`evaluate_bs3()`
+(`src/variant_classifier/evaluators/ps3.py`/`bs3.py`) are structural
+mirror images of each other: `NOT_EVALUATED` if no `functional_evidence`
+is recorded, `NOT_MET` on `INDETERMINATE` or the opposite-direction
+result, `MET` at the curated `validation_strength` on a matching result.
+Wiring both into `engine.evaluate_all()` required no changes to
+`combine()`'s Table 5 logic or to `bayesian.py`'s point-summing at all --
+both already operate generically over any `CriterionResult` list by
+counting strength tiers per direction, exactly as the module docstrings
+for both files already claimed before this batch put it to the test.
+
+Two real fixture enrichments in `data/curated/variant_evidence.json`
+(hand-derived against the new evaluators before being written into golden
+cases, same discipline as every other batch): `CAPN3_c.550del` (the real,
+ClinVar-Pathogenic founder LGMDR1 allele) gets `ABNORMAL`/`SUPPORTING`,
+citing a Czech LGMD2A cohort Western blot study (Chrobakova et al. 2004,
+*Neuromuscul Disord*; Hermanova et al. 2006, *Muscle Nerve*) reporting
+total absence of calpain-3 protein in patients carrying this allele.
+Supporting (rather than a higher tier) is a disclosed conservative choice
+-- the primary papers were reCAPTCHA-blocked during curation, so the
+exact validation-control counts Brnich et al. 2019 would use to justify
+Moderate or Strong could not be independently verified. `CAPN3_c.2257G>A`
+(the already-extensively-documented, genuinely contested p.Asp753Asn
+variant -- see "Expanding the curated set" below) gets `INDETERMINATE`,
+citing the *same* 2025 Bruno et al. paper already cited for that fixture:
+its own Table 1 reports mixed Western blot results for this exact variant
+(Normal in 3 of 5 patients tested, Reduced in 2), and the paper explicitly
+warns that even a Normal result cannot be trusted as benign for this gene
+("approximately 20% of individuals with pathogenic CAPN3 variants may have
+normal protein levels despite functional impairment"). This is a genuine
+real-world illustration of the Brnich framework's INDETERMINATE-outcome
+caveat, not a curation shortfall -- and it changes nothing about this
+fixture's already-VUS classification, which continues to rest on the same
+schema-level single-inheritance-pattern gap documented there. No real
+"clean, non-caveated normal-WB-confirms-benign" CAPN3/DMD fixture was
+found this round, so BS3's MET branch is covered only by a hand-built
+unit test, the same treatment CNV categories 2C/2D/2F got in batch 23.
+
+Adding real PS3 evidence to `CAPN3_c.550del` also created this project's
+second real Table-5-vs-Bayesian divergence case (see "Milestone 5"
+below): PVS1 Very Strong + PS3 Supporting is "1 Very Strong + 1
+Supporting," a shape Table 5 has no combining rule for (still VUS), while
+Tavtigian et al. 2020's point system reaches 8+1=9 points, squarely
+Likely Pathogenic. `CAPN3_c.1939G>T` showed this same shape already (with
+PM2 as the Supporting criterion); this fixture now joins it as a second,
+independent real-data example. The `test_bayesian_diverges_from_table5_for...`
+regression lock in `test_bayesian.py` was updated (renamed to "five", not
+"four", documented fixtures) to catch any future evaluator change that
+silently adds or removes a divergence.
+
+Tests: `tests/unit/test_ps3_bs3_evaluators.py` (15 tests) -- golden-case
+cross-check plus hand-built edge cases for every branch (`NOT_EVALUATED`,
+both `NOT_MET` shapes, `MET` at all three strength tiers for PS3, and a
+hand-built BS3 `MET` case since no real fixture reaches it) and
+`FunctionalEvidence`'s own schema validation (required/forbidden
+`validation_strength` per `assay_result`, rejected Very-Strong/Stand-Alone
+tiers).
+
+**PM3: sized, not implemented (batch 25).** PM3 ("detected in trans with
+a pathogenic variant, for recessive disorders," Table 3) was the other
+candidate this batch considered and explicitly chose not to build --
+`clinical.py`'s own docstring had already flagged, since an earlier
+milestone, that a per-variant PM3 evaluator is structurally circular here
+(variant A's PM3 would depend on variant B's classification from this
+same engine). Research this round (the ClinGen SVI Recommendation for the
+in trans Criterion, confirmed via the ACGS 2024 UK Practice Guidelines
+since the primary ClinGen PDF was unreachable) found the real mechanism
+avoiding that circularity is not a simple two-variant workaround: PM3 is
+a **points-based system that aggregates evidence across multiple
+probands**, with points per proband set by phasing confidence and the
+other allele's own independently-established classification, summed to a
+total (PM3_Strong at 2.0 points), homozygous observations capped at a
+maximum of 1 point regardless of zygosity-implied phase, and phase
+required to be either directly confirmed or ruled out via a gnomAD
+variant co-occurrence check. That is a genuinely larger architectural
+change than PS1/PM5 or PS3/BS3 needed -- it requires case-level,
+multi-proband aggregation this project's current variant-level
+`VariantEvidenceBundle` (one bundle per variant, no cross-proband
+accumulation) does not support, closer in scope to Milestone 4's
+case-level work than to a same-shape evaluator addition. Deliberately
+left unimplemented and disclosed here rather than either faked with a
+simplified two-variant version or silently dropped from the Roadmap.
+
 **PM2 and founder mutations.** PM2 asks whether a variant is absent or at
 extremely low frequency in the general population. A single global allele
 frequency threshold isn't enough to answer that safely: `CAPN3_c.550del` is
@@ -1278,6 +1423,7 @@ src/variant_classifier/
     population_evidence.py     PopulationEvidence
     computational_evidence.py  ComputationalEvidence
     same_residue_evidence.py   SameResidueEvidence — batch 22, see "PS1 and PM5" above
+    functional_evidence.py     FunctionalEvidence — batch 25, see "PS3 and BS3" above
     criterion_result.py        CriterionResult
     provisional_classification.py  ProvisionalClassification
     cnv_deletion_evidence.py    CnvDeletionEvidence — batch 23, see "DMD CNV/structural-variant scoring" above
@@ -1297,10 +1443,12 @@ src/variant_classifier/
     pm4.py                    evaluate_pm4() — see "PM4: a second new criterion" above
     ps1.py                    evaluate_ps1() — batch 22, see "PS1 and PM5" above
     pm5.py                    evaluate_pm5() — batch 22, see "PS1 and PM5" above
+    ps3.py                    evaluate_ps3() — batch 25, see "PS3 and BS3" above
     pp3.py                    evaluate_pp3()
     bp4.py                    evaluate_bp4()
     ba1.py                    evaluate_ba1()
     bs1.py                    evaluate_bs1()
+    bs3.py                    evaluate_bs3() — batch 25, see "PS3 and BS3" above
 
 config/
   population_thresholds.yaml per-gene PM2/BA1/BS1 frequency thresholds -- CAPN3's
@@ -1313,7 +1461,8 @@ config/
 data/
   curated/
     gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       24 curated variants (CAPN3 + DMD) -- growing toward ~20-30
+    variant_evidence.json       24 curated variants (CAPN3 + DMD) -- growing toward ~20-30;
+                                 two enriched with functional_evidence in batch 25 (see "PS3 and BS3" above)
     clinical_cases.json         9 curated ClinicalCase fixtures (Milestone 4)
     cnv_deletion_evidence.json  3 curated CNV deletion fixtures (DMD only) -- batch 23,
                                  a separate curated set from variant_evidence.json above
@@ -1599,16 +1748,41 @@ case with no matching evidence bundle).
   independent verification of the primary paper's exact gain-side letter
   codes remain explicit, disclosed gaps. 17 new tests
   (`test_cnv_scoring.py` grew to 37 CNV tests total), 197 total.
+- **Batch 25 (PS3/BS3 functional-evidence criteria; PM3 sized)** — done.
+  Implemented PS3 and BS3 (`evaluators/ps3.py`/`bs3.py`, new
+  `FunctionalEvidence` model) per the base Richards et al. 2015 definition
+  and the Brnich et al. 2019 validation-strength ladder — see "PS3 and
+  BS3: functional-evidence criteria (batch 25)" above for the full design,
+  including the three-way `assay_result` (`ABNORMAL`/`NORMAL`/`INDETERMINATE`)
+  and why `combine()`/`bayesian.py` needed zero changes to pick up the two
+  new evaluators. Enriched two real curated fixtures with
+  `functional_evidence`: `CAPN3_c.550del` (real Czech LGMD2A cohort
+  Western blot data, `ABNORMAL`/`SUPPORTING`, disclosed as a conservative
+  strength choice) and `CAPN3_c.2257G>A` (real, genuinely mixed Western
+  blot data for this exact variant from the same Bruno et al. 2025 paper
+  already cited for it, `INDETERMINATE`) — no fabricated BS3-MET fixture
+  was added since no real "clean normal-WB-confirms-benign" CAPN3/DMD
+  example was found; that branch is covered by a hand-built test only.
+  Adding real PS3 evidence to `CAPN3_c.550del` created this project's
+  second real Table-5-vs-Bayesian divergence (see "Milestone 5" above),
+  now locked into `test_bayesian_diverges_from_table5_for_exactly_the_five_documented_fixtures`.
+  Also researched PM3 (in trans with a pathogenic variant) and explicitly
+  sized it as a real multi-proband points-aggregation system (ClinGen SVI
+  Recommendation for the in trans Criterion), a genuinely larger
+  architectural change than this batch's other criteria needed — sized
+  and disclosed, not implemented, see "PM3: sized, not implemented (batch
+  25)" above. 15 new tests (`test_ps3_bs3_evaluators.py`), 212 total.
 - Later, if this project resumes rather than moving to that next one:
   continue expanding curated fixtures toward the full 20-30 ClinVar
   variant set (23 real of ~20-30 done, see "Expanding the curated set"
   above; every criterion-level real-data gap identified so far is now
-  closed except a real PS1 precedent pair, so further additions would
-  mostly be for breadth); add PM3/PS3/BS3 as real per-variant/case-level
-  criteria (distinct from how clinical.py currently handles trans/cis
-  reasoning at the case level; PS1/PM5 are now done, see batch 22 above);
-  revisit PVS1's partial scope (protein-domain criticality,
-  constitutive-exon data — the real CAPN3 VCEP spec includes a
+  closed except a real PS1 precedent pair and a real BS3-MET example, so
+  further additions would mostly be for breadth); implement PM3 as a
+  real case-level, multi-proband points-aggregation system per its batch
+  25 sizing (distinct from how clinical.py currently handles trans/cis
+  reasoning at the case level; PS1/PM5/PS3/BS3 are now done, see batches
+  22 and 25 above); revisit PVS1's partial scope (protein-domain
+  criticality, constitutive-exon data — the real CAPN3 VCEP spec includes a
   gene-specific PVS1 flowchart that isn't implemented here either); extend
   the CNV work (batches 23/24) to whole-gene triplosensitivity scoring for
   genes where it's real (not DMD, per batch 24's finding), and to the
