@@ -1,86 +1,108 @@
 {
-    "_comment": "Milestone 4 case-level fixtures \u2014 what a specific (synthetic) patient's testing found, as opposed to facts about a single variant. See clinical.py and models/clinical_case.py. Every variant_id referenced here must exist in variant_evidence.json. karyotypic_sex is set to XX for the three CAPN3 cases purely because the model requires a value; it plays no role in autosomal recessive reasoning.",
-    "cases": [
-        {
-            "case_id": "CASE_CAPN3_BIALLELIC_TRANS",
-            "gene": "CAPN3",
-            "karyotypic_sex": "XX",
-            "variant_ids": [
-                "CAPN3_SYNTH_PATHOGENIC_01",
-                "CAPN3_SYNTH_PATHOGENIC_02"
-            ],
-            "phase": "TRANS",
-            "phase_evidence_note": "Synthetic: variant 01 confirmed on the paternal allele, variant 02 on the maternal allele via parental testing."
-        },
-        {
-            "case_id": "CASE_CAPN3_BIALLELIC_CIS",
-            "gene": "CAPN3",
-            "karyotypic_sex": "XX",
-            "variant_ids": [
-                "CAPN3_SYNTH_PATHOGENIC_01",
-                "CAPN3_SYNTH_PATHOGENIC_02"
-            ],
-            "phase": "CIS",
-            "phase_evidence_note": "Synthetic: both variants confirmed on the same (paternal) allele via parental testing; the maternal allele is unaffected."
-        },
-        {
-            "case_id": "CASE_CAPN3_PHASE_UNKNOWN",
-            "gene": "CAPN3",
-            "karyotypic_sex": "XX",
-            "variant_ids": [
-                "CAPN3_SYNTH_PATHOGENIC_01",
-                "CAPN3_SYNTH_PATHOGENIC_02"
-            ],
-            "phase": "UNKNOWN",
-            "phase_evidence_note": "Synthetic: parental samples were not available for testing."
-        },
-        {
-            "case_id": "CASE_CAPN3_SINGLE_VARIANT",
-            "gene": "CAPN3",
-            "karyotypic_sex": "XX",
-            "variant_ids": [
-                "CAPN3_c.550del"
-            ]
-        },
-        {
-            "case_id": "CASE_DMD_HEMIZYGOUS_MALE",
-            "gene": "DMD",
-            "karyotypic_sex": "XY",
-            "variant_ids": [
-                "DMD_SYNTH_PATHOGENIC_01"
-            ]
-        },
-        {
-            "case_id": "CASE_DMD_FEMALE_CARRIER",
-            "gene": "DMD",
-            "karyotypic_sex": "XX",
-            "variant_ids": [
-                "DMD_SYNTH_PATHOGENIC_01"
-            ]
-        },
-        {
-            "case_id": "CASE_DMD_HEMIZYGOUS_MALE_REAL",
-            "gene": "DMD",
-            "karyotypic_sex": "XY",
-            "variant_ids": [
-                "DMD_c.2302C>T"
-            ]
-        },
-        {
-            "case_id": "CASE_DMD_FEMALE_CARRIER_REAL",
-            "gene": "DMD",
-            "karyotypic_sex": "XX",
-            "variant_ids": [
-                "DMD_c.2302C>T"
-            ]
-        },
-        {
-            "case_id": "CASE_DMD_HEMIZYGOUS_MALE_VUS_REAL",
-            "gene": "DMD",
-            "karyotypic_sex": "XY",
-            "variant_ids": [
-                "DMD_c.10103A>G"
-            ]
-        }
-    ]
+  "_comment": "Milestone 4 case-level fixtures \u2014 what a specific (synthetic) patient's testing found, as opposed to facts about a single variant. See clinical.py and models/clinical_case.py. Every variant_id referenced here must exist in variant_evidence.json. karyotypic_sex is set to XX for the three CAPN3 cases purely because the model requires a value; it plays no role in autosomal recessive reasoning.",
+  "cases": [
+    {
+      "case_id": "CASE_CAPN3_BIALLELIC_TRANS",
+      "gene": "CAPN3",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "CAPN3_SYNTH_PATHOGENIC_01",
+        "CAPN3_SYNTH_PATHOGENIC_02"
+      ],
+      "phase": "TRANS",
+      "phase_evidence_note": "Synthetic: variant 01 confirmed on the paternal allele, variant 02 on the maternal allele via parental testing."
+    },
+    {
+      "case_id": "CASE_CAPN3_BIALLELIC_CIS",
+      "gene": "CAPN3",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "CAPN3_SYNTH_PATHOGENIC_01",
+        "CAPN3_SYNTH_PATHOGENIC_02"
+      ],
+      "phase": "CIS",
+      "phase_evidence_note": "Synthetic: both variants confirmed on the same (paternal) allele via parental testing; the maternal allele is unaffected."
+    },
+    {
+      "case_id": "CASE_CAPN3_PHASE_UNKNOWN",
+      "gene": "CAPN3",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "CAPN3_SYNTH_PATHOGENIC_01",
+        "CAPN3_SYNTH_PATHOGENIC_02"
+      ],
+      "phase": "UNKNOWN",
+      "phase_evidence_note": "Synthetic: parental samples were not available for testing."
+    },
+    {
+      "case_id": "CASE_CAPN3_SINGLE_VARIANT",
+      "gene": "CAPN3",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "CAPN3_c.550del"
+      ]
+    },
+    {
+      "case_id": "CASE_DMD_HEMIZYGOUS_MALE",
+      "gene": "DMD",
+      "karyotypic_sex": "XY",
+      "variant_ids": [
+        "DMD_SYNTH_PATHOGENIC_01"
+      ]
+    },
+    {
+      "case_id": "CASE_DMD_FEMALE_CARRIER",
+      "gene": "DMD",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "DMD_SYNTH_PATHOGENIC_01"
+      ]
+    },
+    {
+      "case_id": "CASE_DMD_HEMIZYGOUS_MALE_REAL",
+      "gene": "DMD",
+      "karyotypic_sex": "XY",
+      "variant_ids": [
+        "DMD_c.2302C>T"
+      ]
+    },
+    {
+      "case_id": "CASE_DMD_FEMALE_CARRIER_REAL",
+      "gene": "DMD",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "DMD_c.2302C>T"
+      ]
+    },
+    {
+      "case_id": "CASE_DMD_HEMIZYGOUS_MALE_VUS_REAL",
+      "gene": "DMD",
+      "karyotypic_sex": "XY",
+      "variant_ids": [
+        "DMD_c.10103A>G"
+      ]
+    },
+    {
+      "case_id": "CASE_DMD_XX_BIALLELIC_TRANS",
+      "gene": "DMD",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "DMD_c.2302C>T",
+        "DMD_c.8944C>T"
+      ],
+      "phase": "TRANS",
+      "phase_evidence_note": "SYNTHETIC case (batch 29): a hypothetical patient wired to two REAL, already-curated DMD nonsense variants (DMD_c.2302C>T and DMD_c.8944C>T, both real ClinVar-grounded, both LIKELY_PATHOGENIC), confirmed in trans via hypothetical parental testing. No real published case combining these two specific variants in one patient was found -- real published biallelic-XX-DMD cases are CNV-based or CNV+point-mutation mixes (Ulm et al. 2022, Molecular Genetics & Genomic Medicine 11:e2088; Takeshita et al. 2017; Fujii et al. 2009), which don't fit this project's point-mutation-only ClinicalCase model -- so the CASE here is synthetic while the underlying variant evidence is real, same pattern already used by CASE_DMD_FEMALE_CARRIER_REAL. See clinical.py's _interpret_xx_biallelic docstring for the real mechanism this demonstrates."
+    },
+    {
+      "case_id": "CASE_DMD_XX_BIALLELIC_CIS",
+      "gene": "DMD",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "DMD_c.2302C>T",
+        "DMD_c.8944C>T"
+      ],
+      "phase": "CIS",
+      "phase_evidence_note": "SYNTHETIC case (batch 29): same two real variants as CASE_DMD_XX_BIALLELIC_TRANS, but confirmed in cis instead -- both on the same X chromosome copy, leaving the other X copy genuinely wild-type. Deliberately paired with the TRANS case to demonstrate that this does NOT resolve to INSUFFICIENT the way autosomal recessive cis does: a wild-type X copy can still be silenced by X-inactivation in some cells, so the real phenotype unpredictability found in Brioschi et al. 2012 (already cited for the single-carrier case) still applies. See clinical.py's _interpret_xx_biallelic docstring."
+    }
+  ]
 }

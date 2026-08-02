@@ -48,7 +48,7 @@ def test_interpret_case_matches_golden_case_for_all_curated_cases():
     cases = loader.load_clinical_cases()
     goldens = loader.load_case_interpretation_goldens()
 
-    assert len(cases) == 9
+    assert len(cases) == 11
     for case in cases:
         golden = goldens[case.case_id]
         result = interpret_case(case, classifications, contexts[case.gene])
@@ -173,6 +173,60 @@ def test_interpret_x_linked_case_rejects_two_variants():
         variant_ids=["v1", "v2"], phase=PhaseRelationship.TRANS,
     )
     expect_schema_error(lambda: interpret_x_linked_case(case, {}, _dmd_context()))
+
+
+def test_dmd_xx_biallelic_trans_vs_cis_differ_only_by_phase():
+    # Batch 29's parallel to test_capn3_trans_vs_cis_differ_only_by_phase --
+    # except, unlike autosomal recessive, cis does NOT resolve to
+    # INSUFFICIENT for X-linked XX (see clinical.py's
+    # _interpret_xx_biallelic docstring for why: a wild-type X copy is not
+    # always active the way a wild-type autosome copy is).
+    classifications = _classify_all_bundles()
+    contexts = loader.load_gene_disease_contexts()
+    cases = {c.case_id: c for c in loader.load_clinical_cases()}
+
+    trans_result = interpret_case(cases["CASE_DMD_XX_BIALLELIC_TRANS"], classifications, contexts["DMD"])
+    cis_result = interpret_case(cases["CASE_DMD_XX_BIALLELIC_CIS"], classifications, contexts["DMD"])
+    assert trans_result.status == CaseInterpretationStatus.EXPLAINED
+    assert cis_result.status == CaseInterpretationStatus.MANUAL_REVIEW
+
+
+def test_interpret_x_linked_case_xx_unknown_phase_is_manual_review():
+    case = ClinicalCase(
+        case_id="c1", gene="DMD", karyotypic_sex=KaryotypicSex.XX,
+        variant_ids=["DMD_c.2302C>T", "DMD_c.8944C>T"], phase=PhaseRelationship.UNKNOWN,
+    )
+    classifications = _classify_all_bundles()
+    result = interpret_x_linked_case(case, classifications, _dmd_context())
+    assert result.status == CaseInterpretationStatus.MANUAL_REVIEW
+
+
+def test_interpret_x_linked_case_xx_trans_but_not_both_qualifying_is_manual_review():
+    # DMD_c.10103A>G is real and VUS-classified (see CASE_DMD_HEMIZYGOUS_MALE_VUS_REAL) --
+    # trans with a genuinely Likely Pathogenic partner still isn't enough.
+    case = ClinicalCase(
+        case_id="c1", gene="DMD", karyotypic_sex=KaryotypicSex.XX,
+        variant_ids=["DMD_c.2302C>T", "DMD_c.10103A>G"], phase=PhaseRelationship.TRANS,
+    )
+    classifications = _classify_all_bundles()
+    result = interpret_x_linked_case(case, classifications, _dmd_context())
+    assert result.status == CaseInterpretationStatus.MANUAL_REVIEW
+
+
+def test_interpret_x_linked_case_rejects_two_variants_for_other_karyotype():
+    case = ClinicalCase(
+        case_id="c1", gene="DMD", karyotypic_sex=KaryotypicSex.OTHER,
+        variant_ids=["v1", "v2"], phase=PhaseRelationship.TRANS,
+    )
+    expect_schema_error(lambda: interpret_x_linked_case(case, {}, _dmd_context()))
+
+
+def test_interpret_x_linked_case_xx_single_variant_still_manual_review():
+    # Unchanged since Milestone 4 -- batch 29 only added the two-variant path.
+    case = ClinicalCase(case_id="c1", gene="DMD", karyotypic_sex=KaryotypicSex.XX, variant_ids=["DMD_c.2302C>T"])
+    classifications = _classify_all_bundles()
+    result = interpret_x_linked_case(case, classifications, _dmd_context())
+    assert result.status == CaseInterpretationStatus.MANUAL_REVIEW
 
 
 def test_interpret_case_dispatches_not_applicable_for_unhandled_inheritance():

@@ -11,10 +11,16 @@ inheritance patterns Milestone 4 covers (autosomal recessive, X-linked),
 not a general patient/case record.
 
 Scope, stated plainly: at most two variant_ids (a third variant, or
-compound scenarios beyond simple biallelic recessive/hemizygous X-linked,
-are out of scope). phase is required when there are two variants and
-forbidden when there's one, so a case can never be silently ambiguous
-about whether phase was even considered.
+compound scenarios beyond simple biallelic recessive, hemizygous X-linked,
+or biallelic XX X-linked (batch 29 — see clinical.py's
+_interpret_xx_biallelic), are out of scope). phase is required when there
+are two variants and forbidden when there's one, so a case can never be
+silently ambiguous about whether phase was even considered. This model
+itself stays gene/inheritance-agnostic on purpose — it is clinical.py's
+interpret_x_linked_case, not this dataclass, that decides which
+variant_ids-count/karyotypic_sex combinations are actually meaningful for
+a given inheritance pattern (e.g. rejecting two variant_ids for a
+hemizygous XY case).
 """
 
 from dataclasses import dataclass, field
@@ -41,7 +47,8 @@ class ClinicalCase:
         if len(self.variant_ids) > 2:
             raise SchemaValidationError(
                 f"{context}: {len(self.variant_ids)} variant_ids given; Milestone 4 only supports "
-                "one or two variants per case (simple biallelic recessive or hemizygous X-linked)"
+                "one or two variants per case (simple biallelic recessive, hemizygous X-linked, or "
+                "biallelic XX X-linked)"
             )
         if len(set(self.variant_ids)) != len(self.variant_ids):
             raise SchemaValidationError(f"{context}: variant_ids contains duplicates")

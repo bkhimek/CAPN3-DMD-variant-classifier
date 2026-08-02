@@ -29,12 +29,30 @@ Scope, stated plainly:
 - Autosomal recessive: handles exactly one or two variants, with phase
   required whenever there are two (see ClinicalCase). Compound scenarios
   beyond that are out of scope.
-- X-linked: only handles a single variant. A hemizygous male
-  (karyotypic_sex=XY) with a convincing variant is the clean case this
-  module resolves confidently. Any non-XY case (XX, OTHER, UNKNOWN) is
-  deferred to MANUAL_REVIEW rather than reasoned about — female X-linked
-  carrier interpretation involves X-inactivation biology this project
-  does not model, and guessing would be worse than admitting the gap.
+- X-linked, karyotypic_sex=XY: handles exactly one variant. A hemizygous
+  male with a convincing variant is the clean case this module resolves
+  confidently; two variant_ids for XY is rejected outright (only one X
+  chromosome exists, so it isn't a real genotype), not silently ignored.
+- X-linked, karyotypic_sex=XX: handles one OR two variants (extended in
+  batch 29 — see "X-linked female/other-karyotype case interpretation
+  (batch 29)" in the README for the full design). A single variant is
+  still MANUAL_REVIEW, unchanged since Milestone 4: heterozygous carrier
+  phenotype depends on X-inactivation biology the field itself cannot
+  reliably predict (Brioschi et al. 2012). Two variants confirmed in
+  trans, both independently Pathogenic/Likely Pathogenic, resolve to
+  EXPLAINED — a real, documented, X-inactivation-independent mechanism
+  (both X copies affected, so no genuinely functional copy exists for
+  inactivation to preferentially spare). Every other two-variant XX
+  combination (cis, unknown phase, or trans-but-not-both-qualifying)
+  stays MANUAL_REVIEW for the same real reason as the single-variant
+  case — see _interpret_xx_biallelic's docstring for exactly why cis
+  isn't treated the way autosomal recessive cis is.
+- X-linked, karyotypic_sex=OTHER or UNKNOWN: only a single variant is
+  modeled, always MANUAL_REVIEW — deferred rather than reasoned about,
+  since OTHER lumps together karyotypes with genuinely different X-linked
+  dosage biology (X0/Turner is functionally hemizygous like XY; XXY is
+  diploid-X like XX; mosaicism is neither uniformly) that this project
+  does not attempt to disambiguate.
 """
 
 from typing import Dict
@@ -147,27 +165,57 @@ def interpret_x_linked_case(
             f"interpret_x_linked_case[{case.case_id}]: gene_disease_context.inheritance="
             f"{gene_disease_context.inheritance.value}, not X-linked"
         )
+
+    if case.karyotypic_sex == KaryotypicSex.XY:
+        if len(case.variant_ids) != 1:
+            raise SchemaValidationError(
+                f"interpret_x_linked_case[{case.case_id}]: karyotypic_sex=XY is hemizygous — there is "
+                f"only one X chromosome, so {len(case.variant_ids)} variant_ids for an X-linked gene "
+                "does not correspond to a real genotype"
+            )
+        return _interpret_hemizygous_male(case, classifications)
+
+    if case.karyotypic_sex == KaryotypicSex.XX:
+        if len(case.variant_ids) == 1:
+            return _interpret_xx_single_variant(case)
+        return _interpret_xx_biallelic(case, classifications)
+
+    # OTHER (XXY, X0/Turner, mosaicism, ...) and UNKNOWN: genuinely heterogeneous karyotypes with
+    # different X-linked dosage biology each (X0 is hemizygous like XY; XXY is diploid-X like XX;
+    # mosaicism is neither cleanly) that this project does not attempt to disambiguate -- batch 29
+    # research (see "X-linked female/other-karyotype case interpretation (batch 29)" in the README)
+    # found real literature describing X0/Turner DMD carriers as functionally hemizygous, but
+    # OTHER does not distinguish X0 from XXY/mosaic, so guessing which sub-case applies would be
+    # worse than admitting the gap. Batch 29 relaxed XX from one variant to one-or-two; OTHER/UNKNOWN
+    # remain exactly as narrow as before that batch -- single variant only, always MANUAL_REVIEW.
     if len(case.variant_ids) != 1:
         raise SchemaValidationError(
-            f"interpret_x_linked_case[{case.case_id}]: Milestone 4 X-linked interpretation only "
-            f"supports a single variant per case, found {len(case.variant_ids)}"
+            f"interpret_x_linked_case[{case.case_id}]: karyotypic_sex={case.karyotypic_sex.value} with "
+            f"{len(case.variant_ids)} variant_ids is not modeled -- multi-variant X-linked reasoning is "
+            "only implemented for XX (see _interpret_xx_biallelic), not for OTHER/UNKNOWN karyotypes, "
+            "whose X-linked dosage biology varies too much by specific karyotype to reason about "
+            "generically"
         )
+    variant_id = case.variant_ids[0]
+    return CaseInterpretation(
+        case_id=case.case_id,
+        gene=case.gene,
+        status=CaseInterpretationStatus.MANUAL_REVIEW,
+        rationale=(
+            f"karyotypic_sex={case.karyotypic_sex.value}, not XY or XX. This karyotype's X-linked "
+            "dosage biology (e.g. X0/Turner is functionally hemizygous, XXY is diploid-X, mosaicism "
+            "is neither uniformly) is out of scope for this evaluator — deferred to manual review "
+            "rather than reasoned about incorrectly."
+        ),
+    )
 
+
+def _interpret_hemizygous_male(
+    case: ClinicalCase,
+    classifications: Dict[str, ProvisionalClassification],
+) -> CaseInterpretation:
     variant_id = case.variant_ids[0]
     classification = classifications[variant_id]
-
-    if case.karyotypic_sex != KaryotypicSex.XY:
-        return CaseInterpretation(
-            case_id=case.case_id,
-            gene=case.gene,
-            status=CaseInterpretationStatus.MANUAL_REVIEW,
-            rationale=(
-                f"karyotypic_sex={case.karyotypic_sex.value}, not XY. Non-hemizygous X-linked "
-                "interpretation (carrier status, X-inactivation effects on expressivity) is out of "
-                "scope for this evaluator — deferred to manual review rather than reasoned about "
-                "incorrectly."
-            ),
-        )
 
     if classification.provisional_class in _BENIGN_SIDE:
         return CaseInterpretation(
@@ -201,6 +249,107 @@ def interpret_x_linked_case(
             f"karyotypic_sex=XY, but {variant_id} is classified "
             f"{classification.provisional_class.value} — not yet conclusive enough to explain disease "
             "on its own."
+        ),
+    )
+
+
+def _interpret_xx_single_variant(case: ClinicalCase) -> CaseInterpretation:
+    variant_id = case.variant_ids[0]
+    return CaseInterpretation(
+        case_id=case.case_id,
+        gene=case.gene,
+        status=CaseInterpretationStatus.MANUAL_REVIEW,
+        rationale=(
+            f"karyotypic_sex=XX with a single variant ({variant_id}) — a heterozygous X-linked "
+            "carrier. Unchanged since Milestone 4: real literature (Brioschi et al. 2012, BMC Med "
+            "Genet 13:73, cited in this project's CASE_DMD_FEMALE_CARRIER_REAL fixture) found skewed "
+            "X-inactivation in only 2 of 6 symptomatic DMD carriers and in 5 of 11 asymptomatic ones "
+            "-- the field itself cannot reliably predict a heterozygous carrier's phenotype from "
+            "genotype plus X-inactivation pattern alone, so this evaluator does not either."
+        ),
+    )
+
+
+def _interpret_xx_biallelic(
+    case: ClinicalCase,
+    classifications: Dict[str, ProvisionalClassification],
+) -> CaseInterpretation:
+    """Batch 29. karyotypic_sex=XX gives two copies of an X-linked gene, so a second, genuinely
+    different scenario from the single-heterozygous-carrier case above becomes representable:
+    both copies affected (homozygous or compound heterozygous), documented in real literature as a
+    real, if less common, cause of a fully or near-fully manifesting DMD phenotype in females --
+    see "X-linked female/other-karyotype case interpretation (batch 29)" in the README for the
+    real citations (Ulm et al. 2022; Fujii et al. 2009; Takeshita et al. 2017) and why this is
+    mechanistically distinct from (and does not contradict) the single-carrier XCI-unpredictability
+    finding above: when BOTH X copies carry a qualifying variant, there is no genuinely functional
+    copy anywhere for X-inactivation to preferentially silence or spare -- every cell's active X is
+    a qualifying one, regardless of which X gets inactivated in that cell. X-inactivation mosaicism
+    only creates unpredictability when one copy is truly wild-type (or benign), which is exactly why
+    every other combination below (CIS, unknown phase, or trans-but-not-both-qualifying) still
+    resolves to MANUAL_REVIEW rather than being upgraded the way autosomal recessive's equivalent
+    branches are: a benign or wild-type second X copy is still subject to the same real,
+    unpredictable inactivation pattern as the single-carrier case, even though this project's own
+    ClinicalCase model can now represent two variant_ids for XX cases.
+    """
+    v1_id, v2_id = case.variant_ids
+    c1, c2 = classifications[v1_id], classifications[v2_id]
+
+    if case.phase == PhaseRelationship.TRANS and c1.provisional_class in _QUALIFYING and c2.provisional_class in _QUALIFYING:
+        return CaseInterpretation(
+            case_id=case.case_id,
+            gene=case.gene,
+            status=CaseInterpretationStatus.EXPLAINED,
+            rationale=(
+                f"karyotypic_sex=XX, {v1_id} ({c1.provisional_class.value}) and {v2_id} "
+                f"({c2.provisional_class.value}) confirmed in trans -- both copies of this X-linked "
+                "gene carry a qualifying variant, so no genuinely functional copy exists in any cell "
+                "for X-inactivation to preferentially spare. This biallelic mechanism is real and "
+                "documented in the literature (see this function's docstring), and does not depend "
+                "on X-inactivation pattern the way a single-heterozygous-variant carrier does."
+            ),
+        )
+
+    if case.phase == PhaseRelationship.CIS:
+        return CaseInterpretation(
+            case_id=case.case_id,
+            gene=case.gene,
+            status=CaseInterpretationStatus.MANUAL_REVIEW,
+            rationale=(
+                f"karyotypic_sex=XX, {v1_id} and {v2_id} confirmed in cis (same X chromosome copy) -- "
+                "unlike the autosomal recessive case, this is NOT resolved to INSUFFICIENT: the other "
+                "X chromosome copy is genuinely wild-type, but (unlike an autosome) it is not always "
+                "active -- X-inactivation randomly silences one X per cell, so a fully wild-type "
+                "second copy can still be silenced in some cells, carrying the same real, "
+                "unpredictable-phenotype uncertainty as a single-heterozygous carrier."
+            ),
+        )
+
+    if case.phase == PhaseRelationship.UNKNOWN:
+        return CaseInterpretation(
+            case_id=case.case_id,
+            gene=case.gene,
+            status=CaseInterpretationStatus.MANUAL_REVIEW,
+            rationale=(
+                f"karyotypic_sex=XX, {v1_id} and {v2_id} were both identified, but their phase "
+                "relationship (trans vs cis) has not been established. Whether this patient has a "
+                "genuinely functional X copy anywhere (which would reintroduce the same real "
+                "X-inactivation unpredictability as the single-carrier case) cannot be determined "
+                "without it."
+            ),
+        )
+
+    # phase == TRANS but not both qualifying
+    return CaseInterpretation(
+        case_id=case.case_id,
+        gene=case.gene,
+        status=CaseInterpretationStatus.MANUAL_REVIEW,
+        rationale=(
+            f"karyotypic_sex=XX, {v1_id} ({c1.provisional_class.value}) and {v2_id} "
+            f"({c2.provisional_class.value}) are confirmed in trans, but at least one is not yet "
+            "classified Pathogenic or Likely Pathogenic -- a non-qualifying variant on the other X "
+            "copy is functionally similar to a wild-type copy for this purpose, so the same real "
+            "X-inactivation unpredictability as the single-carrier case still applies rather than "
+            "being resolved either way."
         ),
     )
 

@@ -141,3 +141,46 @@ case_interpretations:
       currently insufficient evidence), but a nice confirmation that the
       case-level layer's honesty holds up against a real, messy,
       still-unresolved case rather than only clean textbook ones.
+
+  - case_id: CASE_DMD_XX_BIALLELIC_TRANS
+    expected_status: EXPLAINED
+    source: "Hand-derived: XX, two real LIKELY_PATHOGENIC DMD variants (DMD_c.2302C>T, DMD_c.8944C>T), confirmed in trans"
+    curator_note: >
+      Batch 29. Extends interpret_x_linked_case beyond the hemizygous-
+      male-only case: karyotypic_sex=XX now supports one OR two
+      variant_ids (ClinicalCase itself already allowed this generically;
+      only interpret_x_linked_case's own 1-variant-only check was
+      relaxed). Both copies of DMD carry an independently
+      LIKELY_PATHOGENIC variant, confirmed in trans -- a real,
+      documented mechanism for biallelic DMD involvement in females,
+      independent of X-inactivation (see clinical.py's
+      _interpret_xx_biallelic docstring, citing Ulm et al. 2022,
+      Molecular Genetics & Genomic Medicine 11:e2088; Fujii et al. 2009,
+      Am J Med Genet A 149A:1052; Takeshita et al. 2017). The CASE here
+      is synthetic (no real published case pairs these exact two
+      variants), but both underlying variants are real and already
+      curated -- same "synthetic case, real variant evidence" pattern as
+      CASE_DMD_FEMALE_CARRIER_REAL. Resolves to EXPLAINED because no
+      genuinely functional DMD copy exists in any cell for
+      X-inactivation to preferentially spare -- unlike the pre-existing
+      CASE_DMD_FEMALE_CARRIER(_REAL) fixtures, which have only one
+      variant and correctly remain MANUAL_REVIEW.
+
+  - case_id: CASE_DMD_XX_BIALLELIC_CIS
+    expected_status: MANUAL_REVIEW
+    source: "Hand-derived: same two real variants as CASE_DMD_XX_BIALLELIC_TRANS, but confirmed in cis"
+    curator_note: >
+      Batch 29, deliberately paired with CASE_DMD_XX_BIALLELIC_TRANS to
+      exercise the one place this project's new XX-biallialic logic
+      diverges from interpret_recessive_case's existing cis handling:
+      autosomal recessive cis resolves to INSUFFICIENT (the other
+      autosome copy is always active, so a truly wild-type copy is
+      genuinely protective), but X-linked cis stays MANUAL_REVIEW,
+      because the other X chromosome copy -- though genuinely
+      wild-type here -- is not always active. X-inactivation randomly
+      silences one X per cell, so a wild-type second copy can still be
+      silenced in some cells, carrying the same real, published
+      phenotype unpredictability (Brioschi et al. 2012, already cited
+      for the single-heterozygous-carrier case) rather than being
+      confidently ruled out. See clinical.py's _interpret_xx_biallelic
+      docstring for the full reasoning.

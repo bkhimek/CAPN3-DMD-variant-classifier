@@ -5,7 +5,7 @@ described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
 (X-linked, out of schema scope until Milestone 4 — see Roadmap).
 
-## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25), PVS1 extended with a real splice-RNA-evidence branch (Batch 26) and a real start-loss alternative-start-codon branch (Batch 27), PM3 (in-trans-with-a-pathogenic-variant) implemented (Batch 28) via curated per-proband points -- this project's twelfth evaluator and first Strong-strength pathogenic-direction evaluator, and the change that finally moves the real `CAPN3_c.550del` founder-allele fixture to PATHOGENIC, matching its real ClinVar call -- curated variant set at 19 real of ~20-30 (29 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
+## Status: Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25), PVS1 extended with a real splice-RNA-evidence branch (Batch 26) and a real start-loss alternative-start-codon branch (Batch 27), PM3 (in-trans-with-a-pathogenic-variant) implemented (Batch 28) via curated per-proband points -- this project's twelfth evaluator and first Strong-strength pathogenic-direction evaluator, and the change that finally moves the real `CAPN3_c.550del` founder-allele fixture to PATHOGENIC, matching its real ClinVar call -- curated variant set at 19 real of ~20-30 (29 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), `clinical.py` extended to handle biallelic XX X-linked case interpretation (Batch 29) -- a real, X-inactivation-independent mechanism, closing the last structural gap in case-level reasoning -- CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21)
 
 Milestone 5 (batch 20) added a second combining system -- Bayesian
 point-based combining (Tavtigian et al. 2020), offered alongside, not
@@ -83,10 +83,23 @@ classifies PATHOGENIC (PVS1 Very Strong + PM3 Strong), finally matching
 its real ClinVar call and dropping out of the Table-5-vs-Bayesian
 divergence set -- see "PM3: implemented (batch 28)" below for the full
 writeup, including exactly which primary source was unreachable (again)
-and how that shaped the design. See "Milestone 5: Bayesian point-based
-combining" below for what that milestone found and why batch 20 felt like
-the right place to pause before batch 22/23/24/25/26/27/28 picked back
-up.
+and how that shaped the design. Batch 29 returned to `clinical.py`,
+untouched since Milestone 4: `interpret_x_linked_case` handled only the
+hemizygous-male case, deferring every other karyotypic sex to
+MANUAL_REVIEW since female X-linked carrier phenotype depends on
+X-inactivation biology this project found (via real, cited literature)
+the field itself cannot reliably predict. Batch 29's research found a
+second, genuinely different, real mechanism this project's existing
+model could newly represent without touching that finding: biallelic XX
+X-linked involvement (both copies affected), which is X-inactivation-
+*independent* and resolves confidently to EXPLAINED, while every other
+XX combination -- including cis, which is deliberately NOT treated the
+way autosomal recessive cis is -- correctly stays MANUAL_REVIEW for the
+same real reason as before. See "X-linked female/other-karyotype case
+interpretation (batch 29)" below for the full design and citations. See
+"Milestone 5: Bayesian point-based combining" below for what that
+milestone found and why batch 20 felt like the right place to pause
+before batch 22/23/24/25/26/27/28/29 picked back up.
 
 Milestone 1 built the schema and fixtures. Milestone 2 added the first two
 evaluators (PM2, PVS1). Milestone 3 added the remaining four (BA1, BS1,
@@ -174,20 +187,24 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   them if two) and `CaseInterpretation` (the case-level verdict) — plus
   **`src/variant_classifier/clinical.py`**, which reasons about autosomal
   recessive cases (trans/cis/unknown phase, single-variant insufficiency)
-  and X-linked cases (hemizygous male vs everything else) separately. See
-  "Case-level scope" below for exactly what is and isn't covered.
-- Twenty-nine curated variants (CAPN3 and DMD) and nine curated
+  and X-linked cases (hemizygous male, biallelic XX as of batch 29, and
+  everything else) separately. See "Case-level scope" below for exactly
+  what is and isn't covered.
+- Twenty-nine curated variants (CAPN3 and DMD) and eleven curated
   `ClinicalCase` fixtures covering every branch above — including, as of
   batch 12, a pair built on a real ClinVar-sourced DMD variant rather
-  than only the original synthetic ones, and, as of batch 17, the case-
+  than only the original synthetic ones, as of batch 17, the case-
   level layer's previously-untested MANUAL_REVIEW catch-all branch (a
   hemizygous male whose only variant is VUS, not yet qualifying or
-  benign). Every evaluator, the combining
+  benign), and, as of batch 29, a trans/cis pair on a biallelic XX
+  X-linked case (`CASE_DMD_XX_BIALLELIC_TRANS`/`_CIS`) — see "X-linked
+  female/other-karyotype case interpretation (batch 29)" below. Every
+  evaluator, the combining
   engine, and the case interpretation layer are each verified against
   golden cases written independently of the code — including, for the
   case-level tests, that trans vs cis and male vs female change the
   outcome despite everything else being identical
-  (`tests/unit/test_*.py`). 245 tests pass in total (the "matches golden
+  (`tests/unit/test_*.py`). 250 tests pass in total (the "matches golden
   case" tests iterate over however many fixtures exist rather than a
   hardcoded count, so this number grows automatically as the curated set
   does; also includes two hand-built tests pairing the real DMD
@@ -208,8 +225,9 @@ MANUAL_REVIEW / NOT_APPLICABLE. What exists:
   `test_ps3_bs3_evaluators.py` suite (15 tests) added in batch 25,
   `test_pvs1_evaluator.py` grew from 12 to 19 tests in batch 26 (new
   splice-RNA-evidence branch) and again to 27 tests in batch 27 (new
-  start-loss alternative-start-codon branch), and a dedicated
-  `test_pm3_evaluator.py` suite (18 tests) added in batch 28.
+  start-loss alternative-start-codon branch), a dedicated
+  `test_pm3_evaluator.py` suite (18 tests) added in batch 28, and 5 new
+  `test_clinical.py` tests added in batch 29 for the biallelic-XX branch.
 
 ## Design notes
 
@@ -945,19 +963,27 @@ ever happens, is a separate decision for a separate day, not bundled into
 this milestone.
 
 **Case-level scope.** clinical.py deliberately does not extend the
-per-variant evaluator pattern from Milestone 2/3 — PM3 ("detected in trans
-with a pathogenic variant") has a structural circularity a per-variant
-evaluator can't cleanly express (variant A's PM3 depends on variant B's
-classification, which lives entirely outside variant A's own
-VariantEvidenceBundle). Reasoning about it at the case level, after both
-variants already have their own classification, sidesteps that rather than
-working around it. Scope, stated plainly: autosomal recessive handles
-exactly one or two variants, with phase required whenever there are two;
-X-linked only handles a single variant, and only resolves the hemizygous
-male case (karyotypic_sex=XY) confidently — any other karyotypic sex is
-deferred to MANUAL_REVIEW rather than reasoned about, since female X-linked
-carrier interpretation involves X-inactivation biology this project does
-not model.
+per-variant evaluator pattern from Milestone 2/3 for case-level questions
+— reasoning about "does what was found in this patient explain their
+disease" after each involved variant already has its own classification
+sidesteps circularity rather than working around it (PM3 itself is
+handled differently — see "PM3: implemented (batch 28)" above — but the
+same instinct against re-deriving classification-dependent facts live
+applies here too). Scope, stated plainly: autosomal recessive handles
+exactly one or two variants, with phase required whenever there are two.
+X-linked, karyotypic_sex=XY, handles exactly one variant (hemizygous male
+— the clean, confidently-resolved case since Milestone 4). X-linked,
+karyotypic_sex=XX, handles one OR two variants as of batch 29 — see "X-
+linked female/other-karyotype case interpretation (batch 29)" below for
+the full design, including the real, documented, X-inactivation-
+independent biallelic mechanism this newly resolves to EXPLAINED, and why
+a single heterozygous variant (or a two-variant case that doesn't clear
+that specific bar) still correctly stays MANUAL_REVIEW. Any other
+karyotypic sex (OTHER, UNKNOWN) is still deferred to MANUAL_REVIEW with a
+single variant only — OTHER lumps together karyotypes with genuinely
+different X-linked dosage biology (X0/Turner functionally hemizygous;
+XXY diploid-X; mosaicism neither uniformly) this project does not
+attempt to disambiguate.
 
 **PVS1 scope.** The full PVS1 decision tree (Abou Tayoun et al. 2018)
 branches on protein-domain criticality and constitutive-exon-splicing
@@ -1543,6 +1569,91 @@ total), since no fixture happens to land there either -- the same
 "golden-case coverage plus hand-built edge cases for the rest" pattern
 every other evaluator's tests already follow.
 
+**X-linked female/other-karyotype case interpretation (batch 29).**
+`clinical.py` had handled exactly one X-linked shape since Milestone 4:
+a hemizygous male (karyotypic_sex=XY) with a single variant. Every other
+karyotypic sex was deferred to MANUAL_REVIEW with an explicit, disclosed
+rationale — female X-linked carrier interpretation depends on
+X-inactivation biology this project didn't model, and batch 12's own
+research (Brioschi et al. 2012, BMC Med Genet 13:73, cited in
+`CASE_DMD_FEMALE_CARRIER_REAL`) had already found skewed X-inactivation
+in only 2 of 6 symptomatic DMD carriers and 5 of 11 asymptomatic ones —
+real, published evidence that the field itself cannot reliably predict a
+heterozygous carrier's phenotype from genotype plus X-inactivation
+pattern alone. Batch 29's research confirmed that finding is still real
+and still the right reason to leave the single-heterozygous-variant case
+at MANUAL_REVIEW — but also found a second, genuinely different, real
+mechanism this project's existing evidence model could newly represent:
+**biallelic** X-linked involvement in an XX individual (both DMD copies
+affected, via homozygosity or compound heterozygosity), documented in
+real, independently published cases (Ulm et al. 2022, *Molecular
+Genetics & Genomic Medicine* 11:e2088, DOI 10.1002/mgg3.2088 — "the
+fifth published case ... of a female with multiple DMD variants
+confirmed in trans"; Fujii et al. 2009, *Am J Med Genet A* 149A:1052,
+DOI 10.1002/ajmg.a.32808, homozygous in-frame deletion, Becker
+phenotype; Takeshita et al. 2017, biallelic exon 48–50/51–53 deletions,
+DMD phenotype). Crucially, this mechanism does **not** depend on
+X-inactivation the unpredictable way the single-carrier case does: when
+both X copies carry a qualifying variant, every cell's active X is a
+qualifying one, regardless of which X gets randomly inactivated in that
+cell — there is no genuinely functional copy anywhere for inactivation
+to preferentially spare. That is the real, biological reason this branch
+can be resolved confidently while the single-carrier branch still can't,
+not an inconsistency between the two.
+
+`ClinicalCase` itself needed no change — it already generically allowed
+one or two `variant_ids` with phase required whenever there are two (the
+Milestone-4 design was gene/inheritance-agnostic on purpose, see
+`models/clinical_case.py`'s docstring). Only `interpret_x_linked_case`'s
+own hardcoded "exactly one variant" check needed relaxing, and only for
+`karyotypic_sex=XX`: `karyotypic_sex=XY` now explicitly *rejects* two
+variant_ids (`SchemaValidationError` — a hemizygous individual has only
+one X chromosome, so two variant_ids for an X-linked gene isn't a real
+genotype, not something to silently misinterpret), and `OTHER`/`UNKNOWN`
+remain exactly as narrow as before (single variant only, always
+MANUAL_REVIEW) since those karyotypes are too heterogeneous to reason
+about generically — batch 29's research also surfaced that X0/Turner
+carriers are functionally hemizygous (like XY) while XXY carriers are
+diploid-X (like XX), and `OTHER` doesn't distinguish which, so extending
+it would mean guessing which sub-case applies.
+
+The new `_interpret_xx_biallelic` branch resolves EXPLAINED only for the
+narrow, XCI-independent case: phase confirmed TRANS *and* both variants
+independently classified Pathogenic or Likely Pathogenic. Every other
+two-variant XX combination — CIS, UNKNOWN phase, or TRANS-but-not-both-
+qualifying — stays MANUAL_REVIEW, and deliberately does **not** get the
+same treatment autosomal recessive's equivalent branches get (CIS and
+non-qualifying resolve to INSUFFICIENT there). The reasoning, worked out
+and confirmed before writing any code: autosomal recessive CIS leaves a
+genuinely wild-type *autosome* copy, which is always transcriptionally
+active — a real protective fact. X-linked CIS (or a non-qualifying
+partner variant) also leaves a genuinely wild-type *X* copy, but X
+chromosomes are not always active — X-inactivation randomly silences one
+X per cell, so that wild-type copy can still be silenced in some cells,
+reintroducing exactly the same real, published phenotype
+unpredictability (Brioschi et al. 2012 again) as the single-heterozygous-
+variant case. Getting this asymmetry right — not just mechanically
+mirroring `interpret_recessive_case`'s CIS/benign-side handling — was the
+main design decision confirmed with the user before coding.
+
+No real published case pairs two specific point-mutation DMD variants in
+one biallelic-XX patient — every real case found this batch is CNV-based
+or a CNV+point-mutation mix (the Ulm/Fujii/Takeshita citations above),
+which doesn't fit this project's point-mutation-only `ClinicalCase`
+model (CNV scoring, batches 23/24, is a deliberately separate, parallel
+system with no case-level wiring). Two new fixtures
+(`CASE_DMD_XX_BIALLELIC_TRANS`, `CASE_DMD_XX_BIALLELIC_CIS`) are
+therefore synthetic at the case level, but built entirely from two REAL,
+already-curated DMD variants (`DMD_c.2302C>T`, `DMD_c.8944C>T`, both
+real ClinVar-grounded, both LIKELY_PATHOGENIC) rather than inventing new
+synthetic point mutations — the same "synthetic case, real variant
+evidence" pattern `CASE_DMD_FEMALE_CARRIER_REAL` already established in
+batch 12. `UNKNOWN` phase and TRANS-but-not-both-qualifying are covered
+by hand-built unit tests only (`test_clinical.py`), since no fixture
+happens to land there either. 5 new tests plus the golden-case checks
+already covered by the shared `test_interpret_case_matches_golden_case_for_all_curated_cases`
+loop, 250 total.
+
 **Splice-RNA evidence feeds PVS1 directly (batch 26).** Batch 26's
 research into extending PVS1 (Abou Tayoun et al. 2018's full decision
 tree branches on protein-domain criticality and constitutive-exon-
@@ -1794,7 +1905,7 @@ data/
                                  added batch 27; CAPN3_c.550del enriched with real PM3 evidence, plus two
                                  new synthetic PM3 fixtures, added batch 28 (see "PM3: implemented
                                  (batch 28)" above)
-    clinical_cases.json         9 curated ClinicalCase fixtures (Milestone 4)
+    clinical_cases.json         11 curated ClinicalCase fixtures (Milestone 4) -- 2 added batch 29 for biallelic XX X-linked
     cnv_deletion_evidence.json  3 curated CNV deletion fixtures (DMD only) -- batch 23,
                                  a separate curated set from variant_evidence.json above
     cnv_duplication_evidence.json  2 curated CNV duplication fixtures (DMD only) -- batch 24,
@@ -2179,6 +2290,34 @@ case with no matching evidence bundle).
   override, since no real curated fixture has either on record.
   `clinical.py` unchanged — remains complementary, not overlapping. 18
   new tests (`test_pm3_evaluator.py`), 245 total.
+- **Batch 29 (X-linked female/biallelic-XX case interpretation)** — done.
+  Extended `clinical.py`'s `interpret_x_linked_case` beyond the
+  hemizygous-male-only case — see "X-linked female/other-karyotype case
+  interpretation (batch 29)" above for the full design. Batch 12's
+  finding that X-inactivation cannot reliably predict a single
+  heterozygous carrier's phenotype (Brioschi et al. 2012) still holds and
+  is unchanged; batch 29 instead found and implemented a second, real,
+  genuinely X-inactivation-*independent* mechanism this project's
+  existing evidence model could newly represent: biallelic XX
+  involvement (Ulm et al. 2022; Fujii et al. 2009; Takeshita et al.
+  2017). `karyotypic_sex=XX` now accepts one OR two variant_ids;
+  confirmed-trans plus both variants independently Pathogenic/Likely
+  Pathogenic resolves to EXPLAINED, while every other two-variant XX
+  combination (notably including cis, deliberately NOT handled the way
+  autosomal recessive cis is — see the design note for the real
+  X-inactivation-mosaicism reasoning) stays MANUAL_REVIEW alongside the
+  unchanged single-variant case. `karyotypic_sex=XY` now explicitly
+  rejects two variant_ids (a hemizygous individual only has one X) rather
+  than silently mishandling them, and `OTHER`/`UNKNOWN` remain exactly as
+  narrow as before — genuinely heterogeneous karyotypes (X0/Turner
+  functionally hemizygous, XXY diploid-X, mosaicism neither) this project
+  still does not attempt to disambiguate. Two new fixtures
+  (`CASE_DMD_XX_BIALLELIC_TRANS`/`_CIS`), synthetic at the case level but
+  built from two real, already-curated DMD variants, since no real
+  published case pairs two point mutations in one biallelic-XX patient
+  (real cases found are all CNV-based, which doesn't fit this project's
+  point-mutation-only `ClinicalCase`). 5 new tests (`test_clinical.py`),
+  250 total.
 - Later, if this project resumes rather than moving to that next one:
   continue expanding curated fixtures toward the full 20-30 ClinVar
   variant set (19 real of ~20-30 done, see "Expanding the curated set"
@@ -2204,9 +2343,14 @@ case with no matching evidence bundle).
   independent verification of the primary Riggs paper's exact loss-side
   2B/2G definitions and gain-side letter codes/point values rather than
   continued reliance on ClassifyCNV's reimplementation and the
-  batch-24-disclosed secondary-source inference; extend X-linked case
-  interpretation beyond the hemizygous-male case once X-inactivation is
-  worth modeling properly; decide whether `clinical.py` (or any other
-  caller) should default to Bayesian rather than Table 5 now that both
-  are real, tested options — deliberately left as an open decision by
-  Milestone 5, not made for the caller.
+  batch-24-disclosed secondary-source inference; extend
+  `karyotypic_sex=OTHER` beyond a single deferred bucket by splitting out
+  the specific real karyotypes it currently lumps together (X0/Turner as
+  functionally hemizygous, XXY as diploid-X) now that batch 29 has the
+  XY/XX-shaped logic each would actually reuse; source a real
+  point-mutation-only biallelic-XX case if one is ever published, to
+  replace `CASE_DMD_XX_BIALLELIC_TRANS`'s synthetic-case/real-variant
+  construction with an end-to-end real one; decide whether `clinical.py`
+  (or any other caller) should default to Bayesian rather than Table 5
+  now that both are real, tested options — deliberately left as an open
+  decision by Milestone 5, not made for the caller.
