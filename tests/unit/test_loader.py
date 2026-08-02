@@ -21,13 +21,15 @@ def test_load_gene_disease_contexts_from_real_fixture():
 
 def test_load_variant_evidence_bundles_from_real_fixture():
     bundles, rejected = loader.load_variant_evidence_bundles()
-    assert len(bundles) == 27
+    assert len(bundles) == 29
     assert rejected == []
     ids = sorted(b.variant.variant_id for b in bundles)
     assert ids == [
         "CAPN3_SYNTH_LIKELY_BENIGN_01",
         "CAPN3_SYNTH_PATHOGENIC_01",
         "CAPN3_SYNTH_PATHOGENIC_02",
+        "CAPN3_SYNTH_PM3_CIS_OVERRIDE_01",
+        "CAPN3_SYNTH_PM3_MODERATE_01",
         "CAPN3_SYNTH_PS1_01",
         "CAPN3_SYNTH_PVS1_SPLICE_RNA_01",
         "CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01",
@@ -57,22 +59,22 @@ def test_load_variant_evidence_bundles_from_real_fixture():
 
 def test_load_golden_cases_from_real_fixture():
     golden_cases = loader.load_golden_cases()
-    assert len(golden_cases) == 27
+    assert len(golden_cases) == 29
     assert golden_cases["CAPN3_SYNTH_PATHOGENIC_01"].expected_provisional_class.value == "PATHOGENIC"
 
 
 def test_load_all_real_fixtures_have_no_cross_check_warnings():
     result = loader.load_all()
     assert result["cross_check_warnings"] == [], result["cross_check_warnings"]
-    assert len(result["evidence_bundles"]) == 27
-    assert len(result["golden_cases"]) == 27
+    assert len(result["evidence_bundles"]) == 29
+    assert len(result["golden_cases"]) == 29
     assert result["rejected_evidence"] == []
 
 
 def test_load_golden_cases_bayesian_from_real_fixture():
     # Added batch 20 (Milestone 5) alongside bayesian.py.
     goldens = loader.load_golden_cases_bayesian()
-    assert len(goldens) == 27
+    assert len(goldens) == 29
     assert goldens["CAPN3_SYNTH_PATHOGENIC_01"]["expected_provisional_class"].value == "PATHOGENIC"
     assert goldens["CAPN3_SYNTH_PATHOGENIC_01"]["expected_points"] == 10
     # BA1 stand-alone fixtures bypass point-summing -- expected_points is null/None.

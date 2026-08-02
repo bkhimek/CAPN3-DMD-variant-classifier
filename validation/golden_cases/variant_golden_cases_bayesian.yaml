@@ -183,32 +183,28 @@ golden_cases:
       independent mechanisms.
 
   - variant_id: CAPN3_c.550del
-    expected_provisional_class: LIKELY_PATHOGENIC
-    expected_points: 9
+    expected_provisional_class: PATHOGENIC
+    expected_points: 13
     source: "Hand-derived from Tavtigian et al. 2020's point system"
     curator_note: >
-      UPDATED in batch 25: PVS1 Very Strong (8) + PS3 Supporting (1) = 9
-      points, 2 contributing criteria -- squarely in the 6-9 Likely
-      Pathogenic band. Through batch 24 this fixture was PVS1 alone (8
-      points, 1 criterion, VUS via the 2-criterion minimum) -- the literal
-      example ACGS's 2024 guidelines use to illustrate that rule
-      ("PVS1_vstr (8 points) ... classified as a VUS pending a second
-      corroborating piece of evidence"). That specific illustration is no
-      longer shown by a real fixture in this set as of batch 25 (PS3 now
-      gives this variant its second criterion), but the underlying rule
-      it demonstrated is still directly covered by a hand-built unit test
-      (test_single_very_strong_criterion_alone_is_vus_not_likely_pathogenic
-      in test_bayesian.py), so no coverage is actually lost. This fixture
-      now instead joins CAPN3_c.1939G>T as a second real example of the
-      "1 Very Strong + 1 Supporting" divergence pattern: Table 5 has no
-      combining rule for that exact shape (see
-      variant_golden_cases.yaml's curator_note for this same variant_id),
-      so Table 5 still lands this real, ClinVar-Pathogenic variant on VUS
-      even with PS3 now MET, while the Bayesian point system reaches
-      Likely Pathogenic on the identical evidence. See
+      UPDATED in batch 28: PVS1 Very Strong (8) + PS3 Supporting (1) + PM3
+      Strong (4) = 13 points, 3 contributing criteria -- >=10, Pathogenic.
+      From batch 25 through batch 27 this fixture was PVS1 Very Strong (8)
+      + PS3 Supporting (1) = 9 points, Likely Pathogenic, and a genuine
+      Table-5-vs-Bayesian divergence case (Table 5 has no combining rule
+      for "1 Very Strong + 1 Supporting" alone, so it stayed VUS there
+      while reaching Likely Pathogenic here). Batch 28 adds real PM3
+      evidence (two independent-cohort HOMOZYGOUS observations, real
+      literature -- see variant_golden_cases.yaml's curator_note for this
+      same variant_id -- capped at the real ACGS-2024 1.0-point ceiling
+      each, summing to 2.0 = Strong under the CAPN3 VCEP's own real
+      threshold table). PVS1 (Very Strong) + PM3 (Strong) satisfies
+      Table 5's "1 Very Strong + >=1 Strong" pathogenic rule directly, so
+      both systems now agree: PATHOGENIC, matching this variant's real
+      ClinVar call. This fixture therefore no longer diverges -- see
       test_bayesian_diverges_from_table5_for_exactly_the_four_documented_fixtures
-      in test_bayesian.py, renamed/expanded this batch to cover five
-      fixtures rather than four.
+      in test_bayesian.py, renamed/shrunk this batch back down to four
+      fixtures.
 
   - variant_id: CAPN3_c.598_612del
     expected_provisional_class: VUS
@@ -335,3 +331,24 @@ golden_cases:
       nothing) to keep this batch-26 fixture focused on demonstrating the
       new PVS1 splice-RNA-evidence branch alone, without incidentally
       creating a sixth Table-5-vs-Bayesian divergence case.
+
+  - variant_id: CAPN3_SYNTH_PM3_MODERATE_01
+    expected_provisional_class: VUS
+    expected_points: 2
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      PM3 Moderate (2) alone -- 1 contributing criterion, below the
+      2-criterion minimum, and 2 points sits well inside the 0-5 VUS band
+      regardless. Deliberately constructed this way (population_evidence
+      NOT_ASSESSED, so PM2 contributes nothing) to keep this batch-28
+      fixture focused on demonstrating the new PM3 evaluator's
+      COMPOUND_HETEROZYGOUS/CONFIRMED_TRANS branch alone.
+
+  - variant_id: CAPN3_SYNTH_PM3_CIS_OVERRIDE_01
+    expected_provisional_class: VUS
+    expected_points: 0
+    source: "Hand-derived from Tavtigian et al. 2020's point system"
+    curator_note: >
+      No criteria MET -- PM3's cis-cooccurrence override forces NOT_MET
+      even though a proband observation is also recorded, and no other
+      evaluator is assessed for this synthetic fixture. 0 points, VUS.

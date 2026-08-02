@@ -50,6 +50,16 @@ to VariantEvidenceBundle alongside ComputationalEvidence and
 SameResidueEvidence (see functional_evidence.py's docstring):
 
 - FunctionalEvidence           (functional_evidence.py)
+
+Plus two batch-28 models for PM3 (in-trans-with-a-pathogenic-variant)
+evidence, attached to VariantEvidenceBundle alongside FunctionalEvidence
+-- the case-level circularity PM3 has carried since Milestone 4 is
+resolved by curating the partner allele's classification as a known fact
+rather than re-deriving it from this engine (see pm3_evidence.py's
+docstring for the full writeup):
+
+- Pm3Evidence                  (pm3_evidence.py)
+- Pm3ProbandObservation        (pm3_evidence.py)
 """
 
 from .case_interpretation import CaseInterpretation
@@ -64,6 +74,7 @@ from .evidence_bundle import VariantEvidenceBundle
 from .functional_evidence import FunctionalEvidence
 from .gene_disease_context import GeneDiseaseContext, Specification
 from .golden_case import GoldenCase
+from .pm3_evidence import Pm3Evidence, Pm3ProbandObservation
 from .population_evidence import PopulationEvidence
 from .provisional_classification import ProvisionalClassification
 from .same_residue_evidence import SameResidueEvidence
@@ -82,6 +93,8 @@ __all__ = [
     "FunctionalEvidence",
     "GeneDiseaseContext",
     "GoldenCase",
+    "Pm3Evidence",
+    "Pm3ProbandObservation",
     "PopulationEvidence",
     "ProvisionalClassification",
     "SameResidueEvidence",

@@ -33,10 +33,11 @@ def test_classify_matches_golden_case_provisional_class_for_all_curated_bundles(
         )
 
 
-def test_no_real_capn3_variant_currently_reaches_pathogenic_tier():
-    """Regression/documentation test, added batch 13.
+def test_no_real_capn3_variant_without_pm3_evidence_reaches_pathogenic_tier():
+    """Regression/documentation test, added batch 13, RETITLED and NARROWED
+    in batch 28.
 
-    This is a structural consequence of two facts, not a coincidence of
+    This was a structural consequence of two facts, not a coincidence of
     which fixtures happen to be curated: (1) the real ClinGen LGMD VCEP
     threshold adopted for CAPN3 (batch 4) fixes PM2 at SUPPORTING
     strength, never MODERATE; (2) PP3's strength is hardcoded SUPPORTING
@@ -47,13 +48,9 @@ def test_no_real_capn3_variant_currently_reaches_pathogenic_tier():
     CAPN3_c.1939G>T). For a missense CAPN3 variant, only PM2 and PP3 can
     be MET, both Supporting — Table 5 has no rule for "2 Supporting"
     alone without at least one Moderate or Strong criterion either. So,
-    as currently configured, no real CAPN3 variant — however strong its
-    individual evidence — can reach PATHOGENIC or LIKELY_PATHOGENIC
-    through this engine. This test locks that fact in as an explicit,
-    intentional claim rather than an implicit one: if it ever starts
-    failing (e.g. a gene-specific PM2 strength override, or a
-    higher-strength PP3), that's a real, deliberate change to notice and
-    document — not something that should happen silently.
+    for any real CAPN3 variant with no PM3 evidence, no combination of
+    this engine's other evaluators — however strong their individual
+    results — can reach PATHOGENIC or LIKELY_PATHOGENIC.
 
     Extended in batch 14 with a third shape, in-frame indel/stop-loss
     CAPN3 variants: only PM2 and PM4 can be MET (PVS1 and PP3 are both
@@ -67,14 +64,27 @@ def test_no_real_capn3_variant_currently_reaches_pathogenic_tier():
     doesn't satisfy any Likely-Pathogenic rule in Table 5. So PM4's
     addition does not create a new way for a real CAPN3 variant to clear
     this bar; it was checked, not assumed.
+
+    NARROWED in batch 28: PM3 (added this batch) is a Strong-strength
+    pathogenic-direction evaluator, the first this project has. A real
+    CAPN3 variant WITH PM3 evidence can now combine PVS1 (Very Strong) +
+    PM3 (Strong) and satisfy Table 5's "1 Very Strong + >=1 Strong" rule
+    directly — CAPN3_c.550del does exactly this as of batch 28 (see its
+    golden-case curator_note). That is an intentional, documented
+    exception this test now excludes by name rather than silently
+    weakening its claim for every fixture; every OTHER real CAPN3 fixture
+    (no PM3 evidence) is still held to the original claim.
     """
     bundles, rejected = loader.load_variant_evidence_bundles()
     assert rejected == []
     golden_cases = loader.load_golden_cases()
 
+    _PM3_EXCEPTION_IDS = {"CAPN3_c.550del"}
+
     real_capn3_ids = [
         b.variant.variant_id for b in bundles
         if b.variant.gene == "CAPN3" and "SYNTH" not in b.variant.variant_id
+        and b.variant.variant_id not in _PM3_EXCEPTION_IDS
     ]
     assert len(real_capn3_ids) >= 5, "expected several real CAPN3 fixtures to check this against"
 
@@ -82,9 +92,18 @@ def test_no_real_capn3_variant_currently_reaches_pathogenic_tier():
         expected = golden_cases[variant_id].expected_provisional_class
         assert expected not in (ProvisionalClass.PATHOGENIC, ProvisionalClass.LIKELY_PATHOGENIC), (
             f"{variant_id}: golden case now expects {expected}, contradicting this test's "
-            "documented claim that no real CAPN3 variant can currently reach that tier — if "
-            "this is an intentional config/evaluator change, update or remove this test "
-            "deliberately rather than leaving it failing."
+            "documented claim that no real CAPN3 variant (without PM3 evidence) can currently "
+            "reach that tier — if this is an intentional config/evaluator change, update or "
+            "remove this test deliberately rather than leaving it failing."
+        )
+    # And the one documented exception really is PATHOGENIC/LIKELY_PATHOGENIC, not silently
+    # excluded for no reason -- if this ever stops being true, the exception should be removed.
+    for variant_id in _PM3_EXCEPTION_IDS:
+        expected = golden_cases[variant_id].expected_provisional_class
+        assert expected in (ProvisionalClass.PATHOGENIC, ProvisionalClass.LIKELY_PATHOGENIC), (
+            f"{variant_id} is listed as a documented PM3 exception but its golden case expects "
+            f"{expected}, not Pathogenic/Likely Pathogenic -- remove it from _PM3_EXCEPTION_IDS "
+            "if this is intentional."
         )
 
 
@@ -124,15 +143,15 @@ def test_capn3_c1939_reaches_likely_pathogenic_under_bayesian_combining():
     assert bayesian_result.points == 9
 
 
-def test_evaluate_all_returns_exactly_eleven_criteria_in_fixed_order():
+def test_evaluate_all_returns_exactly_twelve_criteria_in_fixed_order():
     # Was "exactly six" through Milestone 3; PM4 added batch 14; PS1/PM5 added
-    # batch 22; PS3/BS3 added batch 25.
+    # batch 22; PS3/BS3 added batch 25; PM3 added batch 28.
     bundles, _ = loader.load_variant_evidence_bundles()
     thresholds = loader.load_frequency_thresholds()
     bundle = bundles[0]
     results = evaluate_all(bundle, thresholds)
     assert [r.code for r in results] == [
-        "PVS1", "PM2", "PM4", "PS1", "PM5", "PS3", "PP3", "BP4", "BA1", "BS1", "BS3",
+        "PVS1", "PM2", "PM4", "PS1", "PM5", "PM3", "PS3", "PP3", "BP4", "BA1", "BS1", "BS3",
     ]
 
 
@@ -146,18 +165,31 @@ def test_pathogenic_case_has_no_manual_review_and_no_conflict():
     assert result.conflicting_evidence_flag is False
 
 
-def test_founder_case_flags_manual_review_but_not_conflict():
+def test_founder_case_reaches_pathogenic_but_still_flags_manual_review():
+    """RENAMED in batch 28 (was
+    test_founder_case_flags_manual_review_but_not_conflict): adding real
+    PM3 evidence to this fixture (see variant_golden_cases.yaml's
+    curator_note) moves its provisional_class from VUS to PATHOGENIC --
+    PVS1 (Very Strong) + PM3 (Strong) now satisfies Table 5 directly. The
+    thing this test actually exists to check is unrelated to that and
+    still holds: BA1/BS1's founder-frequency MANUAL_REVIEW ambiguity
+    (batch 4) is not silently suppressed just because a pathogenic
+    combining rule was also satisfied -- manual_review_required stays
+    True, and conflicting_evidence_flag stays False (BA1/BS1 are
+    MANUAL_REVIEW, not MET, so they never entered the benign-tier count
+    that conflicting_evidence_flag depends on).
+    """
     bundles, _ = loader.load_variant_evidence_bundles()
     thresholds = loader.load_frequency_thresholds()
     bundle = next(b for b in bundles if b.variant.variant_id == "CAPN3_c.550del")
     result = classify(bundle, thresholds)
-    assert result.provisional_class == ProvisionalClass.VUS
+    assert result.provisional_class == ProvisionalClass.PATHOGENIC
     # As of batch 4 (real ClinGen LGMD VCEP CAPN3 thresholds), it's BA1 and
     # BS1 that are MANUAL_REVIEW here, not PM2 and BS1 -- PM2 is now decided
     # (NOT_MET) since this variant's overall AF alone exceeds the real,
     # stricter PM2 threshold. See variant_golden_cases.yaml's curator_note.
     assert result.manual_review_required is True  # BA1 and BS1 are both MANUAL_REVIEW
-    assert result.conflicting_evidence_flag is False  # no combining rule satisfied on either side
+    assert result.conflicting_evidence_flag is False  # no combining rule satisfied on the benign side
 
 
 # ------------------------------------------------------- hand-built combine() cases

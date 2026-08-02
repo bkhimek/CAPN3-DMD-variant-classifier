@@ -41,7 +41,7 @@ def test_bayesian_matches_hand_derivation_for_all_curated_bundles():
     thresholds = loader.load_frequency_thresholds()
     goldens = loader.load_golden_cases_bayesian()
 
-    assert len(goldens) == 27
+    assert len(goldens) == 29
     for bundle in bundles:
         golden = goldens[bundle.variant.variant_id]
         result = classify_bayesian(bundle, thresholds)
@@ -56,22 +56,30 @@ def test_bayesian_matches_hand_derivation_for_all_curated_bundles():
             )
 
 
-def test_bayesian_diverges_from_table5_for_exactly_the_five_documented_fixtures():
+def test_bayesian_diverges_from_table5_for_exactly_the_four_documented_fixtures():
     """Locks in the full set of divergences found while building this
     milestone, so a future evaluator/threshold change that silently
     creates (or removes) a divergence gets noticed rather than passing
-    quietly. Five fixtures, two distinct shapes:
+    quietly. Four fixtures, one distinct shape:
 
-    - CAPN3_c.1939G>T, CAPN3_c.550del: PVS1 Very Strong + one Supporting
-      criterion (PM2 for the former, PS3 for the latter, added batch 25)
+    - CAPN3_c.1939G>T: PVS1 Very Strong + one Supporting criterion (PM2)
       = 9 points (Likely Pathogenic), but no Table 5 rule for "1 Very
-      Strong + 1 Supporting" alone -> VUS. Both real fixtures, real data.
+      Strong + 1 Supporting" alone -> VUS. Real fixture, real data.
     - DMD_SYNTH_PATHOGENIC_01, DMD_c.2302C>T, DMD_c.8944C>T: PVS1 Very
       Strong + PM2 Moderate = 10 points (Pathogenic), but Table 5's flat
       PATHOGENIC tier needs "1 Very Strong + >=2 Moderate", so "1 Very
       Strong + 1 Moderate" alone only reaches LIKELY_PATHOGENIC there.
       Two of these three are real fixtures (DMD_c.2302C>T,
       DMD_c.8944C>T).
+
+    CAPN3_c.550del was a fifth divergent fixture from batch 25 through
+    batch 27 (PVS1 Very Strong + PS3 Supporting, the same "1 Very Strong
+    + 1 Supporting" shape as CAPN3_c.1939G>T above). Batch 28 adds real
+    PM3 evidence (see variant_golden_cases.yaml's curator_note for this
+    variant_id) that gives it a Strong-strength criterion too, satisfying
+    Table 5's "1 Very Strong + >=1 Strong" pathogenic rule directly --
+    both systems now agree (PATHOGENIC), so it no longer diverges and
+    drops out of this set.
     """
     bundles, rejected = loader.load_variant_evidence_bundles()
     assert rejected == []
@@ -79,7 +87,6 @@ def test_bayesian_diverges_from_table5_for_exactly_the_five_documented_fixtures(
 
     expected_divergent_ids = {
         "CAPN3_c.1939G>T",
-        "CAPN3_c.550del",
         "DMD_SYNTH_PATHOGENIC_01",
         "DMD_c.2302C>T",
         "DMD_c.8944C>T",

@@ -47,6 +47,27 @@
         "validation_strength": "SUPPORTING",
         "assay_description": "Western blot calpain-3 protein expression in patient skeletal muscle biopsy",
         "notes": "Real literature functional data for this founder LGMDR1 allele: a Czech cohort study of CAPN3-related LGMD patients (Krahn et al./Chrobakova et al. 2004, Neuromuscul Disord; Hermanova et al. 2006, Muscle Nerve -- Western blot survey of Czech calpainopathy patients) reported total or near-total absence of calpain-3 protein on Western blot in patients carrying c.550delA (legacy nomenclature; equivalent to c.550del/p.Thr184fs here), consistent with a null/frameshift-driven loss of the 94 kDa full-length protein. validation_strength is set to SUPPORTING rather than a higher tier as a DISCLOSED CONSERVATIVE CHOICE: the primary papers were not independently fetchable during curation (PubMed/PMC pages reCAPTCHA-blocked), so the exact number and mix of pathogenic/benign validation controls used in that assay -- which per Brnich et al. 2019's framework is what actually sets Moderate vs. Strong -- could not be verified. SUPPORTING is the safe floor for 'an assay with controls and replicates, documented tier not otherwise confirmable,' not a claim that a higher tier is unwarranted. Western blot for total absence of a frameshift/null allele's protein is also a mechanistically unsurprising, low-ambiguity result (unlike CAPN3_c.2257G>A's missense case below) -- but this project does not use assay type/mechanism alone to justify a higher strength than the validation record can support."
+      },
+      "pm3_evidence": {
+        "probands": [
+          {
+            "proband_id": "Czech_LGMD2A_cohort_homozygous",
+            "zygosity": "HOMOZYGOUS",
+            "other_allele_classification": "PATHOGENIC",
+            "points": 1.0,
+            "source": "Chrobakova et al. 2004 / Hermanova et al. 2006 (Czech calpainopathy cohort)",
+            "notes": "Same Czech LGMD2A cohort already cited for this variant's functional_evidence (Western blot). The cohort's own report describes homozygous c.550delA (legacy nomenclature) patients as part of the surveyed group -- real, published, but this project curates it as a single capped 1.0-point HOMOZYGOUS observation per the real ACGS 2024 rule, not as an attempt to enumerate the exact number of individual homozygous patients within that cohort."
+          },
+          {
+            "proband_id": "Polish_LGMD2A_cohort_homozygous",
+            "zygosity": "HOMOZYGOUS",
+            "other_allele_classification": "PATHOGENIC",
+            "points": 1.0,
+            "source": "\"The Frequency of c.550delA Mutation of the CANP3 Gene in the Polish LGMD2A Population\" (ResearchGate)",
+            "notes": "A real, independent (Polish) cohort study reporting c.550delA as homozygous in 29% of that population's LGMD2A patients -- the full paper (including author names) was not independently fetchable during curation (search-snippet-only access), so it is cited by title rather than a full author/year citation. As with the Czech cohort above, curated as one capped 1.0-point HOMOZYGOUS observation (a distinct, independent cohort), not an attempt to count individual patients."
+          }
+        ],
+        "notes": "Real-world literature strongly documents c.550delA (this project's c.550del/p.Thr184fs) as a recurrent LGMD2A/LGMDR1 allele found both homozygous and compound heterozygous across many independent European cohorts (up to ~47% of CAPN3 mutant alleles in the Czech cohort, ~29% homozygous in the Polish cohort). This project curates exactly two independent-cohort homozygous observations here (real, cited, each capped at the real ACGS 1.0-point ceiling) rather than attempting to enumerate every individual published proband -- a deliberately conservative floor, not a claim that this is the complete real-world PM3 evidence for this allele. See pm3_evidence.py's docstring for why the exact per-scenario points table (which would let a curator assign compound-heterozygous points too, not just capped homozygous points) could not be independently verified this session."
       }
     },
     {
@@ -1280,6 +1301,108 @@
         }
       ],
       "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to exercise batch 27's new automatic-downgrade PVS1 MET/Supporting path end-to-end: alternative_start_codon_identified=True, alternative_start_codon_percent_protein_lost=4.0 (<=10%), alternative_start_codon_preceded_by_pathogenic_variant=False -- the clean case the ACGS 2024 / Abou Tayoun et al. 2018 rule's automatic downgrade is built for ('the only null variant that should be applied the downgraded criteria PVS1_Supporting is a variant of initiation codon when a new methionine is not preceded by a pathogenic variant'). CAPN3's own real start-loss fixture (CAPN3_c.1A>G) does not qualify for this branch -- its alternative start codon is at 27.6% of the protein, well above the 10% threshold, and is preceded by a real pathogenic variant (CAPN3_c.550del) -- so no real CAPN3/DMD fixture was available to demonstrate this specific branch; constructing it synthetically instead, same treatment as CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01 above."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_SYNTH_PM3_MODERATE_01",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.2001A>T"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "synthetic",
+          "retrieval_status": "NOT_ASSESSED"
+        }
+      ],
+      "pm3_evidence": {
+        "probands": [
+          {
+            "proband_id": "synthetic_family_1",
+            "zygosity": "COMPOUND_HETEROZYGOUS",
+            "phase": "TRANS",
+            "other_allele_classification": "PATHOGENIC",
+            "points": 1.0,
+            "source": "synthetic",
+            "notes": "Hypothetical single proband, parental testing confirmed trans, other allele independently classified Pathogenic."
+          }
+        ]
+      },
+      "notes": "SYNTHETIC fixture, built to exercise PM3's MODERATE band (>=1 but <2 points) via the COMPOUND_HETEROZYGOUS/CONFIRMED_TRANS branch -- the real CAPN3_c.550del fixture (enriched this batch) exercises the HOMOZYGOUS branch and reaches STRONG, so this fixture deliberately covers the other zygosity path at a different threshold band instead of duplicating it. population_evidence is NOT_ASSESSED so PM3 (Moderate, 1 contributing criterion) stands alone -- Table 5 has no combining rule for a single Moderate criterion, so this fixture is expected to remain VUS despite PM3 MET, keeping it focused purely on demonstrating the new evaluator branch rather than also becoming an incidental new pathogenic- or divergence-case."
+    },
+    {
+      "variant": {
+        "variant_id": "CAPN3_SYNTH_PM3_CIS_OVERRIDE_01",
+        "gene": "CAPN3",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "CAPN3",
+        "disease": "Limb-girdle muscular dystrophy, type R1 calpain3-related (LGMDR1 / calpainopathy)",
+        "inheritance": "AUTOSOMAL_RECESSIVE",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen LGMD VCEP Specifications to the ACMG/AMP Guidelines for CAPN3, v2.0 (2025-07-09; DOI 10.5281/zenodo.21434844)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (CAPN3-LGMDR1, autosomal recessive)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_000070.3",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.2101G>C"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "synthetic",
+          "retrieval_status": "NOT_ASSESSED"
+        }
+      ],
+      "pm3_evidence": {
+        "probands": [
+          {
+            "proband_id": "synthetic_family_2",
+            "zygosity": "COMPOUND_HETEROZYGOUS",
+            "phase": "UNKNOWN",
+            "other_allele_classification": "PATHOGENIC",
+            "points": 0.5,
+            "source": "synthetic",
+            "notes": "A proband observation that would otherwise contribute Supporting-level points."
+          }
+        ],
+        "cis_cooccurrence_observed": true,
+        "notes": "Hypothetical gnomAD variant co-occurrence analysis shows this variant predominantly co-occurring in cis with the population's other CAPN3 pathogenic alleles."
+      },
+      "notes": "SYNTHETIC fixture, built to exercise the real, quoted ACGS 2024 cis-cooccurrence override: 'PM3 should not be applied at any level in the context of two variants that predominantly co-occur.' pm3_evidence.cis_cooccurrence_observed=True forces PM3 to NOT_MET regardless of the proband-level points also recorded here (0.5, which alone would reach Supporting) -- demonstrating that the override is checked first and is absolute, not just a downward adjustment. No real CAPN3/DMD fixture in this project's curated set has a documented gnomAD co-occurrence analysis on record, so this branch is necessarily synthetic-only, same 'searched, not found, disclosed' treatment as other gaps in this project. population_evidence is NOT_ASSESSED to keep the fixture focused purely on this one PM3 branch."
     }
   ]
 }

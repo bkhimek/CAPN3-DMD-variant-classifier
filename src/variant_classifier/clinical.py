@@ -8,13 +8,22 @@ this patient explain their disease" — and needs case-level information
 ProvisionalClassification as input. It does not re-derive variant-level
 evidence; it consumes engine.classify()'s output.
 
-This is also why PM3 ("detected in trans with a pathogenic variant") was
-not bolted onto the per-variant evaluator pattern from Milestone 2/3: it
-has a structural circularity an evaluator can't cleanly express (variant
-A's PM3 depends on variant B's classification, which depends on evidence
-entirely outside variant A's own VariantEvidenceBundle). Reasoning about
-it here, at the case level, after both variants already have their own
-classification, avoids that circularity instead of working around it.
+PM3 ("detected in trans with a pathogenic variant") was not bolted onto
+the per-variant evaluator pattern from Milestone 2/3 either -- it has a
+structural circularity a naive per-variant evaluator can't cleanly
+express (variant A's PM3 would depend on variant B's classification,
+which could itself depend on evidence entirely outside variant A's own
+VariantEvidenceBundle). Batch 28's evaluators/pm3.py resolves this a
+different way than this module does: rather than reasoning about it here
+at the case level after both variants already have their own
+classification, it curates the partner allele's classification as a
+known fact directly on the variant's own bundle (models/pm3_evidence.py),
+the same way every other "can't be safely re-derived by this engine"
+value in this project is handled. This module (ClinicalCase /
+CaseInterpretation) remains the place for phase/hemizygosity reasoning
+that genuinely needs case-level information PM3 itself doesn't (does a
+qualifying genotype in this specific patient explain their disease) --
+the two are complementary, not overlapping.
 
 Scope, stated plainly:
 - Autosomal recessive: handles exactly one or two variants, with phase

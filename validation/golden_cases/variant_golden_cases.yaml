@@ -40,13 +40,14 @@
 
 golden_cases:
   - variant_id: CAPN3_c.550del
-    expected_provisional_class: VUS
+    expected_provisional_class: PATHOGENIC
     expected_criterion_status:
       PVS1: MET
       PM2: NOT_MET
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: MET
       PS3: MET
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -72,12 +73,11 @@ golden_cases:
       PM2 used to show, now showing up in BA1 instead. BS1 is unaffected
       (still MANUAL_REVIEW for the same founder-frequency reason as before;
       its threshold, 0.001, was already correct once the placeholder was
-      checked against the real spec). Net effect: still VUS, still flagged
-      for manual review overall, but via a different, more accurate pair of
-      criteria than before -- a genuine correction, not just a relabeling.
-      The real-world Pathogenic classification for this variant also draws
-      on segregation/case-count evidence (PM3, PS4-adjacent) that is
-      entirely out of scope for this project's 6-criterion engine.
+      checked against the real spec). BA1 and BS1 remain MANUAL_REVIEW even
+      after this fixture reaches PATHOGENIC below -- the engine does not
+      silently suppress that flag just because a pathogenic combining rule
+      was also satisfied; manual_review_required stays True
+      (test_founder_case_reaches_pathogenic_but_still_flags_manual_review).
       UPDATED in batch 25: PS3 is now MET (Supporting) via a real curated
       functional_evidence record -- a Czech LGMD2A cohort Western blot
       study (Chrobakova et al. 2004 / Hermanova et al. 2006) reporting
@@ -86,15 +86,37 @@ golden_cases:
       conservative floor since the primary papers' exact validation-control
       counts were not independently verifiable during curation (see the
       functional_evidence.notes field in data/curated/variant_evidence.json
-      for the full writeup). Even with PS3 added, Table 5 still lands this
-      on VUS: "1 Very Strong + 1 Supporting" (PVS1 + PS3) has no Table 5
+      for the full writeup). With PS3 alone added, Table 5 landed this on
+      VUS: "1 Very Strong + 1 Supporting" (PVS1 + PS3) has no Table 5
       combining rule of its own -- the same shape as CAPN3_c.1939G>T's PVS1
-      + PM2(Supporting) case, now joined by this fixture as a second real
-      example. See variant_golden_cases_bayesian.yaml: under Tavtigian et
-      al. 2020's point system this same evidence (8 + 1 = 9 points, 2
-      contributing criteria) reaches Likely Pathogenic -- this fixture is
-      now also a genuine Table-5-vs-Bayesian divergence case, not just a
-      VUS.
+      + PM2(Supporting) case. UPDATED in batch 28: this is the change that
+      finally moves the fixture off VUS. Real literature documents
+      c.550delA (this project's c.550del) recurrently homozygous across
+      multiple independent European LGMD2A cohorts (Czech: Chrobakova et
+      al. 2004 / Hermanova et al. 2006; Polish: "The Frequency of
+      c.550delA Mutation of the CANP3 Gene in the Polish LGMD2A
+      Population") -- curated here as two independent-cohort HOMOZYGOUS
+      PM3 observations, each capped at the real ACGS-2024-quoted 1.0-point
+      homozygous ceiling, summing to 2.0 points = PM3 MET/Strong under the
+      CAPN3 VCEP's own real threshold table. PVS1 (Very Strong) + PM3
+      (Strong) satisfies Table 5's "1 Very Strong + >=1 Strong" pathogenic
+      rule directly -- PATHOGENIC, finally matching the real ClinVar call
+      this fixture's notes have flagged as out of reach since Milestone 3
+      ("The real-world Pathogenic classification for this variant also
+      draws on segregation/case-count evidence (PM3, PS4-adjacent) that is
+      entirely out of scope for this project's 6-criterion engine" -- no
+      longer true as of batch 28). This is also this project's first
+      fixture to reach a Strong-strength pathogenic-direction evaluator at
+      all (PM3 is Strong here; every other pathogenic evaluator this
+      project has is Very Strong, Moderate, or Supporting) -- see
+      engine.py's module docstring. See
+      variant_golden_cases_bayesian.yaml: under Tavtigian et al. 2020's
+      point system this evidence is now 8 (PVS1) + 1 (PS3) + 4 (PM3
+      Strong) = 13 points, >=10 = Pathogenic -- both systems now agree,
+      so this fixture is NO LONGER a Table-5-vs-Bayesian divergence case
+      (it was one from batch 25 through batch 27; see
+      test_bayesian_diverges_from_table5_for_exactly_the_four_documented_fixtures
+      for the corrected, smaller list).
 
   - variant_id: CAPN3_SYNTH_PATHOGENIC_01
     expected_provisional_class: PATHOGENIC
@@ -104,6 +126,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
@@ -124,6 +147,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_MET
       BP4: MET
@@ -159,6 +183,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
@@ -196,6 +221,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -218,6 +244,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -257,6 +284,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
       PS3: NOT_MET
       PP3: NOT_MET
       BP4: NOT_MET
@@ -339,6 +367,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -368,6 +397,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -398,6 +428,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -423,6 +454,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
@@ -461,6 +493,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -494,6 +527,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -550,6 +584,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -584,6 +619,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -620,6 +656,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
@@ -675,6 +712,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -700,6 +738,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -759,6 +798,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -789,6 +829,7 @@ golden_cases:
       PM4: MET
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -837,6 +878,7 @@ golden_cases:
       PM4: MET
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -885,6 +927,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -934,6 +977,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
@@ -990,6 +1034,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_MET
       BP4: MET
@@ -1047,6 +1092,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_EVALUATED
       PM5: MET
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
@@ -1083,6 +1129,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: MET
       PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: MET
       BP4: NOT_MET
@@ -1116,6 +1163,7 @@ golden_cases:
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
       PS3: NOT_EVALUATED
       PP3: NOT_EVALUATED
       BP4: NOT_EVALUATED
@@ -1149,3 +1197,64 @@ golden_cases:
       divergence pattern is already well covered by real fixtures
       elsewhere (CAPN3_c.1939G>T, CAPN3_c.550del; see README's Milestone
       5 design note).
+
+  - variant_id: CAPN3_SYNTH_PM3_MODERATE_01
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: NOT_EVALUATED
+      PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
+      PM3: MET
+      PS3: NOT_EVALUATED
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_EVALUATED
+      BS1: NOT_EVALUATED
+      BS3: NOT_EVALUATED
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a synthetic fixture built to exercise batch 28's new PM3 evaluator's COMPOUND_HETEROZYGOUS/CONFIRMED_TRANS branch at the Moderate strength band"
+    curator_note: >
+      SYNTHETIC fixture (batch 28), built to exercise PM3's
+      COMPOUND_HETEROZYGOUS/CONFIRMED_TRANS branch -- a single hypothetical
+      proband, parental testing confirmed trans, other allele independently
+      classified Pathogenic, curated at 1.0 point -- landing in the
+      Moderate band (>=1 but <2 points, CAPN3 VCEP v2.0 thresholds). This
+      is deliberately a different zygosity/strength combination than the
+      enriched real CAPN3_c.550del fixture (HOMOZYGOUS, Strong), so
+      together the two fixtures exercise both real PM3 zygosity paths
+      rather than duplicating one. population_evidence is NOT_ASSESSED so
+      PM3 (Moderate, 1 contributing criterion) stands alone -- Table 5 has
+      no combining rule for a single Moderate criterion, so this fixture
+      stays VUS, keeping it focused purely on demonstrating the new
+      evaluator branch.
+
+  - variant_id: CAPN3_SYNTH_PM3_CIS_OVERRIDE_01
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: NOT_EVALUATED
+      PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
+      PM3: NOT_MET
+      PS3: NOT_EVALUATED
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_EVALUATED
+      BS1: NOT_EVALUATED
+      BS3: NOT_EVALUATED
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to a synthetic fixture built to exercise batch 28's real, quoted ACGS 2024 cis-cooccurrence override for PM3"
+    curator_note: >
+      SYNTHETIC fixture (batch 28), built to exercise the real, quoted
+      ACGS 2024 rule: "PM3 should not be applied at any level in the
+      context of two variants that predominantly co-occur." A hypothetical
+      gnomAD variant co-occurrence analysis (cis_cooccurrence_observed=True)
+      forces PM3 to NOT_MET even though this fixture also records a
+      proband observation (0.5 points, unknown phase) that would otherwise
+      reach the Supporting band on its own -- demonstrating the override is
+      checked first and is absolute, not a downward strength adjustment.
+      No real CAPN3/DMD fixture in this project's curated set has a
+      documented gnomAD co-occurrence analysis on record, so this branch
+      is necessarily synthetic-only. population_evidence is NOT_ASSESSED
+      to keep the fixture focused purely on this one PM3 branch.

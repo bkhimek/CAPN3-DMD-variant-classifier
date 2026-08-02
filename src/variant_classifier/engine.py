@@ -2,11 +2,11 @@
 
 Two responsibilities, kept separate on purpose:
 
-- evaluate_all(bundle, thresholds): run all eleven currently-supported
+- evaluate_all(bundle, thresholds): run all twelve currently-supported
   evaluators (SUPPORTED_CRITERIA_MILESTONE_1's six, plus PM4, PS1, PM5
-  added batch 22, plus PS3/BS3 added batch 25) against one
-  VariantEvidenceBundle and return their eleven CriterionResults —
-  always eleven, one per code, even when most are
+  added batch 22, plus PS3/BS3 added batch 25, plus PM3 added batch 28)
+  against one VariantEvidenceBundle and return their twelve
+  CriterionResults — always twelve, one per code, even when most are
   NOT_MET/NOT_EVALUATED/NOT_APPLICABLE. Nothing is dropped, so a report
   built from this list can show a scientist exactly what was and wasn't
   checked (the "preserved uncertainty" principle from the Workflow
@@ -16,26 +16,31 @@ Two responsibilities, kept separate on purpose:
   2015, Table 5) to a list of CriterionResults and produce one
   ProvisionalClassification. This function does not know or care where
   the CriterionResults came from — it would work identically on results
-  from criteria this project doesn't evaluate yet (PM3, PS4, ...), which
+  from criteria this project doesn't evaluate yet (PS4, ...), which
   is deliberate: extending criterion coverage later shouldn't require
-  touching this function. PS3/BS3 (added batch 25) is a direct
-  demonstration of this: both evaluators slot into the existing
-  strength-tier counting in _pathogenic_tier()/_benign_tier() with zero
-  changes to combine() itself.
+  touching this function. PS3/BS3 (added batch 25) and PM3 (added batch
+  28) are direct demonstrations of this: all three evaluators slot into
+  the existing strength-tier counting in
+  _pathogenic_tier()/_benign_tier() with zero changes to combine()
+  itself. PM3 is notable as this project's first Strong-strength
+  pathogenic-direction evaluator (PVS1 is Very Strong; PM2/PM4 are
+  Moderate or Supporting; PP3 is Supporting) — see bayesian.py's module
+  docstring for a previously-undemonstrated Table-5-vs-Bayesian
+  discrepancy this newly makes reachable in principle.
 
 classify(bundle, thresholds) chains the two for convenience.
 
-Two things this engine does NOT do, both by design:
-- It does not attempt PM3/PS4/other recessive- or case-level evidence (a
-  second variant in trans, segregation, case-control counts) — PM3
-  specifically was researched and explicitly sized-but-not-implemented in
-  batch 25 (see README's Design notes) because the real ClinGen SVI PM3
-  points system requires aggregating evidence across multiple probands,
-  a genuinely bigger architectural change than this variant-level engine
-  currently supports. Case-level reasoning generally is Milestone 4,
-  "clinical interpretation," which needs case-level information (parental
-  testing, other observed alleles) this project's variant-level evidence
-  bundle doesn't carry.
+One thing this engine still does NOT do, by design:
+- It does not attempt PS4 or other case-control-count evidence, or
+  general case-level reasoning beyond what a curator states directly on
+  a single variant's own bundle. PM3 itself (added batch 28) resolves
+  its own case-level circularity by treating the partner allele's
+  classification as a curated fact rather than something re-derived
+  live from another variant's own engine run — see
+  models/pm3_evidence.py's docstring for the full reasoning. Broader
+  case-level reasoning (ClinicalCase/CaseInterpretation, phase,
+  hemizygosity) remains Milestone 4's clinical.py, which consumes this
+  engine's ProvisionalClassification output rather than replacing it.
 - Genuinely conflicting evidence (both a Pathogenic/Likely-Pathogenic
   combination AND a Benign/Likely-Benign combination satisfied at once)
   is reported as VUS with conflicting_evidence_flag=True, not silently
@@ -51,6 +56,7 @@ from .evaluators import (
     evaluate_bs1,
     evaluate_bs3,
     evaluate_pm2,
+    evaluate_pm3,
     evaluate_pm4,
     evaluate_pm5,
     evaluate_pp3,
@@ -66,11 +72,12 @@ RULE_VERSION = "2015"
 
 
 def evaluate_all(bundle: VariantEvidenceBundle, thresholds: dict) -> List[CriterionResult]:
-    """Run all eleven supported evaluators (six from Milestone 1, plus
+    """Run all twelve supported evaluators (six from Milestone 1, plus
     PM4 added batch 14, plus PS1/PM5 added batch 22, plus PS3/BS3 added
-    batch 25). Always returns exactly eleven CriterionResults, one per
-    code in a fixed order — order doesn't matter for combine() but a
-    fixed order makes output diffs/reports readable.
+    batch 25, plus PM3 added batch 28). Always returns exactly twelve
+    CriterionResults, one per code in a fixed order — order doesn't
+    matter for combine() but a fixed order makes output diffs/reports
+    readable.
     """
     return [
         evaluate_pvs1(bundle),
@@ -78,6 +85,7 @@ def evaluate_all(bundle: VariantEvidenceBundle, thresholds: dict) -> List[Criter
         evaluate_pm4(bundle),
         evaluate_ps1(bundle),
         evaluate_pm5(bundle),
+        evaluate_pm3(bundle),
         evaluate_ps3(bundle),
         evaluate_pp3(bundle),
         evaluate_bp4(bundle),

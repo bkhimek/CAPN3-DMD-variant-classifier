@@ -359,3 +359,25 @@ class SplicingRnaEvidence(str, Enum):
     CONFIRMED_IN_FRAME_OR_PARTIAL_FUNCTION = "CONFIRMED_IN_FRAME_OR_PARTIAL_FUNCTION"
     CONFIRMED_NORMAL_SPLICING = "CONFIRMED_NORMAL_SPLICING"
     INCONCLUSIVE = "INCONCLUSIVE"
+
+
+class Pm3Zygosity(str, Enum):
+    """Batch 28 -- how a PM3 proband observation carries the variant being
+    evaluated relative to its qualifying partner allele. See
+    models/pm3_evidence.py for the full design writeup (real-world sourcing
+    is easier for HOMOZYGOUS: the "trans" partner is simply the same
+    already-established-pathogenic variant, not a second one that itself
+    needs an independently confirmed classification).
+
+    COMPOUND_HETEROZYGOUS: two different variants, one per chromosome copy
+      -- whether they are actually in trans (as opposed to both on the same
+      copy) is a separate fact, phase, on the observation itself.
+    HOMOZYGOUS: the identical variant on both copies. Per the real,
+      quoted ACGS 2024 rule ("homozygous variants should be capped to a
+      maximum of 1 point ... regardless of whether the variant is confirmed
+      via parental testing or not"), each HOMOZYGOUS observation is capped
+      at 1.0 point -- enforced directly in Pm3ProbandObservation.__post_init__.
+    """
+
+    COMPOUND_HETEROZYGOUS = "COMPOUND_HETEROZYGOUS"
+    HOMOZYGOUS = "HOMOZYGOUS"
