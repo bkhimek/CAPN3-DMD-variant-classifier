@@ -63,7 +63,7 @@ def test_interpret_case_matches_golden_case_for_all_curated_cases():
     cases = loader.load_clinical_cases()
     goldens = loader.load_case_interpretation_goldens()
 
-    assert len(cases) == 11
+    assert len(cases) == 14
     for case in cases:
         golden = goldens[case.case_id]
         result = interpret_case(case, classifications, contexts[case.gene])

@@ -1,5 +1,5 @@
 {
-  "_comment": "Milestone 4 case-level fixtures \u2014 what a specific (synthetic) patient's testing found, as opposed to facts about a single variant. See clinical.py and models/clinical_case.py. Every variant_id referenced here must exist in variant_evidence.json. karyotypic_sex is set to XX for the three CAPN3 cases purely because the model requires a value; it plays no role in autosomal recessive reasoning.",
+  "_comment": "Milestone 4 case-level fixtures — what a specific (synthetic) patient's testing found, as opposed to facts about a single variant. See clinical.py and models/clinical_case.py. Every variant_id referenced here must exist in variant_evidence.json. karyotypic_sex is set to XX for the three CAPN3 cases purely because the model requires a value; it plays no role in autosomal recessive reasoning.\n\nBatch 31 adds three BRCA1 (autosomal dominant) cases, exercising interpret_dominant_case() for the first time: a RISK_CONFERRING positive path (synthetic pathogenic single variant), an INSUFFICIENT negative path (synthetic benign single variant), and a MANUAL_REVIEW path grounded in a real variant (BRCA1_c.181T>G / C61G) whose real ENIGMA-panel Pathogenic call this project's variant-only engine cannot reach (see that fixture's notes in variant_evidence.json). karyotypic_sex is set to XX for all three purely because the model requires a value, same convention as the CAPN3 cases -- AD reasoning in interpret_dominant_case does not branch on sex.",
   "cases": [
     {
       "case_id": "CASE_CAPN3_BIALLELIC_TRANS",
@@ -103,6 +103,30 @@
       ],
       "phase": "CIS",
       "phase_evidence_note": "SYNTHETIC case (batch 29): same two real variants as CASE_DMD_XX_BIALLELIC_TRANS, but confirmed in cis instead -- both on the same X chromosome copy, leaving the other X copy genuinely wild-type. Deliberately paired with the TRANS case to demonstrate that this does NOT resolve to INSUFFICIENT the way autosomal recessive cis does: a wild-type X copy can still be silenced by X-inactivation in some cells, so the real phenotype unpredictability found in Brioschi et al. 2012 (already cited for the single-carrier case) still applies. See clinical.py's _interpret_xx_biallelic docstring."
+    },
+    {
+      "case_id": "CASE_BRCA1_RISK_CONFERRING",
+      "gene": "BRCA1",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "BRCA1_SYNTH_PATHOGENIC_01"
+      ]
+    },
+    {
+      "case_id": "CASE_BRCA1_INSUFFICIENT",
+      "gene": "BRCA1",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "BRCA1_SYNTH_BENIGN_01"
+      ]
+    },
+    {
+      "case_id": "CASE_BRCA1_MANUAL_REVIEW_REAL",
+      "gene": "BRCA1",
+      "karyotypic_sex": "XX",
+      "variant_ids": [
+        "BRCA1_c.181T>G"
+      ]
     }
   ]
 }

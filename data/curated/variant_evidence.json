@@ -1403,6 +1403,306 @@
         "notes": "Hypothetical gnomAD variant co-occurrence analysis shows this variant predominantly co-occurring in cis with the population's other CAPN3 pathogenic alleles."
       },
       "notes": "SYNTHETIC fixture, built to exercise the real, quoted ACGS 2024 cis-cooccurrence override: 'PM3 should not be applied at any level in the context of two variants that predominantly co-occur.' pm3_evidence.cis_cooccurrence_observed=True forces PM3 to NOT_MET regardless of the proband-level points also recorded here (0.5, which alone would reach Supporting) -- demonstrating that the override is checked first and is absolute, not just a downward adjustment. No real CAPN3/DMD fixture in this project's curated set has a documented gnomAD co-occurrence analysis on record, so this branch is necessarily synthetic-only, same 'searched, not found, disclosed' treatment as other gaps in this project. population_evidence is NOT_ASSESSED to keep the fixture focused purely on this one PM3 branch."
+    },
+    {
+      "variant": {
+        "variant_id": "BRCA1_c.68_69delAG",
+        "gene": "BRCA1",
+        "genome_build": "GRCh38",
+        "chromosome": "17",
+        "position": 43124027,
+        "reference": "ACT",
+        "alternate": "A",
+        "clinvar_variation_id": 17662,
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "BRCA1",
+        "disease": "Hereditary breast and ovarian cancer syndrome (BRCA1-related)",
+        "inheritance": "AUTOSOMAL_DOMINANT",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen ENIGMA BRCA1 and BRCA2 VCEP Specifications to the ACMG/AMP Guidelines for BRCA1, v1.2 (2025-01-09; DOI 10.5281/zenodo.21434315)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (BRCA1-hereditary breast and ovarian cancer, autosomal dominant) -- per Lee et al. 2019, Genetics in Medicine 21:1497-1506 (ClinGen clinical validity framework applied to 31 HBOC panel genes; BRCA1 confirmed Definitive for both breast and ovarian cancer in that assessment)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_007294.4",
+          "clinically_relevant": true,
+          "consequence": "frameshift_variant",
+          "mane_select": true,
+          "hgvs_c": "c.68_69del",
+          "hgvs_p": "p.Glu23ValfsTer17",
+          "exon": "2 (early, RING-domain-coding region; exact modern RefSeq exon count for NM_007294.4 not independently re-verified -- legacy literature nomenclature for this variant is '185delAG')",
+          "nmd_predicted": true
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.1",
+          "retrieval_status": "OBSERVED",
+          "locus_coverage_adequate": true,
+          "overall_af": 2.478e-05,
+          "ancestry_specific_max_af": 0.004158
+        }
+      ],
+      "notes": "Real ClinVar entry (VCV000017662, dbSNP rs80357914; gnomAD variant ID 17-43124027-ACT-A), reviewed by expert panel, Pathogenic (ClinVar Variation ID 17662, last evaluated 2024-06-11). MANE Select NM_007294.4:c.68_69del (p.Glu23ValfsTer17), the well-known Ashkenazi-founder allele historically called '185delAG'. Confirmed directly from gnomAD v4.1.1's own variant and region pages (browsed live this batch, not taken from a search summary): total AC=191/AN=1,612,084 (raw overall AF 1.185e-4), with Ashkenazi Jewish AC=123/AN=29,578 (AF 0.4158%) driving almost all of that signal -- a textbook founder-enrichment pattern, ~126x higher in the AJ subgroup than the next-highest group (Remaining, AF 0.03205%).\n\npopulation_evidence.overall_af here is DELIBERATELY curated as gnomAD's own reported 'Grpmax Filtering AF' (0.00002478, 95% CI), NOT the raw total AF (1.185e-4) -- a disclosed, non-default choice that required re-reading evaluators/ba1.py and evaluators/bs1.py directly before curating this fixture. Those evaluators check overall_af against the gene's BA1/BS1 threshold FIRST, before ever consulting ancestry_specific_max_af (see ba1.py lines 77-89, bs1.py lines 72-87) -- so simply setting ancestry_specific_max_af to a founder-excluded value (the original plan sketched in config/population_thresholds.yaml's threshold_source note) would NOT have worked: the raw overall AF (1.185e-4) already exceeds BRCA1's own BS1 threshold (0.0001) on its own, which would have made BS1 return a flatly wrong MET/Strong for a known-Pathogenic founder variant, never even reaching the ancestry-comparison branch. gnomAD's Grpmax FAF is the correct fix, not a workaround invented for this purpose: it is gnomAD's own documented statistic for 'the highest-frequency genetic ancestry group with an adequately powered call', which by gnomAD's own methodology already excludes small/bottlenecked founder groups (including Ashkenazi Jewish) from being the reported grpmax group -- so using it as overall_af is actually a MORE faithful reading of 'population frequency for BA1/BS1 purposes' than gnomAD's undifferentiated total, not a deviation from it. ancestry_specific_max_af is curated as the real Ashkenazi Jewish subgroup AF (0.004158) -- consistent with every other fixture's use of that field (the single highest per-ancestry AF on record), not founder-excluded.\n\nWith these values: PM2 is NOT_MET (BRCA1's pm2_max_credible_af is deliberately 0.0 -- any nonzero OBSERVED frequency, including the Grpmax FAF, fails the real spec's absent-only PM2 rule). BA1 and BS1 both land on MANUAL_REVIEW (overall_af below each threshold, but ancestry_specific_max_af -- the real AJ frequency -- clears both), the same honest founder-enrichment flag CAPN3_c.550del's own fixture demonstrates, now shown on BRCA1's real data. PVS1 is expected MET (Very Strong): NMD is expected given the frameshift's very early position (residue 23 of 1863). No pm3_evidence, functional_evidence, or computational_evidence is curated here -- the real ClinGen/ClinVar Pathogenic call for this variant rests heavily on case-level PM3/PS4/PP4-style evidence (decades of case reports and segregation data for this specific founder allele) that is out of scope for this project's variant-only engine, the same story told repeatedly by this project's real CAPN3 fixtures. Expect PVS1 (Very Strong) alone to be Table-5-insufficient -- VUS, not because the automated engine doubts this is pathogenic, but because it honestly cannot reach further than PVS1 alone from the evidence types it evaluates."
+    },
+    {
+      "variant": {
+        "variant_id": "BRCA1_c.5266dup",
+        "gene": "BRCA1",
+        "genome_build": "GRCh38",
+        "chromosome": "17",
+        "position": 43057062,
+        "reference": "T",
+        "alternate": "TG",
+        "clinvar_variation_id": 17677,
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "BRCA1",
+        "disease": "Hereditary breast and ovarian cancer syndrome (BRCA1-related)",
+        "inheritance": "AUTOSOMAL_DOMINANT",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen ENIGMA BRCA1 and BRCA2 VCEP Specifications to the ACMG/AMP Guidelines for BRCA1, v1.2 (2025-01-09; DOI 10.5281/zenodo.21434315)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (BRCA1-hereditary breast and ovarian cancer, autosomal dominant) -- per Lee et al. 2019, Genetics in Medicine 21:1497-1506 (ClinGen clinical validity framework applied to 31 HBOC panel genes; BRCA1 confirmed Definitive for both breast and ovarian cancer in that assessment)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_007294.4",
+          "clinically_relevant": true,
+          "consequence": "frameshift_variant",
+          "mane_select": true,
+          "hgvs_c": "c.5266dup",
+          "hgvs_p": "p.Gln1756ProfsTer74",
+          "exon": "20 (legacy nomenclature; exact modern RefSeq exon count for NM_007294.4 not independently re-verified) -- legacy literature name for this variant is '5382insC'",
+          "nmd_predicted": true
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v4.1.1",
+          "retrieval_status": "OBSERVED",
+          "locus_coverage_adequate": true,
+          "overall_af": 4.346e-05,
+          "ancestry_specific_max_af": 0.001183
+        }
+      ],
+      "notes": "Real ClinVar entry (VCV000017677, dbSNP rs80357906; gnomAD variant ID 17-43057062-T-TG), reviewed by expert panel, Pathogenic (ClinVar Variation ID 17677, last evaluated 2016-04-22). MANE Select NM_007294.4:c.5266dup (p.Gln1756ProfsTer74), the well-known Ashkenazi-founder allele historically called '5382insC'. Confirmed directly from gnomAD v4.1.1's own variant/region pages this batch: total AC=109/AN=1,613,912 (raw overall AF 6.754e-5), Ashkenazi Jewish AC=35/AN=29,592 (AF 0.1183%) -- again a clear founder-enrichment pattern, though a smaller one than 185delAG's.\n\nSame overall_af-curation methodology as BRCA1_c.68_69delAG immediately above, and for the identical reason (see that fixture's notes for the full evaluator-logic writeup): overall_af here is gnomAD's own Grpmax Filtering AF (0.00004346, 95% CI), not the raw total AF, because the evaluators compare overall_af against the BA1/BS1 threshold before ever looking at ancestry_specific_max_af. Note the raw overall AF (6.754e-5) here is actually already below BRCA1's BS1 threshold (0.0001) even without this substitution -- unlike 185delAG, where the raw total AF alone would have wrongly triggered BS1 MET. The Grpmax-FAF substitution is applied identically to both founder fixtures for consistency and correctness, not because this specific variant strictly required it. ancestry_specific_max_af is the real AJ subgroup AF (0.001183).\n\nResulting evaluation: PM2 NOT_MET (nonzero OBSERVED AF, BRCA1's PM2 is absent-only). BA1 MANUAL_REVIEW (ancestry_af 0.001183 clears the 0.001 threshold even though overall_af does not). BS1 MANUAL_REVIEW (ancestry_af clears 0.0001 too). PVS1 expected MET (Very Strong) -- frameshift, and universally treated in the literature as a canonical NMD-triggering LOF allele (exact distance to the final exon-exon junction not independently recomputed from primary transcript coordinates this batch -- a disclosed modeling judgment, same convention as CAPN3_c.1939G>T's nmd_predicted field). No pm3_evidence/functional_evidence/computational_evidence curated -- same reasoning as BRCA1_c.68_69delAG: the real Pathogenic call rests on case-level evidence out of this project's variant-only scope. Expect VUS: PVS1 (Very Strong) alone is Table-5-insufficient."
+    },
+    {
+      "variant": {
+        "variant_id": "BRCA1_c.5559C>G",
+        "gene": "BRCA1",
+        "genome_build": "GRCh38",
+        "chromosome": "17",
+        "position": 43045711,
+        "reference": "G",
+        "alternate": "C",
+        "clinvar_variation_id": 55630,
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "BRCA1",
+        "disease": "Hereditary breast and ovarian cancer syndrome (BRCA1-related)",
+        "inheritance": "AUTOSOMAL_DOMINANT",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen ENIGMA BRCA1 and BRCA2 VCEP Specifications to the ACMG/AMP Guidelines for BRCA1, v1.2 (2025-01-09; DOI 10.5281/zenodo.21434315)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (BRCA1-hereditary breast and ovarian cancer, autosomal dominant) -- per Lee et al. 2019, Genetics in Medicine 21:1497-1506 (ClinGen clinical validity framework applied to 31 HBOC panel genes; BRCA1 confirmed Definitive for both breast and ovarian cancer in that assessment)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_007294.4",
+          "clinically_relevant": true,
+          "consequence": "stop_gained",
+          "mane_select": true,
+          "hgvs_c": "c.5559C>G",
+          "hgvs_p": "p.Tyr1853Ter",
+          "exon": "22 (per Ambry Genetics' ClinVar submission comment)",
+          "nmd_predicted": false
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "unspecified release, per Labcorp Genetics/Invitae's ClinVar submission comment: 'not present in population databases (gnomAD no frequency)'",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true
+        }
+      ],
+      "functional_evidence": {
+        "assay_result": "ABNORMAL",
+        "validation_strength": "SUPPORTING",
+        "assay_description": "Saturation genome editing (SGE) in haploid HAP1 cells (Findlay et al. 2018, Nature 562:217-222, PMID 30209399), scored via the assay's own function-score cutoffs",
+        "notes": "Real, directly-relevant functional data for THIS EXACT variant, submitted to ClinVar as a standalone functional-data record (Accession SCV001242152.2, Brotman Baty Institute/University of Washington, submitted 2018-11-12): SGE function score -2.15 for NM_007294.3:c.5559C>G, a NONSENSE variant, classified 'LOSS_OF_FUNCTION' under the assay's own published thresholds (functional score > -0.748; intermediate -0.748 to -1.328; non-functional < -1.328 -- median synonymous SNV scored 0.0, median nonsense SNV scored -2.12, so this variant's -2.15 sits almost exactly at the median nonsense-variant score, a clean, unambiguous LOF result). validation_strength is curated SUPPORTING as a DISCLOSED CONSERVATIVE CHOICE, same convention as CAPN3_c.550del: unlike BRCA1_c.181T>G (C61G) below, no independent ENIGMA-panel-level PS3 strength assignment was found specifically for this variant during this batch's research (Ambry's own comment cites the same Findlay 2018 study narratively but does not tag a formal PS3 strength level the way the German Consortium's ENIGMA-based submission does for C61G) -- so this project falls back to its own established Supporting floor rather than assuming a higher tier."
+      },
+      "notes": "Real ClinVar entry (VCV000055630.8, dbSNP rs80357336, ClinGen CA003716), reviewed by expert panel (ENIGMA), Pathogenic (last evaluated 2017-12-15). MANE Select NM_007294.4:c.5559C>G (p.Tyr1853Ter), GRCh38 chr17:43045711 G>C (canonical SPDI NC_000017.11:43045710:G:C) -- confirmed directly from the primary ClinVar VCV page this batch.\n\nSourced specifically as this batch's non-founder, real, ABSENT-from-gnomAD PM2 fixture (closing that open gap): two independent clinical laboratories (Labcorp Genetics/Invitae, Ambry Genetics) each independently state this variant is not observed in gnomAD. nmd_predicted is curated FALSE, not a guess: both contributing labs state this directly in their own classification comments ('While this is not anticipated to result in nonsense mediated decay, it is expected to disrupt the last 11 amino acid(s) of the BRCA1 protein' -- Invitae; 'is not expected to trigger nonsense-mediated mRNA decay, and only impacts the last 11 amino acids of the protein' -- Ambry). This is this project's first real BRCA1 fixture to demonstrate PVS1's NMD-escape scope gap (previously shown on DMD_c.11041A>T) -- now confirmed to generalize to a third gene, on a variant near BRCA1's C-terminus (residue 1853 of 1863) rather than DMD's.\n\nExpected evaluation: PVS1 -> MANUAL_REVIEW (NMD-escape branch, not MET -- this project's PVS1 evaluator declines to auto-resolve when NMD is not predicted). PM2 -> MET (Supporting, BRCA1's configured PM2 strength; ABSENT at a locus both submitters treat as adequately covered). PS3 -> MET (Supporting; see functional_evidence above). No computational_evidence is curated: Invitae's own comment states plainly 'Algorithms developed to predict the effect of variants on gene product structure and function are not available or were not evaluated for this variant' -- an honest ABSENT-of-computational-evidence, not an omission, consistent with this fixture's real source (nonsense variants are frequently outside the intended scope of missense-calibrated predictors like REVEL/BayesDel, and no submitter cites one here). PM2 (Supporting) + PS3 (Supporting) alone does not clear any Table 5 pathogenic-tier combining rule (needs a Moderate or Strong alongside, or >=2 Supporting plus something else) -- VUS is the expected engine result, despite this being a real, ENIGMA-panel-reviewed, 3-star Pathogenic ClinVar entry with real functional data. This is an honest illustration of the same structural gap this project's real CAPN3 fixtures (e.g. CAPN3_c.1342C>T) already show repeatedly: the criteria actually driving the real classification here (PP1_Strong segregation data cited by multiple labs, decades of case reports) are case-level evidence this variant-only engine does not reach."
+    },
+    {
+      "variant": {
+        "variant_id": "BRCA1_c.181T>G",
+        "gene": "BRCA1",
+        "genome_build": "GRCh38",
+        "chromosome": "17",
+        "position": 43106487,
+        "reference": "A",
+        "alternate": "C",
+        "clinvar_variation_id": 17661,
+        "coordinate_verified": true
+      },
+      "gene_disease_context": {
+        "gene": "BRCA1",
+        "disease": "Hereditary breast and ovarian cancer syndrome (BRCA1-related)",
+        "inheritance": "AUTOSOMAL_DOMINANT",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen ENIGMA BRCA1 and BRCA2 VCEP Specifications to the ACMG/AMP Guidelines for BRCA1, v1.2 (2025-01-09; DOI 10.5281/zenodo.21434315)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (BRCA1-hereditary breast and ovarian cancer, autosomal dominant) -- per Lee et al. 2019, Genetics in Medicine 21:1497-1506 (ClinGen clinical validity framework applied to 31 HBOC panel genes; BRCA1 confirmed Definitive for both breast and ovarian cancer in that assessment)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_007294.4",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.181T>G",
+          "hgvs_p": "p.Cys61Gly",
+          "exon": "3 (per LabCorp/ARUP ClinVar submission comments: 'coding exon 3')"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "v2.1 exomes (per ARUP Laboratories' ClinVar submission comment, citing 8/250,754 alleles); other ClinVar submitters cite different releases (Invitae: gnomAD 0.006%; LMM/ExAC: 8/65,364 European chromosomes = 0.0122%; 3billion: gnomAD v4.1.0 total 0.002%) -- not smoothed over, see notes",
+          "retrieval_status": "OBSERVED",
+          "locus_coverage_adequate": true,
+          "overall_af": 3.19e-05,
+          "ancestry_specific_max_af": 0.0001224
+        }
+      ],
+      "computational_evidence": {
+        "tool": "BayesDel_noAF",
+        "tool_version": "as cited in the ClinGen ENIGMA BRCA1/2 VCEP-criteria-based ClinVar submission (SCV005848150.1, German Consortium for Hereditary Breast and Ovarian Cancer / University Hospital Cologne, evaluated 2024-11-11)",
+        "calibration_source": "ClinGen ENIGMA BRCA1/BRCA2 VCEP specification (v1.1.0 per that submission's own citation; this project's own adopted spec is v1.2): PP3 supporting applied for BayesDel_noAF = 0.565",
+        "retrieval_status": "OBSERVED",
+        "score": 0.565,
+        "calibrated_prediction": "PATHOGENIC"
+      },
+      "functional_evidence": {
+        "assay_result": "ABNORMAL",
+        "validation_strength": "STRONG",
+        "assay_description": "Saturation genome editing (Findlay et al. 2018, Nature 562:217-222, PMID 30209399) plus Bouwman et al. 2020 (a separate, independent functional study) -- both cited together by name in the real ENIGMA-criteria ClinVar submission below",
+        "notes": "Real, explicitly panel-assigned functional-evidence strength for THIS EXACT variant -- unlike BRCA1_c.5559C>G above, this is not this project's own conservative-floor default. The German Consortium for Hereditary Breast and Ovarian Cancer's ClinVar submission (Accession SCV005848150.1) states directly: 'According to the ClinGen ENIGMA BRCA1 v1.1.0 criteria we chose these criteria: PS3 (strong pathogenic): Findlay 2018 LOF, Bouwman 2020 Deleterious.' validation_strength=STRONG is taken directly from that real, ENIGMA-spec-based, expert-curated assignment, not inferred by this project. (This project's own PS3 evaluator does not distinguish which underlying study drove the call -- it only records the curated validation_strength -- so both cited studies are disclosed here for completeness rather than represented as two separate functional_evidence records, which this project's schema does not support.)"
+      },
+      "notes": "Real ClinVar entry (VCV000017661.161, dbSNP rs28897672, ClinGen CA001182), reviewed by expert panel (ENIGMA), Pathogenic (last evaluated 2015-08-10, most recent supporting submission 2026-08-04). MANE Select NM_007294.4:c.181T>G (p.Cys61Gly), GRCh38 chr17:43106487 A>C (canonical SPDI NC_000017.11:43106486:A:C) -- confirmed directly from the primary ClinVar VCV page this batch. Also known as 'C61G' and legacy '300T>G' -- one of the best-studied BRCA1 RING-domain missense variants in the literature, a founder mutation accounting for ~20% of identified BRCA1 mutations in Polish HBOC families (Gorski et al. 2000) and recurrent across other Eastern European populations (Czech, German, Austrian).\n\nSourced specifically for PP3 (real BayesDel_noAF=0.565, directly cited by name in a real ENIGMA-VCEP-criteria-based ClinVar submission -- see computational_evidence above) and PS3 (real, explicitly Strong-assigned functional evidence from the same submission -- see functional_evidence above), closing this batch's PP3/PS3 real-data sourcing gap. Population frequency: multiple ClinVar submitters cite different gnomAD/ExAC releases with different exact numbers (disclosed in population_evidence.source rather than silently reconciled, same convention as DMD_c.11041A>T's multi-source writeup) -- all agree the variant is rare (roughly 0.002%-0.012% depending on release and population). overall_af here uses ARUP Laboratories' cited figure (8/250,754 = 0.0000319, general population); ancestry_specific_max_af uses LMM's cited ExAC European-specific figure (8/65,364 = 0.0001224) as the closest available 'ancestry-specific maximum' on record, though gnomAD's own per-ancestry-group breakdown for this specific variant/release was not independently re-pulled this batch (a disclosed gap, unlike the two founder-frameshift fixtures above where the live gnomAD ancestry table was read directly).\n\nExpected evaluation: PM2 NOT_MET (nonzero OBSERVED AF; BRCA1's PM2 is absent-only). BA1/BS1 NOT_MET (overall_af and ancestry_specific_max_af both well below BRCA1's 0.001/0.0001 thresholds -- this variant's real founder story, unlike 185delAG/5382insC, does not concentrate in a single gnomAD-labeled ancestry bucket the way Ashkenazi Jewish ancestry does, so no MANUAL_REVIEW founder-ambiguity flag is expected here). PS3 MET (Strong). PP3 MET (Supporting; this project's PP3 evaluator applies a fixed Supporting strength regardless of calibration tier). PVS1/PM4/PM5/PS1/PM3/BS3 all NOT_APPLICABLE or NOT_EVALUATED (missense variant with no pm3_evidence curated). PS3 (Strong) + PP3 (Supporting) alone does not clear any Table 5 pathogenic-tier combining rule (needs >=2 Supporting alongside the Strong, or 1-2 Moderate) -- VUS is the expected engine result, despite the real ENIGMA panel reaching a confident Pathogenic call via PS3_Strong + PS4_Strong (case-control odds ratio ~30, Dorling et al. 2021) + PP4_VeryStrong (combined likelihood ratio 5.5x10^22, Lindor et al. 2012) + PP3 -- PS4 and PP4 are both case-level/cohort-level criteria entirely out of this project's variant-only scope, the same honest gap already documented for CAPN3_c.2120A>G and CAPN3_c.1342C>T."
+    },
+    {
+      "variant": {
+        "variant_id": "BRCA1_SYNTH_PATHOGENIC_01",
+        "gene": "BRCA1",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "BRCA1",
+        "disease": "Hereditary breast and ovarian cancer syndrome (BRCA1-related)",
+        "inheritance": "AUTOSOMAL_DOMINANT",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen ENIGMA BRCA1 and BRCA2 VCEP Specifications to the ACMG/AMP Guidelines for BRCA1, v1.2 (2025-01-09; DOI 10.5281/zenodo.21434315)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (BRCA1-hereditary breast and ovarian cancer, autosomal dominant) -- per Lee et al. 2019, Genetics in Medicine 21:1497-1506 (ClinGen clinical validity framework applied to 31 HBOC panel genes; BRCA1 confirmed Definitive for both breast and ovarian cancer in that assessment)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_007294.4",
+          "clinically_relevant": true,
+          "consequence": "frameshift_variant",
+          "mane_select": true,
+          "hgvs_c": "c.300dup",
+          "hgvs_p": "p.Val101fs",
+          "exon": "synthetic, modeled on an early-exon frameshift",
+          "nmd_predicted": true
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "synthetic",
+          "retrieval_status": "ABSENT",
+          "locus_coverage_adequate": true
+        }
+      ],
+      "computational_evidence": {
+        "tool": "BayesDel_noAF",
+        "tool_version": "synthetic",
+        "calibration_source": "ClinGen ENIGMA BRCA1/BRCA2 VCEP specification for BRCA1: BayesDel_noAF >=0.28 for PP3 (Supporting), per this project's adopted v1.2 spec",
+        "retrieval_status": "OBSERVED",
+        "score": 0.9,
+        "calibrated_prediction": "PATHOGENIC"
+      },
+      "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to give this batch's new interpret_dominant_case() a clean, individually-qualifying PATHOGENIC/LIKELY_PATHOGENIC variant to drive the case-level RISK_CONFERRING path -- mirroring exactly why CAPN3_SYNTH_PATHOGENIC_01/02 were built in Milestone 1/4: every real BRCA1 fixture sourced this batch (the two founder frameshifts, the real NMD-escape nonsense variant, and C61G) honestly lands on VUS through this engine, for four different, individually-disclosed reasons (see each fixture's own notes) -- none of them was available to demonstrate a clean case-level positive path without inventing evidence that isn't real. PVS1 (Very Strong, MET, frameshift + NMD predicted) + PM2 (Supporting, MET, ABSENT from gnomAD) + PP3 (Supporting, MET, synthetic calibrated-pathogenic score) satisfies Table 5's '1 Very Strong + >=2 Supporting' pathogenic combining rule directly -- PATHOGENIC, the same combining-rule path CAPN3_SYNTH_PATHOGENIC_01 was built to exercise for CAPN3's Milestone-1 criterion set, now shown for BRCA1's AD case-level layer instead."
+    },
+    {
+      "variant": {
+        "variant_id": "BRCA1_SYNTH_BENIGN_01",
+        "gene": "BRCA1",
+        "genome_build": "GRCh38",
+        "coordinate_verified": false
+      },
+      "gene_disease_context": {
+        "gene": "BRCA1",
+        "disease": "Hereditary breast and ovarian cancer syndrome (BRCA1-related)",
+        "inheritance": "AUTOSOMAL_DOMINANT",
+        "mechanism": "LOSS_OF_FUNCTION",
+        "lof_established": true,
+        "specification": {
+          "type": "VCEP",
+          "version": "ClinGen ENIGMA BRCA1 and BRCA2 VCEP Specifications to the ACMG/AMP Guidelines for BRCA1, v1.2 (2025-01-09; DOI 10.5281/zenodo.21434315)"
+        },
+        "gene_disease_validity": "ClinGen: Definitive (BRCA1-hereditary breast and ovarian cancer, autosomal dominant) -- per Lee et al. 2019, Genetics in Medicine 21:1497-1506 (ClinGen clinical validity framework applied to 31 HBOC panel genes; BRCA1 confirmed Definitive for both breast and ovarian cancer in that assessment)"
+      },
+      "transcript_consequences": [
+        {
+          "transcript_id": "NM_007294.4",
+          "clinically_relevant": true,
+          "consequence": "missense_variant",
+          "mane_select": true,
+          "hgvs_c": "c.900A>G",
+          "hgvs_p": "p.Leu300Val",
+          "exon": "synthetic"
+        }
+      ],
+      "population_evidence": [
+        {
+          "source": "gnomAD",
+          "source_version": "synthetic",
+          "retrieval_status": "OBSERVED",
+          "locus_coverage_adequate": true,
+          "overall_af": 0.01,
+          "ancestry_specific_max_af": 0.015
+        }
+      ],
+      "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to give this batch's new interpret_dominant_case() a clean, individually-Benign variant to drive the case-level INSUFFICIENT path -- the benign-side counterpart to BRCA1_SYNTH_PATHOGENIC_01, same rationale (no real BRCA1 fixture sourced this batch individually resolves to BENIGN/LIKELY_BENIGN through this engine within this batch's research scope). overall_af (1%) is deliberately set well above BRCA1's real, stricter ba1_af threshold (0.001, i.e. 0.1% -- see config/population_thresholds.yaml) so BA1 alone (Stand-Alone) resolves this fixture to BENIGN outright, the simplest possible benign-direction combining path (Richards et al. 2015: BA1 is sufficient by itself). No computational_evidence/functional_evidence curated -- BA1 Stand-Alone is expected to dominate regardless, so adding BP4/BS3 would be redundant to the headline result, same design choice already used by DMD_c.5234G>A's real BA1-MET fixture."
     }
   ]
 }

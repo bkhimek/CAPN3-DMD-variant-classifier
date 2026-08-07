@@ -1258,3 +1258,234 @@ golden_cases:
       documented gnomAD co-occurrence analysis on record, so this branch
       is necessarily synthetic-only. population_evidence is NOT_ASSESSED
       to keep the fixture focused purely on this one PM3 branch.
+
+  - variant_id: BRCA1_c.68_69delAG
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MET
+      PM2: NOT_MET
+      PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
+      PS3: NOT_EVALUATED
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: MANUAL_REVIEW
+      BS1: MANUAL_REVIEW
+      BS3: NOT_EVALUATED
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the curated evidence in data/curated/variant_evidence.json, using the real ClinGen ENIGMA BRCA1/BRCA2 VCEP PM2/BA1/BS1 thresholds (batch 31)"
+    curator_note: >
+      Real ClinVar entry (VCV000017662), reviewed by expert panel,
+      Pathogenic -- the Ashkenazi-founder allele historically called
+      "185delAG". PVS1 MET (Very Strong): early frameshift, NMD expected.
+      PM2 NOT_MET: BRCA1's real PM2 is absent-only (pm2_max_credible_af=0.0
+      in config/population_thresholds.yaml), and this variant's curated
+      overall_af (gnomAD's own Grpmax Filtering AF, 2.478e-5 -- see this
+      fixture's notes in variant_evidence.json for why that specific
+      statistic was used instead of gnomAD's raw total AF) is nonzero, so
+      PM2 fails the strict absent-only rule regardless of how low that
+      frequency is. BA1 and BS1 both MANUAL_REVIEW: overall_af sits below
+      both thresholds, but ancestry_specific_max_af (the real Ashkenazi
+      Jewish subgroup frequency, 0.4158%) clears both -- the same
+      founder-enrichment ambiguity flag CAPN3_c.550del's own fixture
+      demonstrates, now shown on real BRCA1 data. With PVS1 (Very Strong)
+      as the only MET criterion, Table 5 has no combining rule for "1 Very
+      Strong" alone -- VUS. This does not reflect any doubt about
+      pathogenicity; it reflects that the real ClinVar Pathogenic call for
+      this variant rests substantially on decades of case-level
+      segregation/case-count evidence (PM3/PS4-style) that is out of scope
+      for this project's variant-only 6-criterion engine, the same
+      structural gap already documented repeatedly on real CAPN3 fixtures.
+
+  - variant_id: BRCA1_c.5266dup
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MET
+      PM2: NOT_MET
+      PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
+      PS3: NOT_EVALUATED
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: MANUAL_REVIEW
+      BS1: MANUAL_REVIEW
+      BS3: NOT_EVALUATED
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the curated evidence in data/curated/variant_evidence.json, using the real ClinGen ENIGMA BRCA1/BRCA2 VCEP PM2/BA1/BS1 thresholds (batch 31)"
+    curator_note: >
+      Real ClinVar entry (VCV000017677), reviewed by expert panel,
+      Pathogenic -- the Ashkenazi-founder allele historically called
+      "5382insC". Same shape and same reasoning as BRCA1_c.68_69delAG
+      immediately above (see that entry's curator_note for the full
+      writeup): PVS1 MET (Very Strong, frameshift + NMD expected), PM2
+      NOT_MET (nonzero Grpmax FAF against BRCA1's absent-only threshold),
+      BA1/BS1 both MANUAL_REVIEW (overall_af below threshold, but the real
+      Ashkenazi Jewish subgroup frequency, 0.1183%, clears both). PVS1
+      alone is Table-5-insufficient -- VUS, for the same disclosed reason
+      as its sibling founder fixture.
+
+  - variant_id: BRCA1_c.5559C>G
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: MANUAL_REVIEW
+      PM2: MET
+      PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
+      PS3: MET
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: NOT_MET
+      BS1: NOT_MET
+      BS3: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the curated evidence in data/curated/variant_evidence.json (batch 31)"
+    curator_note: >
+      Real ClinVar entry (VCV000055630.8, p.Tyr1853Ter), reviewed by
+      expert panel (ENIGMA), Pathogenic. This project's first real BRCA1
+      fixture to demonstrate PVS1's NMD-escape scope gap (previously shown
+      on DMD_c.11041A>T): two independent labs (Labcorp/Invitae, Ambry)
+      each state NMD is not anticipated for this near-C-terminal nonsense
+      variant, so PVS1 returns MANUAL_REVIEW rather than MET -- this
+      evaluator correctly declines to auto-resolve when NMD is not
+      predicted. PM2 MET (Supporting): genuinely ABSENT from gnomAD per
+      two independent submitters. PS3 MET (Supporting): real Findlay et
+      al. 2018 SGE functional data for this exact variant (function score
+      -2.15, LOSS_OF_FUNCTION), curated at this project's conservative
+      Supporting floor since no independent ENIGMA-panel strength
+      assignment was found for this specific variant (contrast with
+      BRCA1_c.181T>G below, which does have one). BA1/BS1/BS3 all NOT_MET
+      (ABSENT and ABNORMAL respectively). PM2 (Supporting) + PS3
+      (Supporting) alone does not clear any Table 5 pathogenic-tier
+      combining rule (needs a Moderate/Strong alongside, or >=2 Supporting
+      plus something else) -- VUS, despite this being a real, 3-star,
+      ENIGMA-reviewed Pathogenic ClinVar entry with real functional data.
+      The criteria actually driving the real classification here (PP1
+      segregation evidence cited by multiple labs) are case-level evidence
+      out of this project's variant-only scope -- the same honest gap
+      already documented on CAPN3_c.1342C>T.
+
+  - variant_id: BRCA1_c.181T>G
+    expected_provisional_class: VUS
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: NOT_MET
+      PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
+      PS3: MET
+      PP3: MET
+      BP4: NOT_MET
+      BA1: NOT_MET
+      BS1: MANUAL_REVIEW
+      BS3: NOT_MET
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5), applied to the curated evidence in data/curated/variant_evidence.json (batch 31)"
+    curator_note: >
+      Real ClinVar entry (VCV000017661.161, "C61G"), reviewed by expert
+      panel (ENIGMA), Pathogenic -- a founder missense variant in BRCA1's
+      RING domain, accounting for ~20% of identified BRCA1 mutations in
+      Polish HBOC families. PVS1/PM4 NOT_APPLICABLE (missense, not a
+      PVS1-qualifying consequence). PS1/PM5/PM3 NOT_EVALUATED (no
+      same_residue_evidence or pm3_evidence curated -- both explicitly
+      deferred for BRCA1 this batch, see the design lock). PM2 NOT_MET
+      (nonzero OBSERVED AF against BRCA1's absent-only threshold). PS3 MET
+      (Strong) and PP3 MET (Supporting) are both real, explicitly
+      panel-assigned evidence -- not this project's own inference: the
+      German Consortium for Hereditary Breast and Ovarian Cancer's ClinVar
+      submission (SCV005848150.1) states directly "PS3 (strong
+      pathogenic): Findlay 2018 LOF, Bouwman 2020 Deleterious ...
+      PP3 (supporting pathogenic): BayesDel_noAF = 0.565", per the real
+      ClinGen ENIGMA BRCA1 v1.1.0 criteria. BA1 NOT_MET (overall_af and
+      ancestry_specific_max_af both well below BRCA1's 0.001 threshold).
+      BS1 is MANUAL_REVIEW, not NOT_MET (CORRECTED after the first pytest
+      run against this fixture: overall_af, 0.0000319, is below BRCA1's
+      BS1 threshold of 0.0001, but ancestry_specific_max_af -- LMM's cited
+      ExAC European-specific frequency, 8/65,364 = 0.0001224 -- crosses
+      that same threshold. This is a real, if modest, founder-enrichment
+      signal, consistent with the literature's own description of C61G as
+      an Eastern European founder mutation; the evaluator's founder-
+      ambiguity branch is doing exactly what it's designed to do here.
+      This project's own first-draft golden case called BS1 NOT_MET
+      without actually checking 0.0001224 against the 0.0001 threshold --
+      an arithmetic oversight in curation, not an evaluator bug; fixed
+      here rather than adjusting the fixture's numbers to match a wrong
+      expectation). BP4/BS3 NOT_MET (calibrated-pathogenic prediction,
+      real functional abnormality). PS3 (Strong) + PP3 (Supporting) alone
+      does not clear any Table 5 pathogenic-tier combining rule (needs
+      >=2 Supporting alongside the Strong, or 1-2 Moderate) -- VUS,
+      despite the real ENIGMA panel reaching a confident Pathogenic call
+      via PS3_Strong + PS4_Strong (case-control odds ratio ~30, Dorling et
+      al. 2021) + PP4_VeryStrong (combined likelihood ratio 5.5x10^22,
+      Lindor et al. 2012) + PP3. PS4 and PP4 are both case-level/cohort-
+      level criteria entirely out of this project's variant-only scope --
+      the same honest gap already documented on CAPN3_c.2120A>G and
+      CAPN3_c.1342C>T, now shown for the first time on BRCA1's AD
+      criterion set.
+
+  - variant_id: BRCA1_SYNTH_PATHOGENIC_01
+    expected_provisional_class: PATHOGENIC
+    expected_criterion_status:
+      PVS1: MET
+      PM2: MET
+      PM4: NOT_APPLICABLE
+      PS1: NOT_APPLICABLE
+      PM5: NOT_APPLICABLE
+      PM3: NOT_EVALUATED
+      PS3: NOT_EVALUATED
+      PP3: MET
+      BP4: NOT_MET
+      BA1: NOT_MET
+      BS1: NOT_MET
+      BS3: NOT_EVALUATED
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5)"
+    curator_note: >
+      SYNTHETIC fixture, built in batch 31 specifically to give
+      interpret_dominant_case()'s new RISK_CONFERRING path a clean,
+      individually-qualifying pathogenic variant to drive against -- every
+      real BRCA1 fixture sourced this batch honestly lands on VUS through
+      this engine (see each real fixture's own curator_note for why), so
+      none of them was available to demonstrate this case-level path
+      without inventing evidence that isn't real. PVS1 (Very Strong, MET)
+      + PM2 (Supporting, MET, ABSENT from gnomAD) + PP3 (Supporting, MET,
+      synthetic calibrated-pathogenic BayesDel_noAF score) satisfies Table
+      5's "1 Very Strong + >=2 Supporting" pathogenic combining rule --
+      PATHOGENIC, the same combining-rule path CAPN3_SYNTH_PATHOGENIC_01
+      was built to exercise for CAPN3's Milestone-1 criterion set.
+
+  - variant_id: BRCA1_SYNTH_BENIGN_01
+    expected_provisional_class: BENIGN
+    expected_criterion_status:
+      PVS1: NOT_APPLICABLE
+      PM2: NOT_MET
+      PM4: NOT_APPLICABLE
+      PS1: NOT_EVALUATED
+      PM5: NOT_EVALUATED
+      PM3: NOT_EVALUATED
+      PS3: NOT_EVALUATED
+      PP3: NOT_EVALUATED
+      BP4: NOT_EVALUATED
+      BA1: MET
+      BS1: MET
+      BS3: NOT_EVALUATED
+    source: "Hand-derived from ACMG/AMP combining rules (Richards et al. 2015, Table 5)"
+    curator_note: >
+      SYNTHETIC fixture, built in batch 31 as the benign-side counterpart
+      to BRCA1_SYNTH_PATHOGENIC_01, to give interpret_dominant_case()'s
+      new INSUFFICIENT path a clean, individually-Benign variant to drive
+      against (same rationale: no real BRCA1 fixture sourced this batch
+      individually resolves to BENIGN/LIKELY_BENIGN through this engine).
+      overall_af (1%) is deliberately set well above BRCA1's real, gene-
+      specific BA1 threshold (0.001, i.e. 0.1% -- stricter than the 5%
+      generic default, per config/population_thresholds.yaml), so BA1
+      Stand-Alone resolves this fixture to BENIGN outright -- the simplest
+      possible benign-direction combining path (Richards et al. 2015: BA1
+      is sufficient by itself). BS1 also independently evaluates MET at
+      this frequency (both thresholds are checked independently against
+      overall_af; BA1's Stand-Alone strength is what actually determines
+      the final call here, not BS1). No computational_evidence or
+      functional_evidence curated -- BA1 Stand-Alone dominates regardless,
+      same design choice already used by DMD_c.5234G>A's real BA1-MET
+      fixture.

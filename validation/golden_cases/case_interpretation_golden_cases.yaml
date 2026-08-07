@@ -184,3 +184,53 @@ case_interpretations:
       for the single-heterozygous-carrier case) rather than being
       confidently ruled out. See clinical.py's _interpret_xx_biallelic
       docstring for the full reasoning.
+
+  - case_id: CASE_BRCA1_RISK_CONFERRING
+    expected_status: RISK_CONFERRING
+    source: "Hand-derived: single synthetic PATHOGENIC BRCA1 variant, autosomal dominant gene"
+    curator_note: >
+      Batch 31. The clean AD positive case: interpret_dominant_case()'s
+      new RISK_CONFERRING status, distinct from AR/X-linked EXPLAINED --
+      see clinical.py's module docstring (batch 31 addition) for why a
+      single monoallelic pathogenic BRCA1 variant resolves to
+      RISK_CONFERRING rather than EXPLAINED: BRCA1-related HBOC is a
+      cancer-predisposition syndrome with incomplete, age-dependent
+      penetrance, not a fully deterministic Mendelian presentation the way
+      CAPN3/DMD's LOF-driven muscular dystrophies are -- "this variant
+      confers elevated risk" is the honest claim the evidence supports,
+      not "this variant explains a fully-penetrant phenotype already
+      observed."
+
+  - case_id: CASE_BRCA1_INSUFFICIENT
+    expected_status: INSUFFICIENT
+    source: "Hand-derived: single synthetic BENIGN BRCA1 variant, autosomal dominant gene"
+    curator_note: >
+      Batch 31, paired with CASE_BRCA1_RISK_CONFERRING. A variant that
+      individually resolves to BENIGN provides no explanation for a case
+      -- INSUFFICIENT, the same status label AR/X-linked cases use for
+      "not enough qualifying evidence," reused deliberately rather than
+      inventing an AD-specific benign-side status (see clinical.py's
+      module docstring, batch 31, for the explicit reasoning on why
+      INSUFFICIENT is reused here rather than introduced fresh).
+
+  - case_id: CASE_BRCA1_MANUAL_REVIEW_REAL
+    expected_status: MANUAL_REVIEW
+    source: "Hand-derived: single real VUS-classified BRCA1 variant (BRCA1_c.181T>G / C61G, ClinVar Variation ID 17661), autosomal dominant gene"
+    curator_note: >
+      Batch 31. Closes the same real-data-grounded gap
+      CASE_DMD_HEMIZYGOUS_MALE_VUS_REAL closed for the X-linked path:
+      every other BRCA1 case fixture this batch uses a synthetic variant
+      built to land cleanly on one side or the other. This one uses a
+      real, ENIGMA-panel-reviewed, 3-star Pathogenic ClinVar variant
+      (C61G) that this project's variant-only engine can only resolve to
+      VUS (see BRCA1_c.181T>G's own curator_note in
+      variant_golden_cases.yaml for the full reason -- PS3/PP3 alone,
+      missing the case-level PS4/PP4 evidence that actually drives the
+      real classification). interpret_dominant_case()'s catch-all branch
+      (variant classification neither qualifying nor benign-side) returns
+      MANUAL_REVIEW -- the honest answer when the underlying variant
+      classification is itself genuinely uncertain, not a a special AD
+      code path. Directly analogous to DMD_c.10103A>G's real VUS case:
+      both are instances of "this engine's honest uncertainty about the
+      variant faithfully propagates to honest uncertainty about the
+      case," not a coincidence.
