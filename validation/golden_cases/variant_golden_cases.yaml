@@ -1263,7 +1263,7 @@ golden_cases:
     expected_provisional_class: VUS
     expected_criterion_status:
       PVS1: MET
-      PM2: NOT_MET
+      PM2: NOT_APPLICABLE
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
@@ -1279,13 +1279,21 @@ golden_cases:
       Real ClinVar entry (VCV000017662), reviewed by expert panel,
       Pathogenic -- the Ashkenazi-founder allele historically called
       "185delAG". PVS1 MET (Very Strong): early frameshift, NMD expected.
-      PM2 NOT_MET: BRCA1's real PM2 is absent-only (pm2_max_credible_af=0.0
-      in config/population_thresholds.yaml), and this variant's curated
-      overall_af (gnomAD's own Grpmax Filtering AF, 2.478e-5 -- see this
-      fixture's notes in variant_evidence.json for why that specific
-      statistic was used instead of gnomAD's raw total AF) is nonzero, so
-      PM2 fails the strict absent-only rule regardless of how low that
-      frequency is. BA1 and BS1 both MANUAL_REVIEW: overall_af sits below
+      PM2 NOT_APPLICABLE: BRCA1's real PM2 does not apply to indel/delins
+      variants at all, and 185delAG is a frameshift indel -- enforced
+      directly via pm2_excludes_indel_delins=true
+      (config/population_thresholds.yaml), added when review found that
+      fixture-shape avoidance, the strategy that correctly keeps PM4/PM5
+      from firing on this fixture, could not work for PM2: this fixture's
+      population_evidence is required (and OBSERVED, driving the BA1/BS1
+      founder-frequency handling below), so PM2 would otherwise always
+      evaluate a real frequency comparison against a variant type the real
+      spec excludes entirely. Before this fix, PM2 evaluated NOT_MET here
+      -- a disclosed divergence from the real spec, confirmed via
+      engine.py's combine() to not affect this fixture's VUS result either
+      way, since NOT_MET and NOT_APPLICABLE both contribute zero weight --
+      corrected in this batch's PM2 gap fix rather than left as a
+      permanent disclosed gap. BA1 and BS1 both MANUAL_REVIEW: overall_af sits below
       both thresholds, but ancestry_specific_max_af (the real Ashkenazi
       Jewish subgroup frequency, 0.4158%) clears both -- the same
       founder-enrichment ambiguity flag CAPN3_c.550del's own fixture
@@ -1302,7 +1310,7 @@ golden_cases:
     expected_provisional_class: VUS
     expected_criterion_status:
       PVS1: MET
-      PM2: NOT_MET
+      PM2: NOT_APPLICABLE
       PM4: NOT_APPLICABLE
       PS1: NOT_APPLICABLE
       PM5: NOT_APPLICABLE
@@ -1320,7 +1328,10 @@ golden_cases:
       "5382insC". Same shape and same reasoning as BRCA1_c.68_69delAG
       immediately above (see that entry's curator_note for the full
       writeup): PVS1 MET (Very Strong, frameshift + NMD expected), PM2
-      NOT_MET (nonzero Grpmax FAF against BRCA1's absent-only threshold),
+      NOT_APPLICABLE (5382insC is a frameshift indel; BRCA1's real PM2
+      excludes indel/delins variants entirely, enforced via
+      pm2_excludes_indel_delins as of this batch's PM2 gap fix -- see
+      BRCA1_c.68_69delAG's curator_note for the full writeup),
       BA1/BS1 both MANUAL_REVIEW (overall_af below threshold, but the real
       Ashkenazi Jewish subgroup frequency, 0.1183%, clears both). PVS1
       alone is Table-5-insufficient -- VUS, for the same disclosed reason

@@ -1636,11 +1636,11 @@
         {
           "transcript_id": "NM_007294.4",
           "clinically_relevant": true,
-          "consequence": "frameshift_variant",
+          "consequence": "stop_gained",
           "mane_select": true,
-          "hgvs_c": "c.300dup",
-          "hgvs_p": "p.Val101fs",
-          "exon": "synthetic, modeled on an early-exon frameshift",
+          "hgvs_c": "c.301C>T",
+          "hgvs_p": "p.Arg101Ter",
+          "exon": "synthetic, modeled on an early-exon nonsense variant",
           "nmd_predicted": true
         }
       ],
@@ -1660,7 +1660,7 @@
         "score": 0.9,
         "calibrated_prediction": "PATHOGENIC"
       },
-      "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to give this batch's new interpret_dominant_case() a clean, individually-qualifying PATHOGENIC/LIKELY_PATHOGENIC variant to drive the case-level RISK_CONFERRING path -- mirroring exactly why CAPN3_SYNTH_PATHOGENIC_01/02 were built in Milestone 1/4: every real BRCA1 fixture sourced this batch (the two founder frameshifts, the real NMD-escape nonsense variant, and C61G) honestly lands on VUS through this engine, for four different, individually-disclosed reasons (see each fixture's own notes) -- none of them was available to demonstrate a clean case-level positive path without inventing evidence that isn't real. PVS1 (Very Strong, MET, frameshift + NMD predicted) + PM2 (Supporting, MET, ABSENT from gnomAD) + PP3 (Supporting, MET, synthetic calibrated-pathogenic score) satisfies Table 5's '1 Very Strong + >=2 Supporting' pathogenic combining rule directly -- PATHOGENIC, the same combining-rule path CAPN3_SYNTH_PATHOGENIC_01 was built to exercise for CAPN3's Milestone-1 criterion set, now shown for BRCA1's AD case-level layer instead."
+      "notes": "SYNTHETIC fixture, built deliberately (not sourced from ClinVar) to give this batch's new interpret_dominant_case() a clean, individually-qualifying PATHOGENIC/LIKELY_PATHOGENIC variant to drive the case-level RISK_CONFERRING path -- mirroring exactly why CAPN3_SYNTH_PATHOGENIC_01/02 were built in Milestone 1/4: every real BRCA1 fixture sourced this batch (the two founder frameshifts, the real NMD-escape nonsense variant, and C61G) honestly lands on VUS through this engine, for four different, individually-disclosed reasons (see each fixture's own notes) -- none of them was available to demonstrate a clean case-level positive path without inventing evidence that isn't real. PVS1 (Very Strong, MET, nonsense + NMD predicted) + PM2 (Supporting, MET, ABSENT from gnomAD) + PP3 (Supporting, MET, synthetic calibrated-pathogenic score) satisfies Table 5's '1 Very Strong + >=2 Supporting' pathogenic combining rule directly -- PATHOGENIC, the same combining-rule path CAPN3_SYNTH_PATHOGENIC_01 was built to exercise for CAPN3's Milestone-1 criterion set, now shown for BRCA1's AD case-level layer instead. Originally modeled as a frameshift variant; changed to a stop_gained/nonsense consequence during this batch's PM2 indel/delins gap fix, which correctly makes evaluate_pm2 return NOT_APPLICABLE (not MET) for any BRCA1 frameshift/in-frame-indel fixture -- this fixture needed PM2 MET to demonstrate its intended combining path, so a non-indel LOF consequence (still PVS1 Very Strong via NMD_RELEVANT_CONSEQUENCES) was the correct fix here, not a regression in the gate."
     },
     {
       "variant": {

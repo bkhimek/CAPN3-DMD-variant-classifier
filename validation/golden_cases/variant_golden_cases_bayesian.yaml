@@ -358,9 +358,10 @@ golden_cases:
     expected_points: 8
     source: "Hand-derived from Tavtigian et al. 2020's point system, applied to the real BRCA1_c.68_69delAG fixture (batch 31)"
     curator_note: >
-      PVS1 Very Strong (8) alone -- 1 contributing criterion (PM2 NOT_MET
-      contributes nothing; BA1/BS1 MANUAL_REVIEW contribute nothing
-      either direction), below the 2-criterion minimum, so VUS despite 8
+      PVS1 Very Strong (8) alone -- 1 contributing criterion (PM2
+      NOT_APPLICABLE, as of this batch's PM2 gap fix, contributes nothing;
+      BA1/BS1 MANUAL_REVIEW contribute nothing either direction), below
+      the 2-criterion minimum, so VUS despite 8
       points nominally sitting inside the 6-9 Likely Pathogenic band --
       the same shape as CAPN3_SYNTH_PVS1_STARTLOSS_NO_ALT_01 and
       CAPN3_SYNTH_PVS1_SPLICE_RNA_01, now on real data. Matches

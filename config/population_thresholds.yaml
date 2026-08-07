@@ -97,6 +97,7 @@ genes:
   BRCA1:
     pm2_max_credible_af: 0.0   # see threshold_source — deliberately zero, not a placeholder
     pm2_strength: SUPPORTING
+    pm2_excludes_indel_delins: true  # batch 31 PM2 gap fix — see threshold_source and evaluators/pm2.py
     bs1_min_af: 0.0001         # 0.01% — BS1_Strong cutoff only (see threshold_source)
     ba1_af: 0.001              # 0.1%
     threshold_source: >
@@ -115,12 +116,21 @@ genes:
       that evaluate_pm2's existing OBSERVED-branch comparison
       (overall_af >= max_credible_af) is true for any nonzero observed
       frequency, correctly reproducing the real spec's absent-only scope
-      without any evaluator code change. This project has no consequence-
-      type gate to enforce the indel/delins exclusion or a depth field to
-      enforce the read-depth minimum -- both are disclosed, curation-time-
-      only simplifications (see README.md, "BRCA1 extension (Batch 31)"),
-      not evaluator-enforced. No BRCA1 indel fixture in this project's
-      curated set drives a PM2 call for exactly this reason.
+      without any evaluator code change. As of this batch's PM2 gap fix,
+      the indel/delins exclusion IS enforced in code:
+      pm2_excludes_indel_delins=true below makes evaluate_pm2 return
+      NOT_APPLICABLE for any BRCA1 fixture whose clinically-relevant
+      transcript consequence is frameshift_variant, inframe_deletion, or
+      inframe_insertion (see evaluators/pm2.py's
+      PM2_INDEL_DELINS_CONSEQUENCES), before any retrieval-status or
+      frequency comparison runs -- discovered necessary when review found
+      that fixture-shape avoidance (the strategy PM4/PM5 correctly use)
+      cannot work for PM2, since population_evidence is a required field
+      this gene's two Ashkenazi-founder fixtures also need, OBSERVED, to
+      drive BA1/BS1's founder-frequency handling below. The read-depth
+      minimum has no equivalent field in PopulationEvidence and remains a
+      disclosed, curation-time-only simplification (see README.md, "BRCA1
+      extension (Batch 31)").
 
       BA1 (Stand Alone): FAF > 0.1% in gnomAD v2.1 exome-non-cancer and/or
       v3.1 non-cancer, non-founder population(s); read depth >=20; not

@@ -3,9 +3,14 @@
 A small, scoped prototype implementing the ACMG Engine architecture
 described in the companion design-guide set, starting with two genes:
 **CAPN3** (autosomal recessive, LGMDR1/calpainopathy) and **DMD**
-(X-linked, out of schema scope until Milestone 4 — see Roadmap).
+(X-linked, out of schema scope until Milestone 4 — see Roadmap). A third
+gene, **BRCA1** (autosomal dominant, hereditary breast and ovarian
+cancer syndrome), was added in Batch 31 as the framework's first test of
+generalizing beyond the two inheritance patterns it was built against —
+see "BRCA1: a third gene, autosomal dominant, and the framework's first
+generalization test (batch 31)" in Design notes.
 
-## Status: COMPLETE (as of Batch 30). Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25), PVS1 extended with a real splice-RNA-evidence branch (Batch 26) and a real start-loss alternative-start-codon branch (Batch 27), PM3 (in-trans-with-a-pathogenic-variant) implemented (Batch 28) via curated per-proband points -- this project's twelfth evaluator and first Strong-strength pathogenic-direction evaluator, and the change that finally moves the real `CAPN3_c.550del` founder-allele fixture to PATHOGENIC, matching its real ClinVar call -- curated variant set at 19 real of ~20-30 (29 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), `clinical.py` extended to handle biallelic XX X-linked case interpretation (Batch 29) -- a real, X-inactivation-independent mechanism, closing the last structural gap in case-level reasoning -- CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21). Batch 30 closed the project out with a documentation-only pass (no code changes) -- see "Final status and scope boundary" at the end of the Roadmap section for the definitive summary of what's built and what's deliberately left out of scope.
+## Status: COMPLETE (as of Batch 30), reopened for Batch 31 (BRCA1 generalization test). Milestone 5 complete, PS1/PM5 evaluators added (Batch 22), DMD CNV/structural-variant deletion scoring (Batch 23) and duplication scoring (Batch 24) both implemented as deliberately partial slices, PS3/BS3 functional-evidence evaluators added (Batch 25), PVS1 extended with a real splice-RNA-evidence branch (Batch 26) and a real start-loss alternative-start-codon branch (Batch 27), PM3 (in-trans-with-a-pathogenic-variant) implemented (Batch 28) via curated per-proband points -- this project's twelfth evaluator and first Strong-strength pathogenic-direction evaluator, and the change that finally moves the real `CAPN3_c.550del` founder-allele fixture to PATHOGENIC, matching its real ClinVar call -- curated variant set at 19 real of ~20-30 (29 point-mutation fixtures total, plus 3 CNV deletion + 2 CNV duplication fixtures in separate curated sets), `clinical.py` extended to handle biallelic XX X-linked case interpretation (Batch 29) -- a real, X-inactivation-independent mechanism, closing the last structural gap in case-level reasoning -- CAPN3-DMD-variant-calling-pipeline integration adapter done (Batch 21). Batch 30 closed the project out with a documentation-only pass (no code changes) -- see "Final status and scope boundary" at the end of the Roadmap section for the definitive summary of what's built and what's deliberately left out of scope. Batch 31 reopened the project after that close, at the user's request, to test whether the ACMG Engine architecture generalizes to a gene it wasn't built against: BRCA1 (autosomal dominant) is this project's third gene and first AD one, added via the real ClinGen ENIGMA BRCA1/BRCA2 VCEP v1.2 specification -- see "BRCA1: a third gene, autosomal dominant, and the framework's first generalization test (batch 31)" below for the full design, and "Final status and scope boundary" for how the reopening affects the project's earlier "complete, not paused" declaration.
 
 Milestone 5 (batch 20) added a second combining system -- Bayesian
 point-based combining (Tavtigian et al. 2020), offered alongside, not
@@ -1846,6 +1851,172 @@ just PyYAML for fixture loading. Converting to pydantic later, if its
 validation machinery becomes useful, is a contained, mechanical change
 scoped to these eight files.
 
+**BRCA1: a third gene, autosomal dominant, and the framework's first
+generalization test (batch 31).** Every gene this project supported
+through batch 30 shared one property the schema was quietly built
+around: `GeneDiseaseContext.inheritance` gated every case-level decision
+through exactly two branches, `interpret_recessive_case` and
+`interpret_x_linked_case` -- `interpret_case`'s dispatcher fell through
+to `NOT_APPLICABLE` for anything else, including `AUTOSOMAL_DOMINANT`,
+which had been a defined `Inheritance` enum value since Milestone 1
+without ever being reachable. Batch 31 adds BRCA1 (Hereditary breast and
+ovarian cancer syndrome, autosomal dominant, ClinGen gene-disease
+validity Definitive per Lee et al. 2019) specifically to find out
+whether that gap was cosmetic or structural, and to prove the framework
+generalizes to a gene it wasn't designed against rather than only to a
+second instance of a pattern (CAPN3, DMD) it already knew.
+
+The real spec adopted is the ClinGen ENIGMA BRCA1 and BRCA2 VCEP
+Specifications to the ACMG/AMP Guidelines for BRCA1, v1.2 (2025-01-09,
+DOI 10.5281/zenodo.21434315) -- BRCA1's own real VCEP, the same kind of
+primary-source adoption CAPN3 got in batch 4, now for a gene this
+project had never touched. Following an audit of every existing
+evaluator against BRCA1's real biology before writing any code
+(confirmed with the user before implementation, same discipline as
+every prior batch): `pvs1.py`, `ps1.py`/`pm5.py`, `pp3.py`/`bp4.py`,
+`ps3.py`/`bs3.py`, `ba1.py`/`bs1.py`/`pm2.py` are all gene-agnostic and
+needed zero changes to work for BRCA1 -- only three files actually
+changed: `enums.py` (one new `CaseInterpretationStatus` value,
+`RISK_CONFERRING`), `gene_disease_context.yaml` and
+`population_thresholds.yaml` (BRCA1 config entries), and `clinical.py`
+(a new `interpret_dominant_case()` function plus the dispatcher's
+one-line addition). Eleven of the twelve evaluators needed zero
+changes; the twelfth, PM2, needed one small, additive, opt-in gate --
+not the "zero evaluator changes" this batch originally claimed. See the
+PM2 indel/delins gap fix below for why, and for the honest correction
+to that claim.
+
+Locked decisions, same "confirmed before code" discipline as every
+batch: scope is point-mutation criteria and single-monoallelic-variant
+case reasoning only for this batch -- BRCA2, CNV/dosage, and PM3/BS2
+(biallelic Fanconi-anemia-phenotype evidence, a genuinely different
+disease model on the same gene, deliberately deferred the same way
+CAPN3_c.2257G>A's real AD-vs-AR tension was named rather than modeled in
+batch 10) are all out of scope, named here rather than silently absent.
+A single monoallelic pathogenic BRCA1 variant resolves a case to the new
+`RISK_CONFERRING` status, not `EXPLAINED`: BRCA1-related HBOC is an
+incompletely, age-dependently penetrant cancer-predisposition syndrome,
+not the fully-penetrant Mendelian presentation CAPN3/DMD's LOF-driven
+muscular dystrophies are, so "this variant confers elevated risk" is the
+honest claim the evidence supports. The benign-side and
+MANUAL_REVIEW-catch-all outcomes deliberately reuse
+`INSUFFICIENT`/`MANUAL_REVIEW` rather than inventing AD-specific labels
+for them -- only the positive path needed a new concept.
+
+A fixture-shape guard test was added --
+`test_brca1_fixtures_do_not_exercise_pm4_pm5_or_unenforced_pm2_indel_gaps`
+in `tests/unit/test_loader.py` -- asserting that no curated BRCA1
+fixture accidentally exercises PM4 (in-frame indel/stop-loss), PM5
+(same-residue missense precedent), or an unenforced PM2-indel call.
+Building it surfaced a real design gap the original plan hadn't fully
+resolved: PM4/PM5 correctly stay inert through fixture-shape avoidance
+alone (neither has a required field these fixtures populate), but PM2
+does not -- `population_evidence` is required on every bundle, and the
+two Ashkenazi-founder fixtures need it, OBSERVED, for their own BA1/BS1
+founder-frequency handling. With BRCA1's `pm2_max_credible_af` set to
+0.0, that same evidence always made `evaluate_pm2` return NOT_MET for
+those two fixtures -- a real, disclosed divergence from the real
+ENIGMA spec's "PM2 does not apply to indel/delins variants" rule, not a
+fixture mistake. Confirmed via `engine.py`'s `combine()` (only
+`CriterionStatus.MET` contributes to any Table 5 tier) that this did
+not change either fixture's final VUS result before deciding how to
+fix it. Fixed rather than left disclosed-but-wrong: `evaluators/pm2.py`
+gained one small, additive, opt-in gate -- a gene may set
+`pm2_excludes_indel_delins: true` in `population_thresholds.yaml` (set
+only for BRCA1; absent for CAPN3/DMD, which are completely unaffected),
+checked before any retrieval-status branch, returning NOT_APPLICABLE
+for frameshift/in-frame-indel consequences. Both founder golden cases
+were corrected (PM2: NOT_MET -> NOT_APPLICABLE) to match. One side
+effect surfaced by the fix itself: `BRCA1_SYNTH_PATHOGENIC_01`, the
+synthetic fixture built to demonstrate PVS1 Very Strong + PM2
+Supporting + PP3 Supporting = PATHOGENIC, had used a frameshift
+consequence for PVS1 -- now correctly excluded from PM2 too, breaking
+its own designed combining path. Switched to a stop_gained/nonsense
+consequence (still PVS1 Very Strong via `NMD_RELEVANT_CONSEQUENCES`,
+not an indel) rather than weakening the new gate to accommodate one
+synthetic fixture's original design.
+
+BA1/BS1's founder-frequency handling (see "PM2 and founder mutations"
+above) needed a real fix, not just a config entry, to work correctly for
+BRCA1's two Ashkenazi-founder fixtures (185delAG, 5382insC): re-reading
+`ba1.py`/`bs1.py` directly (not assumed from the CAPN3 pattern) showed
+both evaluators compare `overall_af` against the gene's threshold
+*before* ever consulting `ancestry_specific_max_af` -- so curating
+`ancestry_specific_max_af` alone as a founder-excluded value, the
+original plan, would not have worked: 185delAG's raw gnomAD total AF
+(1.185e-4) already exceeds BRCA1's own BS1 threshold (1e-4) on its own,
+which would have made BS1 wrongly return MET for a known-Pathogenic
+founder variant before the ancestry comparison was ever reached. The fix
+curates `overall_af` itself as gnomAD's own reported Grpmax Filtering AF
+-- a statistic gnomAD computes specifically by finding the
+highest-frequency *adequately-powered* ancestry group, which by
+gnomAD's own methodology already excludes small, bottlenecked founder
+groups like Ashkenazi Jewish -- rather than gnomAD's undifferentiated
+total. This is disclosed in full in both fixtures' own `notes` fields,
+not just here. A first-draft golden case for the third real fixture
+(C61G) also shipped with a real arithmetic bug -- BS1 asserted NOT_MET
+without actually checking the cited ancestry-specific frequency
+(0.0001224) against BRCA1's BS1 threshold (0.0001) -- caught by the test
+suite itself and corrected in the golden case, not the evaluator (see
+that fixture's `curator_note`).
+
+Curated fixtures: six new BRCA1 entries in
+`data/curated/variant_evidence.json`. Four are real: `BRCA1_c.68_69delAG`
+(185delAG) and `BRCA1_c.5266dup` (5382insC), the two Ashkenazi-founder
+ENIGMA-reviewed Pathogenic frameshifts described above; `BRCA1_c.5559C>G`
+(p.Tyr1853Ter), real, ABSENT from gnomAD, and this project's first real
+BRCA1 fixture to show PVS1's NMD-escape scope gap (previously only shown
+on DMD_c.11041A>T, now confirmed on a third gene) -- real Findlay et al.
+2018 saturation-genome-editing functional data (score -2.15,
+LOSS_OF_FUNCTION) gives it a real, if Supporting-floor-curated, PS3; and
+`BRCA1_c.181T>G` ("C61G"), a real, extensively-studied RING-domain
+founder missense with real, explicitly panel-assigned PS3(Strong)/
+PP3(Supporting) evidence pulled directly from an ENIGMA-criteria ClinVar
+submission (SCV005848150.1: "PS3 (strong pathogenic): Findlay 2018 LOF,
+Bouwman 2020 Deleterious ... PP3 (supporting pathogenic): BayesDel_noAF
+= 0.565"). All four real fixtures land on VUS through this engine -- not
+four separate accidents, but the same structural story CAPN3's real
+fixtures told for most of this project's history: the criteria actually
+driving each variant's real ENIGMA-panel Pathogenic call (PM3/PS4/
+PP4-style case-level and cohort evidence) are exactly the evidence types
+this project's variant-only engine doesn't reach, on a new gene now too.
+Two more fixtures are synthetic, disclosed as such, built specifically
+because no real BRCA1 fixture individually resolves to PATHOGENIC or
+BENIGN through this engine and the new case-level `RISK_CONFERRING`/
+`INSUFFICIENT` paths needed something to drive against:
+`BRCA1_SYNTH_PATHOGENIC_01` (PVS1 Very Strong + PM2 Supporting + PP3
+Supporting = Table 5's "1 Very Strong + >=2 Supporting" rule, the same
+combining path `CAPN3_SYNTH_PATHOGENIC_01` was built to exercise in
+Milestone 1) and `BRCA1_SYNTH_BENIGN_01` (BA1 Stand-Alone, same pattern
+as `CAPN3_SYNTH_LIKELY_BENIGN_01`/`DMD_c.5234G>A`).
+
+Three new `ClinicalCase` fixtures exercise `interpret_dominant_case()`
+end to end: `CASE_BRCA1_RISK_CONFERRING` and `CASE_BRCA1_INSUFFICIENT`
+(the two synthetic variants above, one each), and
+`CASE_BRCA1_MANUAL_REVIEW_REAL` -- built on the real C61G VUS result,
+directly analogous to `CASE_DMD_HEMIZYGOUS_MALE_VUS_REAL` (batch 17):
+the case-level layer's honest uncertainty faithfully propagating from a
+variant this engine itself cannot resolve further.
+
+Like CAPN3's real VCEP (see "Real ClinGen LGMD VCEP thresholds for
+CAPN3" above), BRCA1's real ENIGMA spec is also built around a
+points-based combining framework, not Table 5 -- and, same as CAPN3,
+this project stays Table-5-only for BRCA1 too, deliberately, not by
+oversight: all six new BRCA1 fixtures got matching entries in
+`variant_golden_cases_bayesian.yaml` as well (none diverge from their
+Table 5 result -- BRCA1 adds no fifth entry to the four-fixture CAPN3
+divergence set), so the Bayesian system remains real and tested for
+BRCA1 too, just not adopted as this project's default any more than it
+is for CAPN3 or DMD (see "Table 5 vs. Bayesian default" below).
+
+259 tests pass in total as of batch 31 (35 curated point-mutation
+fixtures, up from 29; 14 curated `ClinicalCase` fixtures, up from 11) --
+all but two of this batch's own additions leave every prior CAPN3/DMD
+test and golden case result untouched. The two exceptions are this
+batch's own BRCA1_c.68_69delAG/BRCA1_c.5266dup golden cases, corrected
+mid-batch when the PM2 indel/delins gap above was found and fixed --
+not a change to any pre-existing CAPN3/DMD result.
+
 ## Repository layout
 
 ```
@@ -1900,15 +2071,18 @@ config/
 
 data/
   curated/
-    gene_disease_context.yaml   CAPN3 and DMD
-    variant_evidence.json       29 curated variants (CAPN3 + DMD) -- growing toward ~20-30;
-                                 two enriched with functional_evidence in batch 25 (see "PS3 and BS3" above);
-                                 one new synthetic PVS1 splice-RNA-evidence fixture added batch 26;
-                                 CAPN3_c.1A>G enriched, plus two new synthetic PVS1 start-loss fixtures,
-                                 added batch 27; CAPN3_c.550del enriched with real PM3 evidence, plus two
-                                 new synthetic PM3 fixtures, added batch 28 (see "PM3: implemented
-                                 (batch 28)" above)
-    clinical_cases.json         11 curated ClinicalCase fixtures (Milestone 4) -- 2 added batch 29 for biallelic XX X-linked
+    gene_disease_context.yaml   CAPN3, DMD and BRCA1
+    variant_evidence.json       35 curated variants (CAPN3 + DMD + BRCA1) -- growing toward ~20-30
+                                 for CAPN3/DMD; two enriched with functional_evidence in batch 25 (see
+                                 "PS3 and BS3" above); one new synthetic PVS1 splice-RNA-evidence fixture
+                                 added batch 26; CAPN3_c.1A>G enriched, plus two new synthetic PVS1
+                                 start-loss fixtures, added batch 27; CAPN3_c.550del enriched with real
+                                 PM3 evidence, plus two new synthetic PM3 fixtures, added batch 28 (see
+                                 "PM3: implemented (batch 28)" above); six new BRCA1 fixtures (four real,
+                                 two synthetic) added batch 31 (see "BRCA1: a third gene, autosomal
+                                 dominant, and the framework's first generalization test" above)
+    clinical_cases.json         14 curated ClinicalCase fixtures (Milestone 4) -- 2 added batch 29 for
+                                 biallelic XX X-linked, 3 added batch 31 for BRCA1 dominant
     cnv_deletion_evidence.json  3 curated CNV deletion fixtures (DMD only) -- batch 23,
                                  a separate curated set from variant_evidence.json above
     cnv_duplication_evidence.json  2 curated CNV duplication fixtures (DMD only) -- batch 24,
@@ -1953,7 +2127,7 @@ pytest
 ```
 
 `pytest.ini` sets `pythonpath = src`, so this works out of the box with no
-extra environment variables. All 160 tests currently pass.
+extra environment variables. All 259 tests currently pass.
 
 A dependency-free alternative is also included, useful in environments
 without PyPI access:
@@ -2332,30 +2506,58 @@ of this section for where things stand now.
   batch history stays complete through the actual last batch. The
   decision to close here rather than keep going was the user's, made
   explicitly at the start of this batch rather than assumed.
+- **Batch 31 (BRCA1: autosomal dominant, the framework's first
+  generalization test)** — done. Reopened the project after batch 30's
+  close, at the user's request, to add BRCA1 -- this project's third
+  gene, first autosomal dominant one, and first test of whether the
+  ACMG Engine architecture generalizes beyond the two inheritance
+  patterns (autosomal recessive, X-linked) it was built against. See
+  "BRCA1: a third gene, autosomal dominant, and the framework's first
+  generalization test (batch 31)" above for the full design: the real
+  ClinGen ENIGMA BRCA1/BRCA2 VCEP v1.2 spec adopted, the
+  gene-agnostic-evaluator audit that found only three files needed to
+  change, the new `RISK_CONFERRING` case status and
+  `interpret_dominant_case()`, the Grpmax-Filtering-AF founder-frequency
+  correction to BA1/BS1 curation, and six new curated fixtures (four
+  real, two synthetic) plus three new `ClinicalCase` fixtures, and one
+  guard test added when review surfaced a real PM2 indel/delins gap (see
+  above for the full writeup, including the resulting
+  `evaluators/pm2.py` fix). 259 tests total, up from 250.
 
 ## Final status and scope boundary
 
-This project is complete, not paused. Batch 29 (X-linked female/biallelic
-case interpretation) was the last batch of new functionality; batch 30
-closed out the documentation to reflect that rather than leaving the
-Roadmap reading like an open todo list. Nothing below is a promise of
-future work — it's a disclosed inventory of exactly where the scope
+This project was declared complete, not paused, at the end of batch 30:
+batch 29 (X-linked female/biallelic case interpretation) was the last
+batch of new functionality at that point, and batch 30 closed out the
+documentation to reflect that. Batch 31 reopened it -- a deliberate,
+user-requested extension to test whether the framework generalizes to a
+new gene and inheritance pattern, not a reversal of batch 30's own scope
+decisions for CAPN3/DMD. Everything in this section below this paragraph
+describes the CAPN3/DMD scope boundary as it stood at batch 30 and still
+stands; BRCA1's own scope boundary (BRCA2, CNV/dosage, PM3/BS2
+Fanconi-anemia-phenotype evidence, and two-variant AD case reasoning are
+all deliberately deferred) is documented in full in "BRCA1: a third
+gene, autosomal dominant, and the framework's first generalization test
+(batch 31)" above and is not repeated here. Nothing below is a promise
+of future work — it's a disclosed inventory of exactly where the scope
 boundary sits, in the same spirit as every other "researched, sized, and
 deliberately not implemented" decision this project made along the way,
 so a future reader (in this repo or a similar one) knows precisely what
 was checked versus what was left honestly unresolved.
 
 What's here, end to end: two genes (CAPN3 autosomal recessive, DMD
-X-linked), twelve ACMG/AMP point-mutation criterion evaluators (PVS1,
-PM2, PM4, PS1, PM5, PM3, PS3, PP3, BP4, BA1, BS1, BS3), two independent,
-fully tested combining systems (Table 5 and Bayesian point-based),
-DMD CNV deletion and duplication scoring as a separate parallel system,
-case-level interpretation for autosomal recessive and X-linked
-(hemizygous male and biallelic-XX) inheritance, a real pipeline-adapter
-integration, 29 point-mutation fixtures (19 real ClinVar/VCEP-grounded)
-plus 5 CNV fixtures plus 11 case-level fixtures, all checked against
+X-linked) as of batch 30, three as of batch 31 (BRCA1 autosomal
+dominant added -- see above), twelve ACMG/AMP point-mutation criterion
+evaluators (PVS1, PM2, PM4, PS1, PM5, PM3, PS3, PP3, BP4, BA1, BS1,
+BS3), two independent, fully tested combining systems (Table 5 and
+Bayesian point-based), DMD CNV deletion and duplication scoring as a
+separate parallel system, case-level interpretation for autosomal
+recessive, X-linked (hemizygous male and biallelic-XX), and (as of
+batch 31) autosomal dominant inheritance, a real pipeline-adapter
+integration, 35 point-mutation fixtures (23 real ClinVar/VCEP-grounded)
+plus 5 CNV fixtures plus 14 case-level fixtures, all checked against
 golden cases curated independently of the code that's judged against
-them, and 250 tests passing under both a pytest suite and a
+them, and 259 tests passing under both a pytest suite and a
 dependency-free runner.
 
 What's deliberately out of scope, and why, grouped by area:

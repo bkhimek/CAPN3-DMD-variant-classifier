@@ -59,6 +59,8 @@ def load_frequency_thresholds(path: Path = None) -> dict:
                 gene: {
                     "pm2_max_credible_af": float,
                     "pm2_strength": str,   # one of CriterionStrength's names; defaults to "MODERATE"
+                    "pm2_excludes_indel_delins": bool,  # optional; batch 31; absent/false means
+                                            # PM2 evaluates normally for this gene's indel/delins fixtures
                     "bs1_min_af": float,
                     "ba1_af": float,       # optional per-gene BA1 override; absent means "use the global default"
                     "threshold_source": str,
@@ -125,6 +127,13 @@ def load_frequency_thresholds(path: Path = None) -> dict:
         if "ba1_af" in entry:
             _validate_af("ba1_af", entry["ba1_af"])
             gene_config["ba1_af"] = float(entry["ba1_af"])
+        if "pm2_excludes_indel_delins" in entry:
+            excludes_value = entry["pm2_excludes_indel_delins"]
+            if not isinstance(excludes_value, bool):
+                raise SchemaValidationError(
+                    f"{path}: genes.{gene}.pm2_excludes_indel_delins must be true/false"
+                )
+            gene_config["pm2_excludes_indel_delins"] = excludes_value
         genes[gene] = gene_config
 
     return {"ba1_stand_alone_af": float(ba1_af), "genes": genes}

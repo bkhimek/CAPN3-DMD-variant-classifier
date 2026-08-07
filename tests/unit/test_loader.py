@@ -9,6 +9,9 @@ from pathlib import Path
 
 from variant_classifier import loader
 from variant_classifier.errors import SchemaValidationError
+from variant_classifier.evaluators.pm2 import PM2_INDEL_DELINS_CONSEQUENCES, evaluate_pm2
+from variant_classifier.models.enums import CriterionStatus
+from variant_classifier.models.transcript_consequence import TranscriptConsequence
 
 
 def test_load_gene_disease_contexts_from_real_fixture():
@@ -176,3 +179,71 @@ def test_load_gene_disease_contexts_rejects_key_mismatch():
     except SchemaValidationError:
         return
     raise AssertionError("expected SchemaValidationError")
+
+
+def test_brca1_fixtures_do_not_exercise_pm4_pm5_or_unenforced_pm2_indel_gaps():
+    """Batch 31 guard test (design doc v2 section 9, refined during
+    implementation -- see README.md's BRCA1 design note for the full
+    writeup). BRCA1's real ENIGMA spec excludes PM4 (folded into PP3/BP4)
+    and missense-based PM5 (its real PM5 is a structurally different,
+    PTC/exon-only code) entirely, and neither evaluators/pm4.py nor
+    evaluators/pm5.py has a gene gate -- this batch avoided curating a
+    BRCA1 fixture shape that would exercise either gap rather than adding
+    one to shared evaluator code CAPN3/DMD also run through (design doc
+    sections 1.4/1.5). "Never silently guess" is this project's whole
+    ethos; relying on that discipline alone for every future BRCA1
+    fixture was flagged as insufficient, hence this test.
+
+    PM2's indel/delins exclusion is different: it IS enforced in code
+    (evaluators/pm2.py's pm2_excludes_indel_delins gate, added this batch
+    after discovering fixture-shape avoidance cannot work for PM2 --
+    population_evidence is a required field the founder fixtures also
+    need, OBSERVED, for BA1/BS1's founder-frequency handling). This test
+    still checks it explicitly rather than trusting the config alone: it
+    confirms the gate is actually configured for BRCA1 and actually fires
+    for every BRCA1 indel/delins fixture, so a future accidental removal
+    of the config flag is caught here, not by chance.
+    """
+    bundles, rejected = loader.load_variant_evidence_bundles()
+    assert rejected == []
+    thresholds = loader.load_frequency_thresholds()
+    brca1_bundles = [b for b in bundles if b.variant.gene == "BRCA1"]
+    assert brca1_bundles, "expected at least one BRCA1 fixture -- this guard test would be vacuous otherwise"
+
+    for bundle in brca1_bundles:
+        variant_id = bundle.variant.variant_id
+        transcript = next(tc for tc in bundle.transcript_consequences if tc.clinically_relevant)
+
+        assert transcript.consequence not in TranscriptConsequence.PM4_RELEVANT_CONSEQUENCES, (
+            f"{variant_id}: consequence {transcript.consequence.value} is PM4-relevant, but "
+            "evaluators/pm4.py has no gene gate for BRCA1 (design doc section 1.4) -- this "
+            "fixture would incorrectly exercise PM4 for a gene whose real spec folds it into "
+            "PP3/BP4 instead. Curate a non-PM4-relevant consequence, or add a real PM4 gene gate "
+            "before adding this fixture."
+        )
+
+        sre = bundle.same_residue_evidence
+        assert sre is None or not sre.pm5_precedent_established, (
+            f"{variant_id}: same_residue_evidence.pm5_precedent_established is set, but "
+            "evaluators/pm5.py has no gene gate for BRCA1 (design doc section 1.5) -- ENIGMA's "
+            "real BRCA1 PM5 is a structurally different, PTC/exon-only code, not the classic "
+            "missense-residue PM5 this evaluator implements. Remove this precedent, or add a "
+            "real PM5 gene gate before adding this fixture."
+        )
+
+        if transcript.consequence in PM2_INDEL_DELINS_CONSEQUENCES:
+            gene_config = thresholds["genes"].get(bundle.variant.gene, {})
+            assert gene_config.get("pm2_excludes_indel_delins", False), (
+                f"{variant_id}: has an indel/delins consequence ({transcript.consequence.value}) "
+                f"but {bundle.variant.gene}'s population_thresholds.yaml entry does not set "
+                "pm2_excludes_indel_delins=True -- PM2 would incorrectly evaluate a real "
+                "frequency comparison against a variant type the real BRCA1 spec excludes "
+                "entirely (design doc section 6)."
+            )
+            result = evaluate_pm2(bundle, thresholds)
+            assert result.status == CriterionStatus.NOT_APPLICABLE, (
+                f"{variant_id}: pm2_excludes_indel_delins=True is configured, but evaluate_pm2 "
+                f"returned {result.status.value}, not NOT_APPLICABLE -- the gate is not firing "
+                "for this indel/delins consequence."
+            )
+
