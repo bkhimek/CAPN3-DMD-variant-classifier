@@ -27,6 +27,19 @@
 # Bayesian point-based combining system are not implemented here. DMD has
 # no VCEP specification adopted and remains GENERIC_ACMG.
 
+# BRCA1 was added in batch 31, this project's first autosomal dominant gene
+# and the first proof that the framework generalizes beyond the AR (CAPN3)
+# and X-linked (DMD) patterns it was built against. Real ClinGen ENIGMA
+# BRCA1/BRCA2 VCEP specification adopted (see specification.version below
+# and config/population_thresholds.yaml's threshold_source for exactly what
+# was and wasn't carried over). Scope this batch is point-mutation criteria
+# only, single monoallelic variant case-level reasoning only -- CNV/dosage,
+# BRCA2, PM3/BS2 (Fanconi-anemia-phenotype evidence), and two-variant AD
+# case reasoning are all explicitly deferred. See README.md, "BRCA1
+# extension (Batch 31)" for the full writeup, including why a single
+# monoallelic pathogenic variant here resolves case-level status to the new
+# CaseInterpretationStatus.RISK_CONFERRING rather than EXPLAINED.
+
 genes:
   CAPN3:
     gene: CAPN3
@@ -49,3 +62,14 @@ genes:
       type: GENERIC_ACMG
       version: "Richards et al. 2015"
     gene_disease_validity: "ClinGen: Definitive (DMD-dystrophinopathy, X-linked)"
+
+  BRCA1:
+    gene: BRCA1
+    disease: "Hereditary breast and ovarian cancer syndrome (BRCA1-related)"
+    inheritance: AUTOSOMAL_DOMINANT
+    mechanism: LOSS_OF_FUNCTION
+    lof_established: true
+    specification:
+      type: VCEP
+      version: "ClinGen ENIGMA BRCA1 and BRCA2 VCEP Specifications to the ACMG/AMP Guidelines for BRCA1, v1.2 (2025-01-09; DOI 10.5281/zenodo.21434315)"
+    gene_disease_validity: "ClinGen: Definitive (BRCA1-hereditary breast and ovarian cancer, autosomal dominant) -- per Lee et al. 2019, Genetics in Medicine 21:1497-1506 (ClinGen clinical validity framework applied to 31 HBOC panel genes; BRCA1 confirmed Definitive for both breast and ovarian cancer in that assessment)"

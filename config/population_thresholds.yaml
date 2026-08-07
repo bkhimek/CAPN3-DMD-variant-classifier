@@ -94,3 +94,65 @@ genes:
       8+1=9 points, within their Likely Pathogenic range (6-9). See
       CAPN3_c.1939G>T in variant_golden_cases.yaml for a real example, and
       the README's "Expanding the curated set" notes for the full writeup.
+  BRCA1:
+    pm2_max_credible_af: 0.0   # see threshold_source — deliberately zero, not a placeholder
+    pm2_strength: SUPPORTING
+    bs1_min_af: 0.0001         # 0.01% — BS1_Strong cutoff only (see threshold_source)
+    ba1_af: 0.001              # 0.1%
+    threshold_source: >
+      ClinGen ENIGMA BRCA1 and BRCA2 Variant Curation Expert Panel (VCEP)
+      Specifications to the ACMG/AMP Variant Interpretation Guidelines for
+      BRCA1, Version 1.2, released 2025-01-09. DOI: 10.5281/zenodo.21434315.
+      Registry: cspec.genome.network/cspec/ui/svi/doc/GN092.
+
+      PM2_Supporting: absent from controls in an outbred population, gnomAD
+      v2.1 (non-cancer, exome-only subset) AND gnomAD v3.1 (non-cancer);
+      region read depth >=25; not applied to indel/delins variants; a single
+      observation in an outbred population is explicitly declared
+      uninformative. Unlike CAPN3, BRCA1's real PM2 has NO numeric
+      partial-frequency tier at all -- it is strictly an absent-or-not
+      condition. pm2_max_credible_af is set to 0.0 (not a placeholder) so
+      that evaluate_pm2's existing OBSERVED-branch comparison
+      (overall_af >= max_credible_af) is true for any nonzero observed
+      frequency, correctly reproducing the real spec's absent-only scope
+      without any evaluator code change. This project has no consequence-
+      type gate to enforce the indel/delins exclusion or a depth field to
+      enforce the read-depth minimum -- both are disclosed, curation-time-
+      only simplifications (see README.md, "BRCA1 extension (Batch 31)"),
+      not evaluator-enforced. No BRCA1 indel fixture in this project's
+      curated set drives a PM2 call for exactly this reason.
+
+      BA1 (Stand Alone): FAF > 0.1% in gnomAD v2.1 exome-non-cancer and/or
+      v3.1 non-cancer, non-founder population(s); read depth >=20; not
+      applied to well-established pathogenic founder variants (a second,
+      independent carve-out this project's schema cannot represent). The
+      Ashkenazi-founder fixtures (185delAG, 5382insC) are curated with
+      ancestry_specific_max_af drawn from non-AJ gnomAD subsets specifically
+      so BA1/BS1 are evaluated against the correct, non-founder population
+      per the real rule -- not a workaround, the rule's own intended scope.
+
+      BS1: two real tiers -- Strong for FAF >0.01%, Supporting for FAF
+      >0.002% and <=0.01% (the spec states the Strong tier as "FAF > 0.01%"
+      without an explicit upper bound in the row itself; any ceiling implied
+      elsewhere is this project's own inference from BA1 taking over above
+      that point, not a directly quoted spec value). This project's bs1.py
+      only implements a single binary threshold at Strong strength (no
+      Supporting tier exists in the evaluator). bs1_min_af is set to the
+      STRONG cutoff (0.0001 / 0.01%), the more conservative choice: this
+      never wrongly upgrades a Supporting-only signal to Strong, it simply
+      fails to award the weaker Supporting-tier evidence in the
+      0.002%-0.01% band -- a disclosed, conservative simplification, not a
+      silent one.
+
+      Like CAPN3's own threshold_source, this project approximates gnomAD
+      Filter Allele Frequency (FAF, a 95%-CI-based statistic) with the plain
+      overall_af / ancestry_specific_max_af fields already in
+      PopulationEvidence, and does not compute confidence intervals. It also
+      represents a single population_evidence record per variant (per
+      VariantEvidenceBundle's existing one-record constraint, shared by
+      PM2/BA1/BS1), where the real spec checks gnomAD v2.1 and v3.1
+      separately -- fixtures curate one already-reconciled record, the same
+      "curated fact, not re-derived" pattern functional_evidence already
+      uses for PS3/BS3. gnomAD v4.1 (used by this project's own pipeline,
+      Project 4) is not what this VCEP spec's thresholds were calibrated
+      against; this is a known, disclosed version mismatch, not an oversight.

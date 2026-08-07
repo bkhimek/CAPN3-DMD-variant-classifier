@@ -165,11 +165,23 @@ class PhaseRelationship(str, Enum):
 
 
 class CaseInterpretationStatus(str, Enum):
-    """The outcome of Milestone 4's case-level (not variant-level)
-    reasoning: does what was found in this patient explain their disease,
-    given how the gene's disease is inherited?"""
+    """The outcome of case-level (not variant-level) reasoning: does what was
+    found in this patient explain their disease, or — for a risk-conferring
+    autosomal dominant gene where penetrance is incomplete — establish
+    elevated risk, given how the gene's disease is inherited?
+
+    Batch 31 (BRCA1 extension) added RISK_CONFERRING alongside EXPLAINED:
+    BRCA1's monoallelic autosomal dominant mechanism confers elevated,
+    penetrance-dependent disease risk rather than deterministically
+    explaining a diagnosis the way CAPN3's autosomal recessive or DMD's
+    X-linked hemizygous mechanisms do. Reusing EXPLAINED for both would
+    conflate two different clinical claims under one label — see
+    clinical.py's interpret_dominant_case and README.md, "BRCA1 extension
+    (Batch 31)" for the full writeup.
+    """
 
     EXPLAINED = "EXPLAINED"
+    RISK_CONFERRING = "RISK_CONFERRING"
     INSUFFICIENT = "INSUFFICIENT"
     MANUAL_REVIEW = "MANUAL_REVIEW"
     NOT_APPLICABLE = "NOT_APPLICABLE"
@@ -219,18 +231,18 @@ class CnvReadingFrameEffect(str, Enum):
 
 # The Section 2 (loss/deletion, dosage-sensitivity) category codes this
 # project's cnv_scoring.py actually evaluates, per the ACMG/ClinGen
-# Technical Standards for Copy-Number Variants (Riggs et al. 2020), point
-# values as reimplemented by ClassifyCNV (Gurbich & Ilinsky 2020, Sci Rep
-# 10:20375). NONE_APPLICABLE is this project's OWN bookkeeping label (not
-# a Riggs/ClassifyCNV code) for a deletion that is intragenic, established
-# to be in an HI gene, but whose reading-frame effect is IN_FRAME or
-# UNKNOWN -- i.e. none of 2A/2C/2D/2E/2F match. The real Riggs rubric
-# likely has a specific code for this shape (candidates seen in secondary
-# sources include 2B and 2G) but this project has not independently
-# verified either one's exact definition or point value, so rather than
-# guess, it reports zero Section-2 points under this disclosed
-# project-internal label. See cnv_deletion_evidence.py and cnv_scoring.py
-# for the full scope writeup.
+# Technical Standards for the Interpretation and Reporting of Constitutional
+# Copy-Number Variants (Riggs et al. 2020), point values as reimplemented by
+# ClassifyCNV (Gurbich & Ilinsky 2020, Sci Rep 10:20375). NONE_APPLICABLE is
+# this project's OWN bookkeeping label (not a Riggs/ClassifyCNV code) for a
+# deletion that is intragenic, established to be in an HI gene, but whose
+# reading-frame effect is IN_FRAME or UNKNOWN -- i.e. none of 2A/2C/2D/2E/2F
+# match. The real Riggs rubric likely has a specific code for this shape
+# (candidates seen in secondary sources include 2B and 2G) but this project
+# has not independently verified either one's exact definition or point
+# value, so rather than guess, it reports zero Section-2 points under this
+# disclosed project-internal label. See cnv_deletion_evidence.py and
+# cnv_scoring.py for the full scope writeup.
 CNV_LOSS_CATEGORY_CODES = frozenset({"2A", "2C", "2D", "2E", "2F", "NONE_APPLICABLE"})
 
 

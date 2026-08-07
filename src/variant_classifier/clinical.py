@@ -53,6 +53,17 @@ Scope, stated plainly:
   dosage biology (X0/Turner is functionally hemizygous like XY; XXY is
   diploid-X like XX; mosaicism is neither uniformly) that this project
   does not attempt to disambiguate.
+- Autosomal dominant (batch 31 — see "BRCA1 extension (Batch 31)" in the
+  README for the full design): handles exactly one variant. BRCA1 is this
+  module's first risk-conferring (as opposed to deterministic-diagnosis)
+  gene — a qualifying monoallelic variant does not explain a diagnosis the
+  way AR/X-linked qualifying genotypes do, it confers elevated,
+  penetrance-dependent risk. See interpret_dominant_case and
+  CaseInterpretationStatus.RISK_CONFERRING. Two-variant AD case reasoning
+  (e.g. a suspected biallelic BRCA1/BRCA2 Fanconi-anemia-phenotype
+  presentation) is out of scope this batch, rejected outright rather than
+  reasoned about incorrectly, the same treatment X-linked XY gives a
+  two-variant case that isn't a real genotype.
 """
 
 from typing import Dict
@@ -354,26 +365,123 @@ def _interpret_xx_biallelic(
     )
 
 
+def interpret_dominant_case(
+    case: ClinicalCase,
+    classifications: Dict[str, ProvisionalClassification],
+    gene_disease_context: GeneDiseaseContext,
+) -> CaseInterpretation:
+    """Batch 31 (BRCA1 extension). Autosomal dominant, risk-conferring case-level
+    interpretation -- this module's first use of Inheritance.AUTOSOMAL_DOMINANT.
+
+    Distinct in kind, not just in name, from interpret_recessive_case and
+    interpret_x_linked_case: those resolve to EXPLAINED because a qualifying
+    genotype deterministically accounts for a Mendelian diagnosis. A single
+    monoallelic BRCA1 pathogenic variant does not deterministically cause
+    disease -- it confers elevated, penetrance-dependent cancer risk.
+    Conflating the two under EXPLAINED would misrepresent what this classifier
+    is actually claiming, so this branch resolves to the distinct
+    CaseInterpretationStatus.RISK_CONFERRING instead. See README.md, "BRCA1
+    extension (Batch 31)" for the full design writeup.
+
+    A Benign/Likely Benign classification here resolves to INSUFFICIENT, the
+    same status interpret_recessive_case's own trans-phase branch already uses
+    when a co-variant is (Likely) Benign ("it does not count as a
+    disease-causing allele"). That's a deliberate, considered reuse, not an
+    accidental one: INSUFFICIENT already spans both "not enough evidence
+    quantity yet" (e.g. only one of two AR variants found) and "this specific
+    variant is confirmed not to matter" (a refuted hypothesis, not a quantity
+    problem) elsewhere in this module, so extending that same generalization
+    to AD's single-variant case is consistent with existing precedent rather
+    than a new kind of overload. A distinct status (e.g. REFUTED) would be
+    equally defensible and was considered -- not introduced this batch to
+    avoid growing CaseInterpretationStatus by two new values in one pass when
+    only RISK_CONFERRING has a clear, load-bearing semantic justification.
+
+    Scope, stated plainly, matching this module's existing convention:
+    - Handles exactly one variant_id. A patient with two BRCA1 variant_ids
+      (e.g. a suspected biallelic/Fanconi-anemia-phenotype presentation) is
+      out of scope this batch -- deferred alongside PM3/BS2 (see README) --
+      and raises SchemaValidationError rather than silently reasoning about
+      it incorrectly, the same "reject outright, don't guess" treatment
+      interpret_x_linked_case gives two variant_ids for XY.
+    """
+    if gene_disease_context.inheritance != Inheritance.AUTOSOMAL_DOMINANT:
+        raise SchemaValidationError(
+            f"interpret_dominant_case[{case.case_id}]: gene_disease_context.inheritance="
+            f"{gene_disease_context.inheritance.value}, not AUTOSOMAL_DOMINANT"
+        )
+
+    if len(case.variant_ids) != 1:
+        raise SchemaValidationError(
+            f"interpret_dominant_case[{case.case_id}]: {len(case.variant_ids)} variant_ids given, but "
+            "this batch only handles a single monoallelic variant. Two-variant biallelic/"
+            "Fanconi-anemia-phenotype case reasoning for BRCA1 is deferred to a later batch (see "
+            "README.md, 'BRCA1 extension (Batch 31)') -- rejected outright rather than reasoned "
+            "about incorrectly."
+        )
+
+    variant_id = case.variant_ids[0]
+    classification = classifications[variant_id]
+
+    if classification.provisional_class in _BENIGN_SIDE:
+        return CaseInterpretation(
+            case_id=case.case_id,
+            gene=case.gene,
+            status=CaseInterpretationStatus.INSUFFICIENT,
+            rationale=(
+                f"{variant_id} is classified {classification.provisional_class.value} — does not "
+                "confer elevated disease risk regardless of zygosity."
+            ),
+        )
+
+    if classification.provisional_class in _QUALIFYING:
+        return CaseInterpretation(
+            case_id=case.case_id,
+            gene=case.gene,
+            status=CaseInterpretationStatus.RISK_CONFERRING,
+            rationale=(
+                f"inheritance=AUTOSOMAL_DOMINANT, and {variant_id} is classified "
+                f"{classification.provisional_class.value}. A single monoallelic variant is "
+                "sufficient to confer elevated, penetrance-dependent disease risk in an autosomal "
+                "dominant, risk-conferring gene -- distinct from EXPLAINED, which this project "
+                "reserves for genotypes that deterministically account for a Mendelian diagnosis "
+                "(as in CAPN3's autosomal recessive or DMD's X-linked hemizygous mechanisms)."
+            ),
+        )
+
+    return CaseInterpretation(
+        case_id=case.case_id,
+        gene=case.gene,
+        status=CaseInterpretationStatus.MANUAL_REVIEW,
+        rationale=(
+            f"inheritance=AUTOSOMAL_DOMINANT, but {variant_id} is classified "
+            f"{classification.provisional_class.value} — not yet conclusive enough to establish "
+            "elevated risk on its own."
+        ),
+    )
+
+
 def interpret_case(
     case: ClinicalCase,
     classifications: Dict[str, ProvisionalClassification],
     gene_disease_context: GeneDiseaseContext,
 ) -> CaseInterpretation:
-    """Dispatches to interpret_recessive_case or interpret_x_linked_case based on
-    gene_disease_context.inheritance. Any other inheritance pattern (autosomal
-    dominant, mitochondrial, unknown) is NOT_APPLICABLE — Milestone 4 only
-    covers the two patterns CAPN3 and DMD illustrate.
+    """Dispatches to interpret_recessive_case, interpret_x_linked_case, or
+    interpret_dominant_case based on gene_disease_context.inheritance. Any
+    other inheritance pattern (mitochondrial, unknown) remains NOT_APPLICABLE.
     """
     if gene_disease_context.inheritance == Inheritance.AUTOSOMAL_RECESSIVE:
         return interpret_recessive_case(case, classifications, gene_disease_context)
     if gene_disease_context.inheritance in (Inheritance.X_LINKED_RECESSIVE, Inheritance.X_LINKED_DOMINANT):
         return interpret_x_linked_case(case, classifications, gene_disease_context)
+    if gene_disease_context.inheritance == Inheritance.AUTOSOMAL_DOMINANT:
+        return interpret_dominant_case(case, classifications, gene_disease_context)
     return CaseInterpretation(
         case_id=case.case_id,
         gene=case.gene,
         status=CaseInterpretationStatus.NOT_APPLICABLE,
         rationale=(
             f"inheritance={gene_disease_context.inheritance.value} is not one of the patterns "
-            "Milestone 4 covers (autosomal recessive, X-linked)."
+            "this project covers (autosomal recessive, X-linked, autosomal dominant)."
         ),
     )
