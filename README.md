@@ -1937,11 +1937,13 @@ not an indel) rather than weakening the new gate to accommodate one
 synthetic fixture's original design.
 
 BA1/BS1's founder-frequency handling (see "PM2 and founder mutations"
-above) needed a real fix, not just a config entry, to work correctly for
-BRCA1's two Ashkenazi-founder fixtures (185delAG, 5382insC): re-reading
-`ba1.py`/`bs1.py` directly (not assumed from the CAPN3 pattern) showed
-both evaluators compare `overall_af` against the gene's threshold
-*before* ever consulting `ancestry_specific_max_af` -- so curating
+above) needed the right value curated into `overall_af` for BRCA1's two
+Ashkenazi-founder fixtures (185delAG, 5382insC), not a code or config
+change -- the evaluators themselves were already correct and untouched.
+Re-reading `ba1.py`/`bs1.py` directly (not assumed from the CAPN3
+pattern) confirmed this: both evaluators compare `overall_af` against
+the gene's threshold *before* ever consulting
+`ancestry_specific_max_af` -- so curating
 `ancestry_specific_max_af` alone as a founder-excluded value, the
 original plan, would not have worked: 185delAG's raw gnomAD total AF
 (1.185e-4) already exceeds BRCA1's own BS1 threshold (1e-4) on its own,
